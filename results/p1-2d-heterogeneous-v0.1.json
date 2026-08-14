@@ -1,0 +1,103 @@
+{
+  "confirmation": {
+    "heterogeneous_checkerboard": {
+      "binary_capacity_bits": 7.643856189775,
+      "binary_fixed_attractors": 200,
+      "binary_fixed_seed_coverage": 0.8828125,
+      "fixed_attractors": 224,
+      "fixed_seed_coverage": 0.9765625,
+      "mixed_fixed_attractors": 24,
+      "one_bit_recovery": 0.588,
+      "recovery_cost": 2.4586,
+      "recovery_trials": 5000,
+      "seed_transition_cost": 15.24609375,
+      "unique_final_states": 230
+    },
+    "homogeneous_adaptive": {
+      "binary_capacity_bits": 7.761551232444,
+      "binary_fixed_attractors": 217,
+      "binary_fixed_seed_coverage": 0.8984375,
+      "fixed_attractors": 237,
+      "fixed_seed_coverage": 0.9765625,
+      "mixed_fixed_attractors": 20,
+      "one_bit_recovery": 0.477050691244,
+      "recovery_cost": 1.881105990783,
+      "recovery_trials": 5425,
+      "seed_transition_cost": 12.04296875,
+      "unique_final_states": 243
+    },
+    "homogeneous_anchor": {
+      "binary_capacity_bits": 6.49185309633,
+      "binary_fixed_attractors": 90,
+      "binary_fixed_seed_coverage": 0.6875,
+      "fixed_attractors": 133,
+      "fixed_seed_coverage": 0.859375,
+      "mixed_fixed_attractors": 43,
+      "one_bit_recovery": 0.735111111111,
+      "recovery_cost": 3.150222222222,
+      "recovery_trials": 2250,
+      "seed_transition_cost": 23.421875,
+      "unique_final_states": 166
+    },
+    "majority_ca": {
+      "binary_capacity_bits": 7.199672344836,
+      "binary_fixed_attractors": 147,
+      "binary_fixed_seed_coverage": 0.890625,
+      "fixed_attractors": 147,
+      "fixed_seed_coverage": 0.890625,
+      "mixed_fixed_attractors": 0,
+      "one_bit_recovery": 0.659047619048,
+      "recovery_cost": 38.805170068027,
+      "recovery_trials": 3675,
+      "seed_transition_cost": 41.07421875,
+      "unique_final_states": 175
+    }
+  },
+  "result_digest": "47b0b631df4f47450c1530638e3ebe17dc3d7da2872aeeefe3e4c2b7b9fc9d3a",
+  "schema_version": "cosmic-organics/2d-heterogeneous-result-0.1",
+  "selection_provenance": {
+    "candidate_status": "exploratory_selected_before_confirmation",
+    "confirmation_samples": 256,
+    "confirmation_seed": 2026081402,
+    "structured_discovery_patterns": 5,
+    "validation_seed": 731947
+  },
+  "structured": {
+    "heterogeneous_checkerboard": {
+      "average_recovery_transition_cost": 2.213333333333,
+      "one_bit_recovery_rate": 0.733333333333,
+      "stable_pattern_count": 3,
+      "stable_patterns": ["vertical_split", "horizontal_split", "frame"]
+    },
+    "homogeneous_adaptive": {
+      "average_recovery_transition_cost": 1.76,
+      "one_bit_recovery_rate": 0.51,
+      "stable_pattern_count": 4,
+      "stable_patterns": ["vertical_split", "horizontal_split", "cross", "frame"]
+    },
+    "homogeneous_anchor": {
+      "average_recovery_transition_cost": 2.8,
+      "one_bit_recovery_rate": 0.68,
+      "stable_pattern_count": 3,
+      "stable_patterns": ["vertical_split", "horizontal_split", "frame"]
+    },
+    "majority_ca": {
+      "average_recovery_transition_cost": 3.453333333333,
+      "one_bit_recovery_rate": 0.68,
+      "stable_pattern_count": 3,
+      "stable_patterns": ["vertical_split", "horizontal_split", "frame"]
+    }
+  },
+  "suite_id": "p1-2d-heterogeneous-v0.1",
+  "summary": {
+    "candidate_pareto_nondominated": true,
+    "confirmation_candidate_binary_capacity_delta_bits_vs_majority": 0.444183844939,
+    "confirmation_candidate_binary_coverage_delta_vs_majority": -0.0078125,
+    "confirmation_candidate_recovery_cost_ratio_vs_majority": 0.063357537042,
+    "confirmation_candidate_recovery_delta_vs_majority": -0.071047619048,
+    "confirmation_candidate_seed_cost_ratio_vs_majority": 0.371184022825,
+    "full_dominance_observed": false,
+    "interpretation": "new_pareto_point_not_full_dominance",
+    "structured_same_codebook_more_recovery_lower_cost": true
+  }
+}

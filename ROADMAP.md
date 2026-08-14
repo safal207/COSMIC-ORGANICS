@@ -19,8 +19,10 @@
 - [x] Add simple external task-matched baselines (majority cellular automaton / leaky three-state accumulator).
 - [x] Measure binary state capacity, retention, single-bit noise recovery, and relaxation transition cost.
 - [x] Evaluate a targeted MORPHOS-T2 mixed-state relaxation repair over a declared 243-point grid.
-- [ ] Move the capacity/recovery/cost Pareto frontier beyond simple external baselines or identify a genuinely different useful property.
-- [ ] Add 2D lattice and heterogeneous cell types.
+- [x] Add a 5×5 2D lattice with checkerboard heterogeneous cell types and frozen confirmation corpus.
+- [x] Produce a reproducible Pareto point that survives a separate confirmation corpus.
+- [ ] Test the 2D Pareto point across multiple confirmation seeds, larger lattices, topology/mask ablations, and stronger recurrent/reservoir baselines.
+- [ ] Map the software transition-cost proxy to a physical-device cost model.
 - [x] Create machine-readable experiment manifests and deterministic result digests.
 
 **Current P1 evidence:**
@@ -31,11 +33,12 @@
 4. a 400-point robustness sweep finds only a narrow all-gate region (`20 / 400`);
 5. simple task-matched external baselines tie all three original positive toy tasks;
 6. state-capacity testing exposes a mixed-state dead zone and no capacity/noise advantage for T1;
-7. T2 partially repairs that failure: `85 / 243` repair-grid points preserve all old gates, `8` eliminate the declared dead zone, and `57` beat majority CA on recovery alone — but **0** dominate majority CA on capacity + recovery + transition cost together.
+7. T2 partially repairs that failure but **0** T2 points dominate majority CA on capacity + recovery + transition cost together;
+8. 2D checkerboard heterogeneity survives a frozen 256-input SHA-256 confirmation corpus as a **non-dominated Pareto point**: `200` binary attractors vs majority `147`, `7.6439` vs `7.1997` capacity bits, and far lower transition cost, but lower one-bit recovery (`58.80%` vs `65.90%`).
 
-These are computational toy-model results, not physical or neural-network superiority claims.
+These are computational toy-model results, not physical, biological, quantum, or neural-network superiority claims.
 
-**Exit criterion:** P1 requires a measurable property that survives appropriate external baselines. T2 demonstrates a tunable capacity/recovery tradeoff but not dominance. The next architecture should test whether heterogeneous or higher-dimensional structure creates a genuinely new Pareto region rather than adding another scalar threshold.
+**Exit criterion:** P1 still requires stronger generalization before any broad advantage claim. The 2D heterogeneous architecture creates a reproducible Pareto point, but not full dominance. Next, the same tradeoff must survive multiple seeds, larger grids, topology/mask ablations, and stronger external baselines without candidate retuning.
 
 ## P2 — Material correspondence
 

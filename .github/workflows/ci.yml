@@ -46,3 +46,7 @@ jobs:
         run: python -m benchmarks.run_external_baselines --output /tmp/p1-external-baselines.json
       - name: Verify committed P1 external baseline result
         run: cmp /tmp/p1-external-baselines.json results/p1-external-baselines-v0.1.json
+      - name: Reproduce P1 state capacity result
+        run: python -m benchmarks.run_state_capacity --output /tmp/p1-state-capacity.json
+      - name: Verify committed P1 state capacity result
+        run: cmp /tmp/p1-state-capacity.json results/p1-state-capacity-v0.1.json

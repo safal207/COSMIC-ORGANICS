@@ -1,0 +1,91 @@
+{
+  "baselines": [
+    {
+      "average_relaxation_transition_cost": 0.0,
+      "capacity_bits": 7.0,
+      "corruption_trials": 896,
+      "kind": "independent_binary_memory",
+      "mixed_dead_zone_fraction": 0.0,
+      "one_bit_recovery_rate": 0.0,
+      "stable_fraction": 1.0,
+      "stable_states": 128
+    },
+    {
+      "average_relaxation_transition_cost": 1.732142857143,
+      "capacity_bits": 4.0,
+      "corruption_trials": 112,
+      "kind": "majority_ca",
+      "mixed_dead_zone_fraction": 0.0,
+      "one_bit_recovery_rate": 0.375,
+      "stable_fraction": 0.125,
+      "stable_states": 16
+    }
+  ],
+  "morphos_sweep": [
+    {
+      "average_relaxation_transition_cost": 0.0,
+      "capacity_bits": 7.0,
+      "corruption_trials": 896,
+      "coupling": 0.0,
+      "mixed_dead_zone_fraction": 0.0,
+      "one_bit_recovery_rate": 0.0,
+      "stable_fraction": 1.0,
+      "stable_states": 128
+    },
+    {
+      "average_relaxation_transition_cost": 1.285714285714,
+      "capacity_bits": 4.0,
+      "corruption_trials": 112,
+      "coupling": 0.25,
+      "mixed_dead_zone_fraction": 0.821428571429,
+      "one_bit_recovery_rate": 0.0,
+      "stable_fraction": 0.125,
+      "stable_states": 16
+    },
+    {
+      "average_relaxation_transition_cost": 3.428571428571,
+      "capacity_bits": 1.0,
+      "corruption_trials": 14,
+      "coupling": 0.5,
+      "mixed_dead_zone_fraction": 1.0,
+      "one_bit_recovery_rate": 0.0,
+      "stable_fraction": 0.015625,
+      "stable_states": 2
+    },
+    {
+      "average_relaxation_transition_cost": 5.285714285714,
+      "capacity_bits": 1.0,
+      "corruption_trials": 14,
+      "coupling": 1.0,
+      "mixed_dead_zone_fraction": 1.0,
+      "one_bit_recovery_rate": 0.0,
+      "stable_fraction": 0.015625,
+      "stable_states": 2
+    }
+  ],
+  "result_digest": "02512286be42f99908a6bf2bc07d4f7fb4fc03853fa04e9e172dd2b4f5b09a5b",
+  "schema_version": "cosmic-organics/state-capacity-result-0.1",
+  "suite_id": "p1-state-capacity-v0.1",
+  "summary": {
+    "capacity_advantage_observed": false,
+    "independent_memory": {
+      "capacity_bits": 7.0,
+      "one_bit_recovery_rate": 0.0,
+      "stable_states": 128
+    },
+    "majority_ca": {
+      "capacity_bits": 4.0,
+      "one_bit_recovery_rate": 0.375,
+      "stable_states": 16
+    },
+    "mixed_dead_zone_detected": true,
+    "noise_advantage_observed": false,
+    "robust_config": {
+      "capacity_bits": 1.0,
+      "coupling": 1.0,
+      "mixed_dead_zone_fraction": 1.0,
+      "one_bit_recovery_rate": 0.0,
+      "stable_states": 2
+    }
+  }
+}

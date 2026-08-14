@@ -11,13 +11,17 @@
 
 ## P1 — Computational falsification
 
-- [ ] Define 3 benchmark tasks where structural transitions are the only adaptive state.
-- [ ] Add conventional cellular-automaton / recurrent baseline comparisons.
-- [ ] Measure convergence, transition cost, memory retention, robustness, and state capacity.
+- [x] Define 3 benchmark tasks where structural transitions are the only adaptive state.
+- [x] Add an uncoupled stateful ablation baseline.
+- [ ] Add broader baseline comparisons (cellular automaton / recurrent model).
+- [ ] Measure convergence, transition cost, memory retention, robustness, and state capacity across parameter sweeps. (`transition_count`, retention, and accuracy are present in v0.1; robustness/state capacity are not.)
 - [ ] Add 2D lattice and heterogeneous cell types.
-- [ ] Create a machine-readable experiment manifest.
+- [x] Create a machine-readable experiment manifest and deterministic result digest.
+- [x] Preserve a known failing benchmark (`subthreshold-accumulation`) instead of tuning it away.
 
-**Exit criterion:** MORPHOS must beat or reveal a distinct useful property versus at least one simple baseline on a declared benchmark. Failure is a valid research result.
+**Current P1 evidence:** local coupling improves the declared `defect-repair` toy task from `0.8571` to `1.0000`, while temporal subthreshold integration fails. This is a partial computational result, not a physical or neural-network superiority claim.
+
+**Exit criterion:** MORPHOS must beat or reveal a distinct useful property versus at least one simple baseline on a declared benchmark. Failure is a valid research result. The v0.1 ablation meets the narrow “distinct property” criterion for defect repair; P1 remains open until robustness and broader baselines are tested.
 
 ## P2 — Material correspondence
 

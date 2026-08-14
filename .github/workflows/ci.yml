@@ -30,3 +30,7 @@ jobs:
           assert "metrics" in data
           print(data["state_digest"])
           PY
+      - name: Reproduce P1 benchmark result
+        run: python -m benchmarks.run --output /tmp/p1-result.json
+      - name: Verify committed P1 result
+        run: cmp /tmp/p1-result.json results/p1-baseline-v0.1.json

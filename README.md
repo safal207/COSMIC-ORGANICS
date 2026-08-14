@@ -46,6 +46,22 @@ python -m unittest discover -s tests -v
 
 MORPHOS-0 is deliberately small. Its purpose is to make the project falsifiable and testable before adding neural learning, richer physics, photonics, ionic systems, or biological interfaces.
 
+## P1 falsification suite
+
+The first controlled comparison is executable and intentionally includes a failing hypothesis:
+
+```bash
+python -m benchmarks.run
+```
+
+Current `p1-baseline-v0.1` result:
+
+- `defect-repair`: MORPHOS `1.0000` vs uncoupled baseline `0.8571`
+- `pulse-retention`: parity at `1.0000`
+- `subthreshold-accumulation`: both `0.0000` — **known MORPHOS-0 limitation**
+
+The result is committed under `results/` and regenerated in CI. See [P1 baseline results](docs/P1-BASELINE-RESULTS.md).
+
 ## Research question
 
 Can useful computation be expressed as controlled transitions of structured, mixed, and amorphous states, such that the computational state is also a persistent physical-like structure?
@@ -60,6 +76,7 @@ The software model is only the first test of that question.
 - [State algebra](spec/state-algebra.md)
 - [MORPHOS cell](spec/morphos-cell.md)
 - [Evidence map](research/evidence-map.md)
+- [P1 baseline results](docs/P1-BASELINE-RESULTS.md)
 - [Roadmap](ROADMAP.md)
 
 ## License

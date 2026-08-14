@@ -1,0 +1,64 @@
+{
+  "baseline": {
+    "description": "Same state machine and thresholds with neighbor coupling forced to zero.",
+    "id": "uncoupled-stateful"
+  },
+  "benchmarks": [
+    {
+      "claim": "Local interaction can restore a single amorphous defect inside a crystalline domain under declared hysteretic thresholds.",
+      "config": {
+        "amorphize_threshold": 1.2,
+        "coupling": 1.0,
+        "crystallize_threshold": 0.4
+      },
+      "criterion": "morphos_accuracy_gt_baseline",
+      "id": "defect-repair",
+      "initial": "CCCACCC",
+      "pulses": [
+        0.0,
+        0.0
+      ],
+      "target": "CCCCCCC"
+    },
+    {
+      "claim": "A completed phase transition persists after the driving pulse is removed.",
+      "config": {
+        "amorphize_threshold": 0.35,
+        "coupling": 0.35,
+        "crystallize_threshold": 0.35
+      },
+      "criterion": "morphos_accuracy_eq_1",
+      "id": "pulse-retention",
+      "initial": "AAAAA",
+      "pulses": [
+        0.5,
+        0.5,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "target": "CCCCC"
+    },
+    {
+      "claim": "Repeated subthreshold pulses can be temporally integrated into a phase transition.",
+      "config": {
+        "amorphize_threshold": 0.35,
+        "coupling": 0.35,
+        "crystallize_threshold": 0.35
+      },
+      "criterion": "morphos_accuracy_eq_1",
+      "id": "subthreshold-accumulation",
+      "initial": "AAAAA",
+      "pulses": [
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2
+      ],
+      "target": "CCCCC"
+    }
+  ],
+  "schema_version": "cosmic-organics/experiment-manifest-0.1",
+  "suite_id": "p1-baseline-v0.1"
+}

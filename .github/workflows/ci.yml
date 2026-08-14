@@ -54,3 +54,7 @@ jobs:
         run: python -m benchmarks.run_t2_repair --output /tmp/p1-t2-repair.json
       - name: Verify committed P1 T2 repair result
         run: cmp /tmp/p1-t2-repair.json results/p1-t2-repair-v0.1.json
+      - name: Reproduce P1 2D heterogeneous result
+        run: python -m benchmarks.run_2d_heterogeneous --output /tmp/p1-2d-heterogeneous.json
+      - name: Verify committed P1 2D heterogeneous result
+        run: cmp /tmp/p1-2d-heterogeneous.json results/p1-2d-heterogeneous-v0.1.json

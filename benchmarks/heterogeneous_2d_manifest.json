@@ -1,0 +1,55 @@
+{
+  "candidate": {
+    "adaptive_coupling": 0.5,
+    "adaptive_threshold": 0.35,
+    "anchor_coupling": 0.75,
+    "anchor_threshold": 0.5,
+    "mask": "checkerboard",
+    "memory_decay": 0.0,
+    "mixed_relax_threshold": 0.05
+  },
+  "confirmation": {
+    "generator": "sha256-indexed-bits",
+    "relax_steps": 6,
+    "samples": 256,
+    "seed": 2026081402
+  },
+  "grid": {
+    "height": 5,
+    "width": 5
+  },
+  "schema_version": "cosmic-organics/2d-heterogeneous-manifest-0.1",
+  "selection_provenance": {
+    "candidate_status": "exploratory_selected_before_confirmation",
+    "confirmation_samples": 256,
+    "confirmation_seed": 2026081402,
+    "structured_discovery_patterns": 5,
+    "validation_seed": 731947
+  },
+  "structured": {
+    "patterns": [
+      {
+        "id": "vertical_split",
+        "rows": ["AACCC", "AACCC", "AACCC", "AACCC", "AACCC"]
+      },
+      {
+        "id": "horizontal_split",
+        "rows": ["AAAAA", "AAAAA", "CCCCC", "CCCCC", "CCCCC"]
+      },
+      {
+        "id": "cross",
+        "rows": ["AACAA", "AACAA", "CCCCC", "AACAA", "AACAA"]
+      },
+      {
+        "id": "frame",
+        "rows": ["CCCCC", "CAAAC", "CAAAC", "CAAAC", "CCCCC"]
+      },
+      {
+        "id": "checker",
+        "rows": ["ACACA", "CACAC", "ACACA", "CACAC", "ACACA"]
+      }
+    ],
+    "relax_steps": 3
+  },
+  "suite_id": "p1-2d-heterogeneous-v0.1"
+}

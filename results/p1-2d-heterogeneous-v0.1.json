@@ -67,25 +67,42 @@
       "average_recovery_transition_cost": 2.213333333333,
       "one_bit_recovery_rate": 0.733333333333,
       "stable_pattern_count": 3,
-      "stable_patterns": ["vertical_split", "horizontal_split", "frame"]
+      "stable_patterns": [
+        "vertical_split",
+        "horizontal_split",
+        "frame"
+      ]
     },
     "homogeneous_adaptive": {
       "average_recovery_transition_cost": 1.76,
       "one_bit_recovery_rate": 0.51,
       "stable_pattern_count": 4,
-      "stable_patterns": ["vertical_split", "horizontal_split", "cross", "frame"]
+      "stable_patterns": [
+        "vertical_split",
+        "horizontal_split",
+        "cross",
+        "frame"
+      ]
     },
     "homogeneous_anchor": {
       "average_recovery_transition_cost": 2.8,
       "one_bit_recovery_rate": 0.68,
       "stable_pattern_count": 3,
-      "stable_patterns": ["vertical_split", "horizontal_split", "frame"]
+      "stable_patterns": [
+        "vertical_split",
+        "horizontal_split",
+        "frame"
+      ]
     },
     "majority_ca": {
       "average_recovery_transition_cost": 3.453333333333,
       "one_bit_recovery_rate": 0.68,
       "stable_pattern_count": 3,
-      "stable_patterns": ["vertical_split", "horizontal_split", "frame"]
+      "stable_patterns": [
+        "vertical_split",
+        "horizontal_split",
+        "frame"
+      ]
     }
   },
   "suite_id": "p1-2d-heterogeneous-v0.1",

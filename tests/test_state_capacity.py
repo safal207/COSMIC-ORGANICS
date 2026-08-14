@@ -8,9 +8,15 @@ class StateCapacityTests(unittest.TestCase):
         result = run_suite()
         sweep = {item["coupling"]: item for item in result["morphos_sweep"]}
         self.assertEqual(sweep[0.0]["stable_states"], 128)
-        self.assertEqual(sweep[0.25]["stable_states"], 128)
-        self.assertEqual(sweep[0.5]["stable_states"], 16)
+        self.assertEqual(sweep[0.25]["stable_states"], 16)
+        self.assertEqual(sweep[0.5]["stable_states"], 2)
         self.assertEqual(sweep[1.0]["stable_states"], 2)
+
+    def test_temporal_accumulation_changes_capacity_boundary(self):
+        result = run_suite()
+        sweep = {item["coupling"]: item for item in result["morphos_sweep"]}
+        self.assertEqual(sweep[0.25]["capacity_bits"], 4.0)
+        self.assertEqual(sweep[0.25]["mixed_dead_zone_fraction"], 0.821428571429)
 
     def test_robust_configuration_has_mixed_dead_zone(self):
         result = run_suite()
@@ -37,7 +43,7 @@ class StateCapacityTests(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertEqual(
             first["result_digest"],
-            "3a3e4a783c2a3869cb5cfe92191ff6b597d9167652e08eb13cf283a44179e3eb",
+            "02512286be42f99908a6bf2bc07d4f7fb4fc03853fa04e9e172dd2b4f5b09a5b",
         )
 
 

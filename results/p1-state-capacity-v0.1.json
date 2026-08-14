@@ -33,27 +33,27 @@
       "stable_states": 128
     },
     {
-      "average_relaxation_transition_cost": 0.0,
-      "capacity_bits": 7.0,
-      "corruption_trials": 896,
-      "coupling": 0.25,
-      "mixed_dead_zone_fraction": 0.0,
-      "one_bit_recovery_rate": 0.0,
-      "stable_fraction": 1.0,
-      "stable_states": 128
-    },
-    {
       "average_relaxation_transition_cost": 1.285714285714,
       "capacity_bits": 4.0,
       "corruption_trials": 112,
-      "coupling": 0.5,
+      "coupling": 0.25,
       "mixed_dead_zone_fraction": 0.821428571429,
       "one_bit_recovery_rate": 0.0,
       "stable_fraction": 0.125,
       "stable_states": 16
     },
     {
-      "average_relaxation_transition_cost": 3.0,
+      "average_relaxation_transition_cost": 3.428571428571,
+      "capacity_bits": 1.0,
+      "corruption_trials": 14,
+      "coupling": 0.5,
+      "mixed_dead_zone_fraction": 1.0,
+      "one_bit_recovery_rate": 0.0,
+      "stable_fraction": 0.015625,
+      "stable_states": 2
+    },
+    {
+      "average_relaxation_transition_cost": 5.285714285714,
       "capacity_bits": 1.0,
       "corruption_trials": 14,
       "coupling": 1.0,
@@ -63,7 +63,7 @@
       "stable_states": 2
     }
   ],
-  "result_digest": "3a3e4a783c2a3869cb5cfe92191ff6b597d9167652e08eb13cf283a44179e3eb",
+  "result_digest": "02512286be42f99908a6bf2bc07d4f7fb4fc03853fa04e9e172dd2b4f5b09a5b",
   "schema_version": "cosmic-organics/state-capacity-result-0.1",
   "suite_id": "p1-state-capacity-v0.1",
   "summary": {

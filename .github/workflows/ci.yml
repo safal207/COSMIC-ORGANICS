@@ -42,3 +42,7 @@ jobs:
         run: python -m benchmarks.run_robustness --output /tmp/p1-robustness.json
       - name: Verify committed P1 robustness result
         run: cmp /tmp/p1-robustness.json results/p1-robustness-v0.1.json
+      - name: Reproduce P1 external baseline result
+        run: python -m benchmarks.run_external_baselines --output /tmp/p1-external-baselines.json
+      - name: Verify committed P1 external baseline result
+        run: cmp /tmp/p1-external-baselines.json results/p1-external-baselines-v0.1.json

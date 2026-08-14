@@ -16,7 +16,7 @@
 - [x] Preserve the first known failure instead of tuning it away.
 - [x] Add MORPHOS-T1 retained activation and repair the locked subthreshold-integration failure with three negative controls.
 - [x] Sweep decay, threshold, coupling, and pulse amplitude across a declared 400-point grid.
-- [ ] Add broader baseline comparisons (cellular automaton / recurrent model).
+- [x] Add simple external task-matched baselines (majority cellular automaton / leaky three-state accumulator).
 - [ ] Measure state capacity, convergence cost, and transition efficiency beyond the current robustness map.
 - [ ] Add 2D lattice and heterogeneous cell types.
 - [x] Create machine-readable experiment manifests and deterministic result digests.
@@ -26,13 +26,16 @@
 1. local coupling improves the declared `defect-repair` toy task from `0.8571` to `1.0000`;
 2. MORPHOS-0 fails locked temporal subthreshold integration;
 3. MORPHOS-T1 repairs that same locked sequence (`1.0000` vs `0.0000`) while zero-input, isolated-pulse, and alternating-pulse negative controls remain stable at the declared temporal configuration;
-4. a 400-point robustness sweep finds 20 configurations (`5%`) that pass temporal accumulation, defect repair, and all three negative controls simultaneously.
+4. a 400-point robustness sweep finds 20 configurations (`5%`) that pass temporal accumulation, defect repair, and all three negative controls simultaneously;
+5. simple task-matched external baselines tie MORPHOS on all three current positive toy tasks (`0` MORPHOS wins, `3` ties).
 
 The robustness result is deliberately classified as **narrow, not global**. The original temporal configuration passes its temporal task but fails the stricter combined spatial+temporal gate because `coupling=0.35` is insufficient for the locked defect-repair task.
 
+The external-baseline result means the earlier ablation advantage is **not evidence of algorithmic uniqueness**: a simple majority rule reproduces the defect repair, and a generic leaky accumulator reproduces the temporal behavior.
+
 These are computational toy-model results, not physical or neural-network superiority claims.
 
-**Exit criterion:** MORPHOS must beat or reveal a distinct useful property versus at least one simple baseline on a declared benchmark. The narrow criterion is met, and a bounded robustness region now exists, but P1 remains open until broader baselines, state capacity, and higher-dimensional/heterogeneous tests are added.
+**Exit criterion:** P1 now requires a task or measurable system property where MORPHOS shows a declared advantage or qualitatively distinct capability against appropriate external baselines, not merely against an ablated MORPHOS variant. State capacity, transition cost, noise tolerance, and 2D/heterogeneous dynamics remain open targets.
 
 ## P2 — Material correspondence
 

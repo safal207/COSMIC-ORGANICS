@@ -1,0 +1,16 @@
+{
+  "schema_version": "cosmic-organics/t2-repair-manifest-0.1",
+  "suite_id": "p1-t2-repair-v0.1",
+  "grid": {
+    "memory_decay": [0.4, 0.6, 0.8],
+    "threshold": [0.25, 0.35, 0.45],
+    "coupling": [0.25, 0.35, 0.5],
+    "pulse_amplitude": [0.15, 0.2, 0.25],
+    "mixed_relax_threshold": [0.05, 0.1, 0.15]
+  },
+  "state_capacity": {
+    "lattice_size": 7,
+    "relax_steps": 3
+  },
+  "baseline": "majority_ca"
+}

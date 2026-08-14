@@ -1,0 +1,63 @@
+{
+  "grid": {
+    "coupling": [
+      0.0,
+      0.25,
+      0.35,
+      0.5,
+      1.0
+    ],
+    "memory_decay": [
+      0.0,
+      0.4,
+      0.6,
+      0.8,
+      0.9
+    ],
+    "pulse_amplitude": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ],
+    "threshold": [
+      0.25,
+      0.35,
+      0.45,
+      0.55
+    ]
+  },
+  "locked_tasks": {
+    "alternating_pulse_cancellation": {
+      "cycles": 3,
+      "initial": "AAAAA",
+      "target": "AAAAA"
+    },
+    "defect_repair": {
+      "amorphize_threshold": 1.2,
+      "initial": "CCCACCC",
+      "pulses": [
+        0.0,
+        0.0
+      ],
+      "target": "CCCCCCC"
+    },
+    "isolated_pulse_decay": {
+      "initial": "AAAAA",
+      "target": "AAAAA",
+      "zero_tail": 6
+    },
+    "subthreshold_accumulation": {
+      "initial": "AAAAA",
+      "pulse_count": 5,
+      "target": "CCCCC"
+    },
+    "zero_input_stability": {
+      "initial": "AAAAA",
+      "pulse_count": 6,
+      "target": "AAAAA"
+    }
+  },
+  "schema_version": "cosmic-organics/robustness-manifest-0.1",
+  "suite_id": "p1-robustness-v0.1"
+}

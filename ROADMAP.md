@@ -18,7 +18,8 @@
 - [x] Sweep decay, threshold, coupling, and pulse amplitude across a declared 400-point grid.
 - [x] Add simple external task-matched baselines (majority cellular automaton / leaky three-state accumulator).
 - [x] Measure binary state capacity, retention, single-bit noise recovery, and relaxation transition cost.
-- [ ] Repair or intentionally redesign the mixed-state dead zone without invalidating locked evidence.
+- [x] Evaluate a targeted MORPHOS-T2 mixed-state relaxation repair over a declared 243-point grid.
+- [ ] Move the capacity/recovery/cost Pareto frontier beyond simple external baselines or identify a genuinely different useful property.
 - [ ] Add 2D lattice and heterogeneous cell types.
 - [x] Create machine-readable experiment manifests and deterministic result digests.
 
@@ -26,16 +27,15 @@
 
 1. local coupling improves the declared `defect-repair` toy task from `0.8571` to `1.0000`;
 2. MORPHOS-0 fails locked temporal subthreshold integration;
-3. MORPHOS-T1 repairs that same locked sequence (`1.0000` vs `0.0000`) while zero-input, isolated-pulse, and alternating-pulse negative controls remain stable at the declared temporal configuration;
-4. a 400-point robustness sweep finds 20 configurations (`5%`) that pass temporal accumulation, defect repair, and all three negative controls simultaneously;
-5. simple task-matched external baselines tie MORPHOS on all three current positive toy tasks (`0` MORPHOS wins, `3` ties);
-6. at the known all-gate coupling (`1.0`), binary state capacity collapses to `2 / 128` stable states (`1.0` bit), single-bit recovery is `0%`, and all corruption trials over that stable codebook terminate with mixed `M` states. Majority CA retains `16 / 128` stable states (`4.0` bits) and recovers `37.5%` of single-bit corruptions.
-
-The robustness result is deliberately classified as **narrow, not global**. The external-baseline and state-capacity results show that the current rule has no demonstrated algorithmic advantage and exposes a concrete mixed-state dead zone.
+3. MORPHOS-T1 repairs that same locked sequence while its declared negative controls remain stable;
+4. a 400-point robustness sweep finds only a narrow all-gate region (`20 / 400`);
+5. simple task-matched external baselines tie all three original positive toy tasks;
+6. state-capacity testing exposes a mixed-state dead zone and no capacity/noise advantage for T1;
+7. T2 partially repairs that failure: `85 / 243` repair-grid points preserve all old gates, `8` eliminate the declared dead zone, and `57` beat majority CA on recovery alone — but **0** dominate majority CA on capacity + recovery + transition cost together.
 
 These are computational toy-model results, not physical or neural-network superiority claims.
 
-**Exit criterion:** P1 requires a task or measurable system property where MORPHOS shows a declared advantage or qualitatively distinct capability against appropriate external baselines. Before moving to stronger claims, the mixed-state dead zone must be resolved or justified, and the result must survive the already locked temporal, robustness, capacity, and negative-control tests.
+**Exit criterion:** P1 requires a measurable property that survives appropriate external baselines. T2 demonstrates a tunable capacity/recovery tradeoff but not dominance. The next architecture should test whether heterogeneous or higher-dimensional structure creates a genuinely new Pareto region rather than adding another scalar threshold.
 
 ## P2 — Material correspondence
 

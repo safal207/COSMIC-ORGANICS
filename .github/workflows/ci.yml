@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run MORPHOS-0 tests
+      - name: Run MORPHOS tests
         run: python -m unittest discover -s tests -v
       - name: Run deterministic demo
         run: python -m morphos.simulator > morphos-demo.json
@@ -30,7 +30,11 @@ jobs:
           assert "metrics" in data
           print(data["state_digest"])
           PY
-      - name: Reproduce P1 benchmark result
+      - name: Reproduce P1 baseline result
         run: python -m benchmarks.run --output /tmp/p1-result.json
-      - name: Verify committed P1 result
+      - name: Verify committed P1 baseline result
         run: cmp /tmp/p1-result.json results/p1-baseline-v0.1.json
+      - name: Reproduce P1 temporal result
+        run: python -m benchmarks.run_temporal --output /tmp/p1-temporal.json
+      - name: Verify committed P1 temporal result
+        run: cmp /tmp/p1-temporal.json results/p1-temporal-v0.1.json

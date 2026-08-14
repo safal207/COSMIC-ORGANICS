@@ -1,0 +1,95 @@
+{
+  "baseline": {
+    "description": "MORPHOS-0 with no retained activation term.",
+    "id": "morphos0-memoryless"
+  },
+  "benchmarks": [
+    {
+      "claim": "Repeated subthreshold pulses can be temporally integrated into a structural transition without changing the locked pulse sequence.",
+      "config": {
+        "amorphize_threshold": 0.35,
+        "coupling": 0.35,
+        "crystallize_threshold": 0.35,
+        "memory_decay": 0.8,
+        "reset_on_transition": true
+      },
+      "criterion": "temporal_accuracy_gt_memoryless",
+      "id": "subthreshold-accumulation-locked",
+      "initial": "AAAAA",
+      "pulses": [
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2
+      ],
+      "target": "CCCCC"
+    },
+    {
+      "claim": "Retained activation must not create spontaneous transitions under zero input.",
+      "config": {
+        "amorphize_threshold": 0.35,
+        "coupling": 0.35,
+        "crystallize_threshold": 0.35,
+        "memory_decay": 0.8,
+        "reset_on_transition": true
+      },
+      "criterion": "temporal_accuracy_eq_1_no_transitions",
+      "id": "zero-input-stability",
+      "initial": "AAAAA",
+      "pulses": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "target": "AAAAA"
+    },
+    {
+      "claim": "One isolated subthreshold pulse must decay without causing a delayed transition.",
+      "config": {
+        "amorphize_threshold": 0.35,
+        "coupling": 0.35,
+        "crystallize_threshold": 0.35,
+        "memory_decay": 0.8,
+        "reset_on_transition": true
+      },
+      "criterion": "temporal_accuracy_eq_1_no_transitions",
+      "id": "isolated-subthreshold-decay",
+      "initial": "AAAAA",
+      "pulses": [
+        0.2,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "target": "AAAAA"
+    },
+    {
+      "claim": "Alternating positive and negative subthreshold pulses must not ratchet the state upward.",
+      "config": {
+        "amorphize_threshold": 0.35,
+        "coupling": 0.35,
+        "crystallize_threshold": 0.35,
+        "memory_decay": 0.8,
+        "reset_on_transition": true
+      },
+      "criterion": "temporal_accuracy_eq_1_no_transitions",
+      "id": "alternating-pulse-cancellation",
+      "initial": "AAAAA",
+      "pulses": [
+        0.2,
+        -0.2,
+        0.2,
+        -0.2,
+        0.2,
+        -0.2
+      ],
+      "target": "AAAAA"
+    }
+  ],
+  "schema_version": "cosmic-organics/experiment-manifest-0.1",
+  "suite_id": "p1-temporal-v0.1"
+}

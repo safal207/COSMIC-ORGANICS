@@ -38,3 +38,7 @@ jobs:
         run: python -m benchmarks.run_temporal --output /tmp/p1-temporal.json
       - name: Verify committed P1 temporal result
         run: cmp /tmp/p1-temporal.json results/p1-temporal-v0.1.json
+      - name: Reproduce P1 robustness map
+        run: python -m benchmarks.run_robustness --output /tmp/p1-robustness.json
+      - name: Verify committed P1 robustness result
+        run: cmp /tmp/p1-robustness.json results/p1-robustness-v0.1.json

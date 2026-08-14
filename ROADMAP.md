@@ -15,9 +15,9 @@
 - [x] Add an uncoupled stateful ablation baseline.
 - [x] Preserve the first known failure instead of tuning it away.
 - [x] Add MORPHOS-T1 retained activation and repair the locked subthreshold-integration failure with three negative controls.
+- [x] Sweep decay, threshold, coupling, and pulse amplitude across a declared 400-point grid.
 - [ ] Add broader baseline comparisons (cellular automaton / recurrent model).
-- [ ] Sweep decay, threshold, coupling, and pulse amplitude to map robustness regions.
-- [ ] Measure convergence, transition cost, memory retention, robustness, and state capacity across parameter sweeps.
+- [ ] Measure state capacity, convergence cost, and transition efficiency beyond the current robustness map.
 - [ ] Add 2D lattice and heterogeneous cell types.
 - [x] Create machine-readable experiment manifests and deterministic result digests.
 
@@ -25,11 +25,14 @@
 
 1. local coupling improves the declared `defect-repair` toy task from `0.8571` to `1.0000`;
 2. MORPHOS-0 fails locked temporal subthreshold integration;
-3. MORPHOS-T1 repairs that same locked sequence (`1.0000` vs `0.0000`) while zero-input, isolated-pulse, and alternating-pulse negative controls remain stable.
+3. MORPHOS-T1 repairs that same locked sequence (`1.0000` vs `0.0000`) while zero-input, isolated-pulse, and alternating-pulse negative controls remain stable at the declared temporal configuration;
+4. a 400-point robustness sweep finds 20 configurations (`5%`) that pass temporal accumulation, defect repair, and all three negative controls simultaneously.
+
+The robustness result is deliberately classified as **narrow, not global**. The original temporal configuration passes its temporal task but fails the stricter combined spatial+temporal gate because `coupling=0.35` is insufficient for the locked defect-repair task.
 
 These are computational toy-model results, not physical or neural-network superiority claims.
 
-**Exit criterion:** MORPHOS must beat or reveal a distinct useful property versus at least one simple baseline on a declared benchmark. The narrow criterion is now met in two ablations, but P1 remains open until robustness regions and broader baselines are measured.
+**Exit criterion:** MORPHOS must beat or reveal a distinct useful property versus at least one simple baseline on a declared benchmark. The narrow criterion is met, and a bounded robustness region now exists, but P1 remains open until broader baselines, state capacity, and higher-dimensional/heterogeneous tests are added.
 
 ## P2 — Material correspondence
 

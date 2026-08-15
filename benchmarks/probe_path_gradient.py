@@ -10,11 +10,11 @@ import json
 
 from benchmarks.run_multimirror import (
     _fixed_binary_targets,
-    _flip_binary,
     _noise_indices,
     _s2_components,
     _sha_binary_seeds,
 )
+from benchmarks.run_reflective import DEFAULT_MANIFEST as REFLECTIVE_MANIFEST
 from morphos.multimirror import MultiReflectiveGrid2D, MultiReflectiveLaw
 from morphos.path_gradient import PathGradientGrid2D, PathGradientLaw
 
@@ -67,32 +67,44 @@ def _case(target, index, config, hierarchy, *, gain=None, planes=()):
 def _corpus(gain, spec):
     width = spec["width"]
     height = spec["height"]
-    config, hierarchy = _s2_components(
-        {
-            "frozen_s1": {"alpha": 0.25},
-            "frozen_s2": {"beta": 0.06, "domain_size": 3},
-        },
-        width,
-        height,
-    )
+    manifest = json.loads(REFLECTIVE_MANIFEST.read_text(encoding="utf-8"))
+    config, hierarchy = _s2_components(manifest, width, height)
     seeds = _sha_binary_seeds(spec["seed"], spec["samples"], width * height)
     targets = _fixed_binary_targets(seeds, config, hierarchy, RELAX_STEPS)[:MAX_TARGETS]
     if not targets:
         raise RuntimeError("development corpus produced no binary fixed targets")
 
-    counts = {"m2_primary": 0, "p1_primary": 0, "m2_double": 0, "p1_double": 0, "m2_all": 0, "p1_all": 0}
+    counts = {
+        "m2_primary": 0,
+        "p1_primary": 0,
+        "m2_double": 0,
+        "p1_double": 0,
+        "m2_all": 0,
+        "p1_all": 0,
+    }
     boosted_steps = 0
     trials = 0
     for target_index, target in enumerate(targets):
-        indices = _noise_indices(spec["seed"], target_index, width * height, TRIALS_PER_TARGET)
+        indices = _noise_indices(
+            spec["seed"], target_index, width * height, TRIALS_PER_TARGET
+        )
         for index in indices:
             m2_primary = _case(target, index, config, hierarchy)
             p1_primary = _case(target, index, config, hierarchy, gain=gain)
             m2_double = _case(target, index, config, hierarchy, planes=("local",))
-            p1_double = _case(target, index, config, hierarchy, gain=gain, planes=("local",))
+            p1_double = _case(
+                target, index, config, hierarchy, gain=gain, planes=("local",)
+            )
             all_planes = ("local", "domain", "system")
             m2_all = _case(target, index, config, hierarchy, planes=all_planes)
-            p1_all = _case(target, index, config, hierarchy, gain=gain, planes=all_planes)
+            p1_all = _case(
+                target,
+                index,
+                config,
+                hierarchy,
+                gain=gain,
+                planes=all_planes,
+            )
             for key, model in (
                 ("m2_primary", m2_primary),
                 ("p1_primary", p1_primary),
@@ -105,7 +117,9 @@ def _corpus(gain, spec):
             boosted_steps += p1_primary.boosted_steps + p1_double.boosted_steps
             trials += 1
 
-    rate = lambda key: counts[key] / trials
+    def rate(key):
+        return counts[key] / trials
+
     return {
         "width": width,
         "height": height,
@@ -120,7 +134,9 @@ def _corpus(gain, spec):
         "m2_all": rate("m2_all"),
         "p1_all": rate("p1_all"),
         "all_gain_vs_m2": rate("p1_all") - rate("m2_all"),
-        "mean_boosted_steps_per_primary_or_double_trial": boosted_steps / (2 * trials),
+        "mean_boosted_steps_per_primary_or_double_trial": (
+            boosted_steps / (2 * trials)
+        ),
     }
 
 
@@ -149,17 +165,25 @@ def main():
         if selected is None and passes:
             selected = gain
 
-    print(json.dumps({
-        "development_only": True,
-        "selection_rule": "minimum passing gradient_gain",
-        "criteria": {
-            "minimum_double_gain_vs_m2": MIN_DOUBLE_GAIN_VS_M2,
-            "minimum_primary_gain_vs_m2": MIN_PRIMARY_GAIN_VS_M2,
-            "maximum_absolute_all_corruption_gain_vs_m2": MAX_ABS_ALL_GAIN_VS_M2,
-        },
-        "candidates": candidates,
-        "selected": selected,
-    }, indent=2, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "development_only": True,
+                "selection_rule": "minimum passing gradient_gain",
+                "criteria": {
+                    "minimum_double_gain_vs_m2": MIN_DOUBLE_GAIN_VS_M2,
+                    "minimum_primary_gain_vs_m2": MIN_PRIMARY_GAIN_VS_M2,
+                    "maximum_absolute_all_corruption_gain_vs_m2": (
+                        MAX_ABS_ALL_GAIN_VS_M2
+                    ),
+                },
+                "candidates": candidates,
+                "selected": selected,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
 
 
 if __name__ == "__main__":

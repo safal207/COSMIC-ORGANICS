@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import json
 import unittest
+from pathlib import Path
 
 from morphos.grid2d import Grid2DConfig
 from morphos.hierarchical import HierarchicalLaw
 from morphos.multimirror import MultiReflectiveGrid2D, MultiReflectiveLaw
 from morphos.reflective import ReflectiveGrid2D, ReflectiveLaw
+
+SUMMARY = Path(__file__).parents[1] / "results" / "p1-multimirror-v0.1-summary.json"
 
 
 class MultiReflectiveTests(unittest.TestCase):
@@ -112,6 +116,27 @@ class MultiReflectiveTests(unittest.TestCase):
         self.assertEqual(model.local_mirror_string()[0], "A")
         self.assertEqual(model.domain_mirror_string()[0], "A")
         self.assertEqual(model.system_mirror_string()[0], "A")
+
+    def test_committed_summary_preserves_strict_gate_failure(self) -> None:
+        evidence = json.loads(SUMMARY.read_text(encoding="utf-8"))
+        self.assertEqual(
+            evidence["schema_version"],
+            "cosmic-organics/multimirror-summary-0.2",
+        )
+        self.assertEqual(
+            evidence["evidence_digest"],
+            "3581295f14c6c3013dd991d426eab4a54e13d919959937776208493e5248ff43",
+        )
+        summary = evidence["summary"]
+        self.assertTrue(summary["adaptation_gate_pass"])
+        self.assertFalse(summary["full_multimirror_gate_pass"])
+        self.assertFalse(summary["double_fault_gate_pass"])
+        self.assertFalse(summary["domain_only_gate_pass"])
+        self.assertFalse(summary["system_only_gate_pass"])
+        self.assertFalse(summary["all_corruption_control_pass"])
+        self.assertGreater(summary["mean_double_gain_vs_m1_co"], 0.30)
+        self.assertGreater(summary["mean_domain_only_gain_vs_m1_co"], 0.19)
+        self.assertGreater(summary["mean_system_only_gain_vs_m1_co"], 0.18)
 
 
 if __name__ == "__main__":

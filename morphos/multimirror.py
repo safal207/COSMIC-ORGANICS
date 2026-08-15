@@ -23,8 +23,8 @@ _VALUE = {"A": 0.0, "M": 0.5, "C": 1.0}
 @dataclass(frozen=True)
 class MultiReflectiveLaw:
     local_coupling: float = 0.15
-    domain_coupling: float = 0.12
-    system_coupling: float = 0.12
+    domain_coupling: float = 0.08
+    system_coupling: float = 0.08
     local_commit_delay: int = 3
     domain_commit_delay: int = 4
     system_commit_delay: int = 5

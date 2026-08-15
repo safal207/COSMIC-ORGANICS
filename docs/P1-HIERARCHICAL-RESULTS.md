@@ -44,9 +44,9 @@ beta = 0.07  FAIL
 
 At `beta = 0.06`:
 
-- minimum discovery capacity delta: `+0.271302021817 bits`;
-- mean discovery capacity delta: `+0.688199183844 bits`;
-- maximum seed-transition-cost ratio: `0.413590604027×`.
+- minimum discovery capacity delta: about `+0.271302022 bits`;
+- mean discovery capacity delta: about `+0.688199184 bits`;
+- maximum seed-transition-cost ratio: about `0.413590604×`.
 
 The candidate is frozen before confirmation.
 
@@ -56,19 +56,19 @@ Nine fresh SHA-256 corpora are used: three each at 5×5, 7×7, and 9×9.
 
 Across all nine:
 
-- mean sampled capacity delta vs majority CA: `+0.468885075994 bits`;
-- mean one-bit recovery delta vs majority CA: `-24.9353 pp`;
-- mean recovery gain vs S1: `+3.1421 pp`;
-- mean seed-transition-cost ratio vs majority CA: `0.277348252940×`;
-- mean recovery-transition-cost ratio vs majority CA: `0.044979029641×`.
+- mean sampled capacity delta vs majority CA: about `+0.468885076 bits`;
+- mean one-bit recovery delta vs majority CA: about `-24.9353 pp`;
+- mean recovery gain vs S1: about `+3.1421 pp`;
+- mean seed-transition-cost ratio vs majority CA: about `0.277348253×`;
+- mean recovery-transition-cost ratio vs majority CA: about `0.044979030×`.
 
 For the six larger-grid corpora only:
 
 - S2 keeps a positive capacity delta on all six;
 - S2 improves recovery over S1 on all six;
-- mean recovery gain over S1: `+4.7132 pp`;
-- minimum recovery gain over S1: `+0.2083 pp`;
-- minimum capacity delta vs majority CA: `+0.289506617195 bits`.
+- mean recovery gain over S1: about `+4.7132 pp`;
+- minimum recovery gain over S1: about `+0.2083 pp`;
+- minimum capacity delta vs majority CA: about `+0.289506617 bits`.
 
 ## New negative evidence
 
@@ -103,21 +103,34 @@ The remaining evidence points to two separate frontiers:
 
 The next experiment should therefore stop treating "capacity PASS" as a settled property. It should measure attractor/codebook robustness across a much broader frozen corpus and explicitly analyze distance between attractors before adding more repair pressure.
 
+## Portable evidence identity
+
+The full diagnostic report contains floating-point quantities derived from operations such as `log2` and power laws. Exact last-bit representations can differ across Python/libm runtimes even when discrete states, gates, and scientifically meaningful values agree. In CI this appeared as a `1e-12` difference in a discovery boundary.
+
+Therefore the **portable evidence identity is not the raw full-report byte hash**.
+
+The normative S2 evidence envelope is a compact scientific summary whose floating-point fields are quantized to **9 decimal places** before canonical JSON hashing. The full report is still regenerated for inspection, but its runtime-exact hash is not treated as a cross-runtime identity.
+
+```text
+portable summary schema
+cosmic-organics/hierarchical-summary-0.2
+
+quantization
+9 decimal places
+
+portable evidence digest
+c7bc7d20863f3da306d1b308887a7711e409bd399ebe82d77b758af4edc0bd37
+```
+
+This preserves the scientific gates while avoiding false evidence failures caused only by insignificant floating-point representation drift.
+
 ## Reproducibility
 
 ```bash
-python -m benchmarks.run_hierarchical
-python -m benchmarks.render_hierarchical_summary
+python -m benchmarks.run_hierarchical --output /tmp/p1-hierarchical-full.json
+python -m benchmarks.render_hierarchical_summary \
+  --report /tmp/p1-hierarchical-full.json \
+  --output /tmp/p1-hierarchical-summary.json
 ```
 
-Evidence identities:
-
-```text
-full result digest
-f41a4e73ce88041a2608a27dab4207e913f297bd1dbc0acc875fa9662e140a3b
-
-committed summary evidence digest
-c9bb235ffe224a7bd7beae9f62e12b60b6ebe3be55828cdf808175f3eca07e62
-```
-
-The full report is regenerated in CI. The committed compact summary binds the full-result digest, discovery boundary, and scientific gate summary and is compared byte-for-byte.
+CI regenerates the full diagnostic report once, derives the portable quantized summary from that exact report, and compares the committed summary byte-for-byte.

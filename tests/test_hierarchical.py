@@ -59,12 +59,17 @@ class HierarchicalLawTests(unittest.TestCase):
     def test_committed_summary_locks_expected_gates(self) -> None:
         summary = json.loads(SUMMARY.read_text(encoding="utf-8"))
         self.assertEqual(
-            summary["full_result_digest"],
-            "f41a4e73ce88041a2608a27dab4207e913f297bd1dbc0acc875fa9662e140a3b",
+            summary["schema_version"],
+            "cosmic-organics/hierarchical-summary-0.2",
         )
         self.assertEqual(
+            summary["portable_identity_scope"],
+            "quantized_scientific_summary",
+        )
+        self.assertEqual(summary["quantization_decimals"], 9)
+        self.assertEqual(
             summary["evidence_digest"],
-            "c9bb235ffe224a7bd7beae9f62e12b60b6ebe3be55828cdf808175f3eca07e62",
+            "c7bc7d20863f3da306d1b308887a7711e409bd399ebe82d77b758af4edc0bd37",
         )
         gates = summary["summary"]
         self.assertTrue(gates["large_scale_capacity_gate_pass"])

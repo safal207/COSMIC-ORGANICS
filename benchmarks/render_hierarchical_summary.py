@@ -1,4 +1,4 @@
-"""Render the compact, digest-bound MORPHOS-S2 evidence summary."""
+"""Render the portable, digest-bound MORPHOS-S2 evidence summary."""
 from __future__ import annotations
 
 import argparse
@@ -7,6 +7,18 @@ import json
 from pathlib import Path
 
 from benchmarks.run_hierarchical import run_suite
+
+QUANTIZATION_DECIMALS = 9
+
+
+def _quantize(value):
+    if isinstance(value, float):
+        return round(value, QUANTIZATION_DECIMALS)
+    if isinstance(value, list):
+        return [_quantize(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _quantize(item) for key, item in value.items()}
+    return value
 
 
 def render_summary(report: dict | None = None) -> dict:
@@ -17,16 +29,18 @@ def render_summary(report: dict | None = None) -> dict:
         for row in report["discovery"]
     }
     payload = {
-        "schema_version": "cosmic-organics/hierarchical-summary-0.1",
+        "schema_version": "cosmic-organics/hierarchical-summary-0.2",
         "suite_id": report["suite_id"],
-        "full_result_digest": report["result_digest"],
         "selection_rule": report["selection_rule"],
+        "portable_identity_scope": "quantized_scientific_summary",
+        "quantization_decimals": QUANTIZATION_DECIMALS,
         "discovery_boundary": {
             "selected": by_exponent[0.06],
             "next_rejected": by_exponent[0.07],
         },
         "summary": report["summary"],
     }
+    payload = _quantize(payload)
     canonical = json.dumps(
         payload,
         sort_keys=True,

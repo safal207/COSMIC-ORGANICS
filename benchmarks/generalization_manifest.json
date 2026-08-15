@@ -1,0 +1,59 @@
+{
+  "schema_version": "cosmic-organics/generalization-manifest-0.1",
+  "suite_id": "p1-generalization-v0.1",
+  "frozen_candidate": {
+    "adaptive_coupling": 0.5,
+    "adaptive_threshold": 0.35,
+    "anchor_coupling": 0.75,
+    "anchor_threshold": 0.5,
+    "mask": "checkerboard",
+    "memory_decay": 0.0,
+    "mixed_relax_threshold": 0.05,
+    "neighborhood": "von_neumann"
+  },
+  "relax_steps": 6,
+  "multi_seed": {
+    "width": 5,
+    "height": 5,
+    "samples": 64,
+    "seeds": [2026081501, 2026081502, 2026081503, 2026081504, 2026081505]
+  },
+  "scale": [
+    {"width": 5, "height": 5, "samples": 64, "seed": 2026081510},
+    {"width": 7, "height": 7, "samples": 64, "seed": 2026081511},
+    {"width": 9, "height": 9, "samples": 48, "seed": 2026081512}
+  ],
+  "mask_ablation": {
+    "width": 5,
+    "height": 5,
+    "samples": 64,
+    "seed": 2026081520,
+    "masks": ["checkerboard", "row_stripes", "column_stripes", "quadrants"]
+  },
+  "neighborhood_ablation": {
+    "width": 5,
+    "height": 5,
+    "samples": 64,
+    "seed": 2026081521,
+    "neighborhoods": ["von_neumann", "moore"]
+  },
+  "multi_bit_noise": {
+    "width": 5,
+    "height": 5,
+    "samples": 64,
+    "seed": 2026081530,
+    "bits": [1, 2, 3],
+    "trial_cap": 1500,
+    "per_target_combo_cap": 12
+  },
+  "recurrent_challenge": {
+    "width": 5,
+    "height": 5,
+    "discovery_samples": 64,
+    "discovery_seed": 2026081540,
+    "confirmation_samples": 96,
+    "confirmation_seed": 2026081541,
+    "self_weights": [0.0, 0.25, 0.5, 1.0, 2.0],
+    "neighbor_weights": [0.5, 1.0, 2.0]
+  }
+}

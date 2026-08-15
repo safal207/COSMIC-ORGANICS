@@ -1,0 +1,38 @@
+{
+  "evidence_digest": "953e38a05958f970386bd256b964ade1d9240b3ff134da696bf8d9942e9850c0",
+  "multi_bit_summary": {
+    "candidate_recovery_above_majority_for_all_bits": false,
+    "candidate_recovery_cost_below_majority_for_all_bits": true
+  },
+  "multi_seed_summary": {
+    "all_capacity_deltas_positive": true,
+    "all_recovery_deltas_negative": true,
+    "all_seed_cost_ratios_below_one": true,
+    "mean_capacity_delta_bits": 0.314250523366,
+    "mean_recovery_delta": -0.085610660118,
+    "mean_seed_cost_ratio": 0.378456495589,
+    "seed_transfer_gate_pass": true
+  },
+  "recurrent_summary": {
+    "candidate_fully_dominates_recurrent_frontier": false,
+    "candidate_pareto_nondominated_on_confirmation": true,
+    "discovery_parameter_points": 15,
+    "discovery_unique_regimes": 3
+  },
+  "scale_summary": {
+    "capacity_advantage_sizes": [
+      5
+    ],
+    "scaling_gate_pass": false
+  },
+  "suite_id": "p1-generalization-v0.1",
+  "summary": {
+    "full_generalization_gate_pass": false,
+    "interpretation": "partial_seed_transfer_new_pareto_not_scale_generalization",
+    "multi_bit_cost_gate_pass": true,
+    "multi_bit_recovery_gate_pass": false,
+    "recurrent_pareto_gate_pass": true,
+    "scaling_gate_pass": false,
+    "seed_transfer_gate_pass": true
+  }
+}

@@ -21,7 +21,9 @@
 - [x] Evaluate a targeted MORPHOS-T2 mixed-state relaxation repair over a declared 243-point grid.
 - [x] Add a 5×5 2D lattice with checkerboard heterogeneous cell types and frozen confirmation corpus.
 - [x] Produce a reproducible Pareto point that survives a separate confirmation corpus.
-- [ ] Test the 2D Pareto point across multiple confirmation seeds, larger lattices, topology/mask ablations, and stronger recurrent/reservoir baselines.
+- [x] Test the frozen 2D point across five unseen 5×5 seeds, larger lattices, mask/neighborhood ablations, multi-bit noise, and a stronger local recurrent threshold baseline.
+- [ ] Design scale-aware coupling/heterogeneity that preserves the 5×5 Pareto tradeoff at 7×7 and 9×9 without retuning per size.
+- [ ] Test a learned reservoir / associative-memory baseline on a frozen protocol.
 - [ ] Map the software transition-cost proxy to a physical-device cost model.
 - [x] Create machine-readable experiment manifests and deterministic result digests.
 
@@ -34,11 +36,15 @@
 5. simple task-matched external baselines tie all three original positive toy tasks;
 6. state-capacity testing exposes a mixed-state dead zone and no capacity/noise advantage for T1;
 7. T2 partially repairs that failure but **0** T2 points dominate majority CA on capacity + recovery + transition cost together;
-8. 2D checkerboard heterogeneity survives a frozen 256-input SHA-256 confirmation corpus as a **non-dominated Pareto point**: `200` binary attractors vs majority `147`, `7.6439` vs `7.1997` capacity bits, and far lower transition cost, but lower one-bit recovery (`58.80%` vs `65.90%`).
+8. 2D checkerboard heterogeneity survives a frozen 256-input SHA-256 confirmation corpus as a non-dominated Pareto point;
+9. the same frozen 5×5 candidate repeats its capacity/cost-biased tradeoff across five unseen seeds, with mean `+0.3143` observed capacity bits and `0.3785×` seed-transition cost, but mean recovery delta `-8.56 pp`;
+10. scale transfer fails: capacity delta is positive at 5×5, negative at 7×7 and 9×9;
+11. 1/2/3-bit corruption remains cheaper but less accurately recovered than majority CA;
+12. a 15-point local recurrent threshold challenge reduces to 3 unique regimes, none of which dominates the frozen MORPHOS point on the separate confirmation corpus — but MORPHOS also does not dominate that frontier.
 
 These are computational toy-model results, not physical, biological, quantum, or neural-network superiority claims.
 
-**Exit criterion:** P1 still requires stronger generalization before any broad advantage claim. The 2D heterogeneous architecture creates a reproducible Pareto point, but not full dominance. Next, the same tradeoff must survive multiple seeds, larger grids, topology/mask ablations, and stronger external baselines without candidate retuning.
+**Exit criterion:** P1 still remains open. Seed transfer and recurrent Pareto status pass, while larger-grid scaling and multi-bit recovery fail. The next hypothesis must introduce **scale-aware structure** rather than retuning the 5×5 constants. A learned reservoir/associative baseline should also be added before any broad computational-advantage claim.
 
 ## P2 — Material correspondence
 

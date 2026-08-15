@@ -327,8 +327,8 @@ def run_suite(manifest_path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
             and adaptation_pass
         ),
         "interpretation": (
-            "hierarchical_reflection_recovers_correlated_plane_faults_"
-            "when_at_least_one_higher_scale_self_image_remains_intact"
+            "hierarchical_reflection_improves_mean_correlated_fault_recovery_"
+            "but_strict_cross_corpus_gates_fail"
         ),
     }
 

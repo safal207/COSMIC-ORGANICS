@@ -1,0 +1,100 @@
+{
+  "adaptation_cases": 6,
+  "confirmation_manifest": [
+    {
+      "height": 5,
+      "seed": 202608153101,
+      "trials": 144,
+      "width": 5
+    },
+    {
+      "height": 5,
+      "seed": 202608153102,
+      "trials": 144,
+      "width": 5
+    },
+    {
+      "height": 5,
+      "seed": 202608153103,
+      "trials": 144,
+      "width": 5
+    },
+    {
+      "height": 7,
+      "seed": 202608153111,
+      "trials": 144,
+      "width": 7
+    },
+    {
+      "height": 7,
+      "seed": 202608153112,
+      "trials": 144,
+      "width": 7
+    },
+    {
+      "height": 7,
+      "seed": 202608153113,
+      "trials": 144,
+      "width": 7
+    },
+    {
+      "height": 9,
+      "seed": 202608153121,
+      "trials": 144,
+      "width": 9
+    },
+    {
+      "height": 9,
+      "seed": 202608153122,
+      "trials": 144,
+      "width": 9
+    },
+    {
+      "height": 9,
+      "seed": 202608153123,
+      "trials": 144,
+      "width": 9
+    }
+  ],
+  "evidence_digest": "3581295f14c6c3013dd991d426eab4a54e13d919959937776208493e5248ff43",
+  "mechanism": {
+    "domain_commit_delay": 4,
+    "domain_coupling": 0.08,
+    "external_oracle": false,
+    "local_commit_delay": 3,
+    "local_coupling": 0.15,
+    "phase_planes": 4,
+    "system_commit_delay": 5,
+    "system_coupling": 0.08
+  },
+  "parameter_status": "frozen_from_non_evidence_development_probe",
+  "portable_identity_scope": "quantized_scientific_summary",
+  "quantization_decimals": 9,
+  "schema_version": "cosmic-organics/multimirror-summary-0.2",
+  "suite_id": "p1-multimirror-v0.1",
+  "summary": {
+    "adaptation_gate_pass": true,
+    "all_corruption_control_pass": false,
+    "confirmation_corpora": 9,
+    "domain_only_gate_pass": false,
+    "double_fault_gate_pass": false,
+    "full_multimirror_gate_pass": false,
+    "interpretation": "hierarchical_reflection_improves_mean_correlated_fault_recovery_but_strict_cross_corpus_gates_fail",
+    "max_abs_all_corruption_gain_vs_s2": 0.0625,
+    "max_double_transition_cost_ratio_vs_m1_co": 2.056338028,
+    "max_primary_transition_cost_ratio_vs_m1": 1.279411765,
+    "mean_domain_only_gain_vs_m1_co": 0.19367284,
+    "mean_double_gain_vs_m1_co": 0.307098765,
+    "mean_double_transition_cost_ratio_vs_m1_co": 1.633514498,
+    "mean_primary_gain_vs_m1": 0.109567901,
+    "mean_primary_transition_cost_ratio_vs_m1": 1.118990532,
+    "mean_system_only_gain_vs_m1_co": 0.182098765,
+    "min_domain_only_gain_vs_m1_co": 0.034722222,
+    "min_double_gain_vs_m1_co": 0.125,
+    "min_primary_gain_vs_m1": 0.041666667,
+    "min_system_only_gain_vs_m1_co": 0.006944444,
+    "phase_planes": 4,
+    "primary_gain_gate_pass": false,
+    "system_only_gate_pass": false
+  }
+}

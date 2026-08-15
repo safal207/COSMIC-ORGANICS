@@ -64,3 +64,7 @@ jobs:
         run: python -m benchmarks.render_generalization_summary --output /tmp/p1-generalization-summary.json
       - name: Verify committed Generalization Gate summary
         run: cmp /tmp/p1-generalization-summary.json results/p1-generalization-v0.1-summary.json
+      - name: Reproduce P1 MORPHOS-S1 scale-aware result
+        run: python -m benchmarks.run_scale_aware --output /tmp/p1-scale-aware.json
+      - name: Verify committed P1 MORPHOS-S1 scale-aware result
+        run: cmp /tmp/p1-scale-aware.json results/p1-scale-aware-v0.1.json

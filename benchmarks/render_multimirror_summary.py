@@ -25,7 +25,7 @@ def render_summary(report: dict | None = None) -> dict:
     if report is None:
         report = run_suite()
     payload = {
-        "schema_version": "cosmic-organics/multimirror-summary-0.1",
+        "schema_version": "cosmic-organics/multimirror-summary-0.2",
         "suite_id": report["suite_id"],
         "parameter_status": report["parameter_status"],
         "portable_identity_scope": "quantized_scientific_summary",
@@ -40,34 +40,16 @@ def render_summary(report: dict | None = None) -> dict:
             "domain_commit_delay": 4,
             "system_commit_delay": 5,
         },
-        "confirmation": [
+        "confirmation_manifest": [
             {
-                key: row[key]
-                for key in (
-                    "width",
-                    "height",
-                    "seed",
-                    "trials",
-                    "s2_recovery_1bit",
-                    "m1_primary_recovery_1bit",
-                    "m1_co_recovery_1bit",
-                    "m2_primary_recovery_1bit",
-                    "m2_double_recovery_1bit",
-                    "m2_domain_only_recovery_1bit",
-                    "m2_system_only_recovery_1bit",
-                    "m2_all_corrupted_recovery_1bit",
-                    "primary_gain_vs_m1",
-                    "double_gain_vs_m1_co",
-                    "domain_only_gain_vs_m1_co",
-                    "system_only_gain_vs_m1_co",
-                    "all_corruption_gain_vs_s2",
-                    "primary_transition_cost_ratio_vs_m1",
-                    "double_transition_cost_ratio_vs_m1_co",
-                )
+                "width": row["width"],
+                "height": row["height"],
+                "seed": row["seed"],
+                "trials": row["trials"],
             }
             for row in report["confirmation"]
         ],
-        "adaptation": report["adaptation"],
+        "adaptation_cases": len(report["adaptation"]),
         "summary": report["summary"],
     }
     payload = _quantize(payload)

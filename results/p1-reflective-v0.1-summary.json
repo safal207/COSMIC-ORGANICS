@@ -1,25 +1,178 @@
 {
   "adaptation": [
-    {"direction": "A_to_C", "height": 5, "mirror_after_settle_target_fraction": 1.0, "mirror_commits": 25, "primary_after_settle_target_fraction": 1.0, "transitions": 50, "width": 5},
-    {"direction": "C_to_A", "height": 5, "mirror_after_settle_target_fraction": 1.0, "mirror_commits": 25, "primary_after_settle_target_fraction": 1.0, "transitions": 50, "width": 5},
-    {"direction": "A_to_C", "height": 7, "mirror_after_settle_target_fraction": 1.0, "mirror_commits": 49, "primary_after_settle_target_fraction": 1.0, "transitions": 98, "width": 7},
-    {"direction": "C_to_A", "height": 7, "mirror_after_settle_target_fraction": 1.0, "mirror_commits": 49, "primary_after_settle_target_fraction": 1.0, "transitions": 98, "width": 7},
-    {"direction": "A_to_C", "height": 9, "mirror_after_settle_target_fraction": 1.0, "mirror_commits": 81, "primary_after_settle_target_fraction": 1.0, "transitions": 162, "width": 9},
-    {"direction": "C_to_A", "height": 9, "mirror_after_settle_target_fraction": 1.0, "mirror_commits": 81, "primary_after_settle_target_fraction": 1.0, "transitions": 162, "width": 9}
+    {
+      "direction": "A_to_C",
+      "height": 5,
+      "mirror_after_settle_target_fraction": 1.0,
+      "mirror_commits": 25,
+      "primary_after_settle_target_fraction": 1.0,
+      "transitions": 50,
+      "width": 5
+    },
+    {
+      "direction": "C_to_A",
+      "height": 5,
+      "mirror_after_settle_target_fraction": 1.0,
+      "mirror_commits": 25,
+      "primary_after_settle_target_fraction": 1.0,
+      "transitions": 50,
+      "width": 5
+    },
+    {
+      "direction": "A_to_C",
+      "height": 7,
+      "mirror_after_settle_target_fraction": 1.0,
+      "mirror_commits": 49,
+      "primary_after_settle_target_fraction": 1.0,
+      "transitions": 98,
+      "width": 7
+    },
+    {
+      "direction": "C_to_A",
+      "height": 7,
+      "mirror_after_settle_target_fraction": 1.0,
+      "mirror_commits": 49,
+      "primary_after_settle_target_fraction": 1.0,
+      "transitions": 98,
+      "width": 7
+    },
+    {
+      "direction": "A_to_C",
+      "height": 9,
+      "mirror_after_settle_target_fraction": 1.0,
+      "mirror_commits": 81,
+      "primary_after_settle_target_fraction": 1.0,
+      "transitions": 162,
+      "width": 9
+    },
+    {
+      "direction": "C_to_A",
+      "height": 9,
+      "mirror_after_settle_target_fraction": 1.0,
+      "mirror_commits": 81,
+      "primary_after_settle_target_fraction": 1.0,
+      "transitions": 162,
+      "width": 9
+    }
   ],
   "confirmation": [
-    {"co_corruption_gain_vs_s2": 0.027777778, "co_corruption_recovery_1bit": 0.652777778, "height": 5, "m1_recovery_1bit": 0.888888889, "recovery_gain_vs_s2": 0.263888889, "s2_recovery_1bit": 0.625, "seed": 202608151101, "transition_cost_ratio_vs_s2": 1.126801153, "trials": 144, "width": 5},
-    {"co_corruption_gain_vs_s2": 0.020833333, "co_corruption_recovery_1bit": 0.75, "height": 5, "m1_recovery_1bit": 0.916666667, "recovery_gain_vs_s2": 0.1875, "s2_recovery_1bit": 0.729166667, "seed": 202608151102, "transition_cost_ratio_vs_s2": 1.168168168, "trials": 144, "width": 5},
-    {"co_corruption_gain_vs_s2": 0.027777778, "co_corruption_recovery_1bit": 0.666666667, "height": 5, "m1_recovery_1bit": 0.861111111, "recovery_gain_vs_s2": 0.222222222, "s2_recovery_1bit": 0.638888889, "seed": 202608151103, "transition_cost_ratio_vs_s2": 1.177325581, "trials": 144, "width": 5},
-    {"co_corruption_gain_vs_s2": 0.013888889, "co_corruption_recovery_1bit": 0.506944444, "height": 7, "m1_recovery_1bit": 0.784722222, "recovery_gain_vs_s2": 0.291666667, "s2_recovery_1bit": 0.493055556, "seed": 202608151111, "transition_cost_ratio_vs_s2": 1.361788618, "trials": 144, "width": 7},
-    {"co_corruption_gain_vs_s2": 0.020833333, "co_corruption_recovery_1bit": 0.486111111, "height": 7, "m1_recovery_1bit": 0.743055556, "recovery_gain_vs_s2": 0.277777778, "s2_recovery_1bit": 0.465277778, "seed": 202608151112, "transition_cost_ratio_vs_s2": 1.328, "trials": 144, "width": 7},
-    {"co_corruption_gain_vs_s2": 0.006944444, "co_corruption_recovery_1bit": 0.465277778, "height": 7, "m1_recovery_1bit": 0.770833333, "recovery_gain_vs_s2": 0.3125, "s2_recovery_1bit": 0.458333333, "seed": 202608151113, "transition_cost_ratio_vs_s2": 1.378378378, "trials": 144, "width": 7},
-    {"co_corruption_gain_vs_s2": 0.034722222, "co_corruption_recovery_1bit": 0.256944444, "height": 9, "m1_recovery_1bit": 0.576388889, "recovery_gain_vs_s2": 0.354166667, "s2_recovery_1bit": 0.222222222, "seed": 202608151121, "transition_cost_ratio_vs_s2": 1.659090909, "trials": 144, "width": 9},
-    {"co_corruption_gain_vs_s2": 0.0, "co_corruption_recovery_1bit": 0.222222222, "height": 9, "m1_recovery_1bit": 0.555555556, "recovery_gain_vs_s2": 0.333333333, "s2_recovery_1bit": 0.222222222, "seed": 202608151122, "transition_cost_ratio_vs_s2": 1.853333333, "trials": 144, "width": 9},
-    {"co_corruption_gain_vs_s2": 0.0, "co_corruption_recovery_1bit": 0.229166667, "height": 9, "m1_recovery_1bit": 0.631944444, "recovery_gain_vs_s2": 0.402777778, "s2_recovery_1bit": 0.229166667, "seed": 202608151123, "transition_cost_ratio_vs_s2": 1.886075949, "trials": 144, "width": 9}
+    {
+      "co_corruption_gain_vs_s2": 0.027777778,
+      "co_corruption_recovery_1bit": 0.652777778,
+      "height": 5,
+      "m1_recovery_1bit": 0.888888889,
+      "recovery_gain_vs_s2": 0.263888889,
+      "s2_recovery_1bit": 0.625,
+      "seed": 202608151101,
+      "transition_cost_ratio_vs_s2": 1.126801153,
+      "trials": 144,
+      "width": 5
+    },
+    {
+      "co_corruption_gain_vs_s2": 0.020833333,
+      "co_corruption_recovery_1bit": 0.75,
+      "height": 5,
+      "m1_recovery_1bit": 0.916666667,
+      "recovery_gain_vs_s2": 0.1875,
+      "s2_recovery_1bit": 0.729166667,
+      "seed": 202608151102,
+      "transition_cost_ratio_vs_s2": 1.168168168,
+      "trials": 144,
+      "width": 5
+    },
+    {
+      "co_corruption_gain_vs_s2": 0.027777778,
+      "co_corruption_recovery_1bit": 0.666666667,
+      "height": 5,
+      "m1_recovery_1bit": 0.861111111,
+      "recovery_gain_vs_s2": 0.222222222,
+      "s2_recovery_1bit": 0.638888889,
+      "seed": 202608151103,
+      "transition_cost_ratio_vs_s2": 1.177325581,
+      "trials": 144,
+      "width": 5
+    },
+    {
+      "co_corruption_gain_vs_s2": 0.013888889,
+      "co_corruption_recovery_1bit": 0.506944444,
+      "height": 7,
+      "m1_recovery_1bit": 0.784722222,
+      "recovery_gain_vs_s2": 0.291666667,
+      "s2_recovery_1bit": 0.493055556,
+      "seed": 202608151111,
+      "transition_cost_ratio_vs_s2": 1.361788618,
+      "trials": 144,
+      "width": 7
+    },
+    {
+      "co_corruption_gain_vs_s2": 0.020833333,
+      "co_corruption_recovery_1bit": 0.486111111,
+      "height": 7,
+      "m1_recovery_1bit": 0.743055556,
+      "recovery_gain_vs_s2": 0.277777778,
+      "s2_recovery_1bit": 0.465277778,
+      "seed": 202608151112,
+      "transition_cost_ratio_vs_s2": 1.328,
+      "trials": 144,
+      "width": 7
+    },
+    {
+      "co_corruption_gain_vs_s2": 0.006944444,
+      "co_corruption_recovery_1bit": 0.465277778,
+      "height": 7,
+      "m1_recovery_1bit": 0.770833333,
+      "recovery_gain_vs_s2": 0.3125,
+      "s2_recovery_1bit": 0.458333333,
+      "seed": 202608151113,
+      "transition_cost_ratio_vs_s2": 1.378378378,
+      "trials": 144,
+      "width": 7
+    },
+    {
+      "co_corruption_gain_vs_s2": 0.034722222,
+      "co_corruption_recovery_1bit": 0.256944444,
+      "height": 9,
+      "m1_recovery_1bit": 0.576388889,
+      "recovery_gain_vs_s2": 0.354166667,
+      "s2_recovery_1bit": 0.222222222,
+      "seed": 202608151121,
+      "transition_cost_ratio_vs_s2": 1.659090909,
+      "trials": 144,
+      "width": 9
+    },
+    {
+      "co_corruption_gain_vs_s2": 0.0,
+      "co_corruption_recovery_1bit": 0.222222222,
+      "height": 9,
+      "m1_recovery_1bit": 0.555555556,
+      "recovery_gain_vs_s2": 0.333333333,
+      "s2_recovery_1bit": 0.222222222,
+      "seed": 202608151122,
+      "transition_cost_ratio_vs_s2": 1.853333333,
+      "trials": 144,
+      "width": 9
+    },
+    {
+      "co_corruption_gain_vs_s2": 0.0,
+      "co_corruption_recovery_1bit": 0.229166667,
+      "height": 9,
+      "m1_recovery_1bit": 0.631944444,
+      "recovery_gain_vs_s2": 0.402777778,
+      "s2_recovery_1bit": 0.229166667,
+      "seed": 202608151123,
+      "transition_cost_ratio_vs_s2": 1.886075949,
+      "trials": 144,
+      "width": 9
+    }
   ],
   "evidence_digest": "9479a44ed02e09c9aaa5b51566e296c9119b98e8cd7fcbc9c9551024afadd9a2",
-  "mechanism": {"auxiliary_stability_counters_per_cell": 1, "commit_delay": 3, "external_oracle": false, "mirror_coupling": 0.15, "phase_planes": 2},
+  "mechanism": {
+    "auxiliary_stability_counters_per_cell": 1,
+    "commit_delay": 3,
+    "external_oracle": false,
+    "mirror_coupling": 0.15,
+    "phase_planes": 2
+  },
   "portable_identity_scope": "quantized_scientific_summary",
   "quantization_decimals": 9,
   "schema_version": "cosmic-organics/reflective-summary-0.1",

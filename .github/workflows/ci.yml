@@ -84,5 +84,5 @@ jobs:
         run: python -m benchmarks.run_multimirror --output /tmp/p1-multimirror-full.json
       - name: Render MORPHOS-M2 portable evidence summary
         run: python -m benchmarks.render_multimirror_summary --report /tmp/p1-multimirror-full.json --output /tmp/p1-multimirror-summary.json
-      - name: Print MORPHOS-M2 portable evidence summary
-        run: cat /tmp/p1-multimirror-summary.json
+      - name: Verify committed MORPHOS-M2 portable evidence summary
+        run: cmp /tmp/p1-multimirror-summary.json results/p1-multimirror-v0.1-summary.json

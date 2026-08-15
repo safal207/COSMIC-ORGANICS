@@ -28,6 +28,7 @@ COSMIC ORGANICS
 ├── MORPHOS-T2             mixed-state relaxation experiment
 ├── MORPHOS-2D-H           2D heterogeneous experiment
 ├── Generalization Gate    seed / scale / topology / noise / recurrent challenge
+├── MORPHOS-S1             fixed scale-aware coupling experiment
 ├── State Algebra          composition / interaction / delta / ratio
 ├── Evidence Map           claim -> source -> status
 └── Research Horizon       materials -> physical neuro-systems -> biointerfaces
@@ -53,25 +54,33 @@ python -m benchmarks.run_state_capacity
 python -m benchmarks.run_t2_repair
 python -m benchmarks.run_2d_heterogeneous
 python -m benchmarks.run_generalization
+python -m benchmarks.run_scale_aware
 ```
 
-The evidence chain intentionally preserves negative results: the first temporal failure, narrow robustness, external-baseline ties, the T1 mixed-state dead zone, T2's capacity/recovery/cost tradeoff, and the current failure to scale the frozen 5×5 constants to 7×7/9×9.
+The evidence chain intentionally preserves negative results: the first temporal failure, narrow robustness, external-baseline ties, the T1 mixed-state dead zone, T2's capacity/recovery/cost tradeoff, failure of frozen 5×5 constants to scale, and the new S1 recovery tradeoff.
 
-The frozen 5×5 checkerboard candidate previously produced a reproducible new Pareto point versus majority CA. The generalization suite tests that candidate **without retuning**.
+The frozen 5×5 checkerboard candidate previously produced a reproducible new Pareto point versus majority CA. The Generalization Gate then showed that the same constants do **not** preserve the observed capacity advantage at 7×7 and 9×9.
 
-Current generalization result:
+MORPHOS-S1 tests one scale-aware law rather than per-size retuning:
 
-- across five unseen 5×5 corpora, the observed capacity delta stays positive and transition cost stays lower, but recovery stays lower;
-- mean observed capacity delta: `+0.3143 bits`;
-- mean one-bit recovery delta: `-8.56 pp`;
-- mean seed-transition cost ratio: `0.3785×` majority CA;
-- observed capacity advantage survives at 5×5 but fails at 7×7 and 9×9;
-- under 1/2/3-bit corruption the candidate is consistently cheaper but less accurate;
-- against a 15-point local recurrent threshold challenge reduced to 3 unique regimes, the frozen candidate remains Pareto-nondominated but does not dominate the recurrent frontier.
+```text
+k_eff(L) = k0 * (5 / L)^0.25
+```
 
-Therefore the **full generalization gate remains closed**. The current evidence supports a repeatable 5×5 Pareto tradeoff, not scale-general computational superiority.
+`alpha = 0.25` is the minimum exponent that passes a declared nine-corpus discovery gate. It is frozen before nine new confirmation corpora.
 
-The seven earlier full result artifacts remain under `results/`; the new Generalization Gate publishes a compact digest-bound summary under `results/p1-generalization-v0.1-summary.json`. CI regenerates the full report and then reproduces that compact summary byte-for-byte.
+Current S1 result:
+
+- the frozen non-scale-aware candidate has `5 / 9` non-positive capacity-delta confirmation corpora;
+- MORPHOS-S1 has `0 / 9` capacity failures;
+- mean observed capacity delta is `+0.7288 bits`;
+- mean seed-transition cost is `0.2684×` majority CA;
+- mean one-bit recovery delta is `-31.24 pp`;
+- mean recovery-transition cost is `0.0506×` majority CA.
+
+Therefore **scale-capacity passes, recovery fails, and full scale generalization remains open**. S1 is a targeted repair of one generalization failure, not scale-general superiority.
+
+Earlier full result artifacts remain under `results/`; the Generalization Gate uses its digest-bound summary, and S1 commits the complete deterministic `p1-scale-aware-v0.1.json` result. CI regenerates each declared evidence surface and compares it byte-for-byte.
 
 ## Research question
 
@@ -86,6 +95,7 @@ The software model is only the first test of that question.
 - [Scientific boundaries](docs/SCIENTIFIC-BOUNDARIES.md)
 - [State algebra](spec/state-algebra.md)
 - [MORPHOS cell](spec/morphos-cell.md)
+- [MORPHOS-S1 scale-aware coupling](spec/scale-aware-coupling.md)
 - [Evidence map](research/evidence-map.md)
 - [P1 baseline results](docs/P1-BASELINE-RESULTS.md)
 - [P1 temporal results](docs/P1-TEMPORAL-RESULTS.md)
@@ -95,6 +105,7 @@ The software model is only the first test of that question.
 - [P1 T2 repair results](docs/P1-T2-REPAIR-RESULTS.md)
 - [P1 2D heterogeneous results](docs/P1-2D-HETEROGENEOUS-RESULTS.md)
 - [P1 generalization results](docs/P1-GENERALIZATION-RESULTS.md)
+- [P1 scale-aware results](docs/P1-SCALE-AWARE-RESULTS.md)
 - [Roadmap](ROADMAP.md)
 
 ## License

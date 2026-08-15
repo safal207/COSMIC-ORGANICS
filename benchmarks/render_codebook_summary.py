@@ -21,65 +21,80 @@ def _quantize(value):
     return value
 
 
-def _compact_model(model: dict) -> dict:
-    geometry = model["geometry"]
-    one_bit = model["one_bit"]
-    return {
-        "codebook_size": geometry["codebook_size"],
-        "min_distance": geometry["min_distance"],
-        "mean_nearest_distance": geometry["mean_nearest_distance"],
-        "distance1_pair_count": geometry["distance1_pair_count"],
-        "distance2_pair_count": geometry["distance2_pair_count"],
-        "distance3_single_bit_guarantee": geometry[
-            "distance3_single_bit_guarantee"
-        ],
-        "trials": one_bit["trials"],
-        "unique_nearest_fraction": one_bit["unique_nearest_fraction"],
-        "nearest_ambiguity_fraction": one_bit[
-            "nearest_ambiguity_fraction"
-        ],
-        "direct_codeword_collision_fraction": one_bit[
-            "direct_codeword_collision_fraction"
-        ],
-        "dynamic_recovery": one_bit["dynamic_recovery"],
-        "dynamic_recovery_on_unique_nearest": one_bit[
-            "dynamic_recovery_on_unique_nearest"
-        ],
-        "dynamic_recovery_on_ambiguous": one_bit[
-            "dynamic_recovery_on_ambiguous"
-        ],
-        "dynamic_recovery_on_direct_collision": one_bit[
-            "dynamic_recovery_on_direct_collision"
-        ],
-        "hard_collision_share_of_failures": one_bit[
-            "hard_collision_share_of_failures"
-        ],
-    }
+def _mean(values: list[float]) -> float:
+    return sum(values) / len(values)
 
 
 def render_summary(report: dict | None = None) -> dict:
     if report is None:
         report = run_suite()
+
+    large = [item for item in report["corpora"] if item["width"] > 5]
+    five = [item for item in report["corpora"] if item["width"] == 5]
+    large_model_recovery = {
+        model: _mean([
+            item["models"][model]["one_bit"]["dynamic_recovery"]
+            for item in large
+        ])
+        for model in ("majority_ca", "s1", "s2")
+    }
+    s2_large_unique = _mean([
+        item["models"]["s2"]["one_bit"]["unique_nearest_fraction"]
+        for item in large
+    ])
+    s2_large_recovery = large_model_recovery["s2"]
+    s2_five_collision_failure_share = _mean([
+        item["models"]["s2"]["one_bit"]["hard_collision_share_of_failures"]
+        for item in five
+    ])
+
+    s2_corpora = []
+    for item in report["corpora"]:
+        model = item["models"]["s2"]
+        geometry = model["geometry"]
+        one_bit = model["one_bit"]
+        s2_corpora.append({
+            "width": item["width"],
+            "height": item["height"],
+            "seed": item["seed"],
+            "samples": item["samples"],
+            "codebook_size": geometry["codebook_size"],
+            "min_distance": geometry["min_distance"],
+            "mean_nearest_distance": geometry["mean_nearest_distance"],
+            "distance1_pair_count": geometry["distance1_pair_count"],
+            "distance2_pair_count": geometry["distance2_pair_count"],
+            "distance3_single_bit_guarantee": geometry[
+                "distance3_single_bit_guarantee"
+            ],
+            "unique_nearest_fraction": one_bit["unique_nearest_fraction"],
+            "direct_codeword_collision_fraction": one_bit[
+                "direct_codeword_collision_fraction"
+            ],
+            "dynamic_recovery": one_bit["dynamic_recovery"],
+            "dynamic_recovery_on_direct_collision": one_bit[
+                "dynamic_recovery_on_direct_collision"
+            ],
+            "hard_collision_share_of_failures": one_bit[
+                "hard_collision_share_of_failures"
+            ],
+        })
+
     payload = {
-        "schema_version": "cosmic-organics/codebook-summary-0.1",
+        "schema_version": "cosmic-organics/codebook-summary-0.2",
         "suite_id": report["suite_id"],
         "selection_rule": report["selection_rule"],
-        "portable_identity_scope": "quantized_sampled_codebook_geometry",
+        "portable_identity_scope": "quantized_s2_codebook_diagnostic_summary",
         "quantization_decimals": QUANTIZATION_DECIMALS,
         "scientific_boundary": report["scientific_boundary"],
-        "corpora": [
-            {
-                "width": item["width"],
-                "height": item["height"],
-                "seed": item["seed"],
-                "samples": item["samples"],
-                "models": {
-                    name: _compact_model(model)
-                    for name, model in item["models"].items()
-                },
-            }
-            for item in report["corpora"]
-        ],
+        "s2_corpora": s2_corpora,
+        "large_scale_model_mean_dynamic_recovery": large_model_recovery,
+        "s2_large_scale_unique_identification_minus_dynamic_recovery": (
+            s2_large_unique - s2_large_recovery
+        ),
+        "s2_5x5_mean_hard_collision_share_of_failures": (
+            s2_five_collision_failure_share
+        ),
+        "large_scale_geometry_ambiguity_explains_recovery_collapse": False,
         "summary": report["summary"],
     }
     payload = _quantize(payload)

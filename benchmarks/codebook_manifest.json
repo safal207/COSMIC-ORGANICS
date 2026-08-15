@@ -1,0 +1,33 @@
+{
+  "schema_version": "cosmic-organics/codebook-manifest-0.1",
+  "suite_id": "p1-attractor-codebook-v0.1",
+  "frozen_candidate": {
+    "adaptive_coupling": 0.5,
+    "adaptive_threshold": 0.35,
+    "anchor_coupling": 0.75,
+    "anchor_threshold": 0.5,
+    "mask": "checkerboard",
+    "memory_decay": 0.0,
+    "mixed_relax_threshold": 0.05,
+    "neighborhood": "von_neumann"
+  },
+  "s1_scale_law": {
+    "reference_linear_size": 5.0,
+    "exponent": 0.25
+  },
+  "s2_hierarchy_law": {
+    "reference_linear_size": 5.0,
+    "exponent": 0.06,
+    "domain_size": 3
+  },
+  "relax_steps": 6,
+  "analysis": {
+    "selection_rule": "none: diagnostic-only frozen geometry analysis; no parameter is tuned or selected",
+    "trial_cap_per_model_corpus": 800,
+    "sizes": [
+      {"width": 5, "height": 5, "samples": 64, "seeds": [2026082501, 2026082502, 2026082503]},
+      {"width": 7, "height": 7, "samples": 64, "seeds": [2026082511, 2026082512, 2026082513]},
+      {"width": 9, "height": 9, "samples": 48, "seeds": [2026082521, 2026082522, 2026082523]}
+    ]
+  }
+}

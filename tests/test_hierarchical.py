@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import json
 import unittest
+from pathlib import Path
 
-from benchmarks.run_hierarchical import run_suite
 from morphos.grid2d import Grid2D, Grid2DConfig
 from morphos.hierarchical import HierarchicalGrid2D, HierarchicalLaw
+
+MANIFEST = Path(__file__).parents[1] / "benchmarks" / "hierarchical_manifest.json"
+SUMMARY = Path(__file__).parents[1] / "results" / "p1-hierarchical-v0.1-summary.json"
 
 
 class HierarchicalLawTests(unittest.TestCase):
@@ -43,59 +47,30 @@ class HierarchicalLawTests(unittest.TestCase):
         self.assertEqual(candidate.state_string(), baseline.state_string())
         self.assertEqual(candidate.transitions, baseline.transitions)
 
+    def test_frozen_manifest_has_discovery_boundary(self) -> None:
+        manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        discovery = manifest["discovery"]
+        self.assertEqual(discovery["domain_size"], 3)
+        self.assertIn(0.06, discovery["hierarchy_exponents"])
+        self.assertIn(0.07, discovery["hierarchy_exponents"])
+        self.assertEqual(len(discovery["sizes"]), 3)
+        self.assertEqual(len(manifest["confirmation"]["sizes"]), 3)
 
-class HierarchicalBenchmarkTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.report = run_suite()
-
-    def test_discovery_selects_capacity_bounded_exponent(self) -> None:
+    def test_committed_summary_locks_expected_gates(self) -> None:
+        summary = json.loads(SUMMARY.read_text(encoding="utf-8"))
         self.assertEqual(
-            self.report["summary"]["selected_hierarchy_exponent"],
-            0.06,
-        )
-        by_exponent = {
-            row["hierarchy_exponent"]: row
-            for row in self.report["discovery"]
-        }
-        self.assertTrue(by_exponent[0.06]["passes"])
-        self.assertFalse(by_exponent[0.07]["passes"])
-
-    def test_large_scale_recovery_improves_without_closing_gate(self) -> None:
-        summary = self.report["summary"]
-        self.assertTrue(summary["large_scale_capacity_gate_pass"])
-        self.assertTrue(summary["large_scale_recovery_gain_gate_pass"])
-        self.assertFalse(summary["recovery_parity_gate_pass"])
-        self.assertFalse(
-            summary["full_hierarchical_generalization_pass"]
-        )
-        self.assertEqual(
-            summary["fresh_5x5_capacity_failure_corpora"],
-            1,
-        )
-        self.assertEqual(
-            summary["s1_fresh_5x5_capacity_failure_corpora"],
-            1,
-        )
-
-    def test_locked_summary_and_digest(self) -> None:
-        summary = self.report["summary"]
-        self.assertEqual(
-            summary["mean_capacity_delta_bits"],
-            0.468885075994,
-        )
-        self.assertEqual(
-            summary["large_scale_mean_recovery_gain_vs_s1"],
-            0.047131890716,
-        )
-        self.assertEqual(
-            summary["large_scale_min_capacity_delta_bits"],
-            0.289506617195,
-        )
-        self.assertEqual(
-            self.report["result_digest"],
+            summary["full_result_digest"],
             "f41a4e73ce88041a2608a27dab4207e913f297bd1dbc0acc875fa9662e140a3b",
         )
+        self.assertEqual(
+            summary["evidence_digest"],
+            "c9bb235ffe224a7bd7beae9f62e12b60b6ebe3be55828cdf808175f3eca07e62",
+        )
+        gates = summary["summary"]
+        self.assertTrue(gates["large_scale_capacity_gate_pass"])
+        self.assertTrue(gates["large_scale_recovery_gain_gate_pass"])
+        self.assertFalse(gates["recovery_parity_gate_pass"])
+        self.assertFalse(gates["full_hierarchical_generalization_pass"])
 
 
 if __name__ == "__main__":

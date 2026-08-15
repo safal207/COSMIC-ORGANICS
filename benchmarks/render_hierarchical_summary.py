@@ -9,8 +9,9 @@ from pathlib import Path
 from benchmarks.run_hierarchical import run_suite
 
 
-def render_summary() -> dict:
-    report = run_suite()
+def render_summary(report: dict | None = None) -> dict:
+    if report is None:
+        report = run_suite()
     by_exponent = {
         row["hierarchy_exponent"]: row
         for row in report["discovery"]
@@ -38,10 +39,14 @@ def render_summary() -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--report", type=Path)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
+    report = None
+    if args.report:
+        report = json.loads(args.report.read_text(encoding="utf-8"))
     rendered = json.dumps(
-        render_summary(),
+        render_summary(report),
         indent=2,
         sort_keys=True,
     ) + "\n"

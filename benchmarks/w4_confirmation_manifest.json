@@ -1,0 +1,42 @@
+{
+  "schema": "cosmic-organics/w4-confirmation-manifest-0.1",
+  "mechanism": "MORPHOS-W4 selective authority fence",
+  "frozen_from_head": "9dd4d556ab85eb596681738429aadce1cf64ae7b",
+  "witness_drive": 0.25,
+  "witness_commit_delay": 8,
+  "target_discovery_steps": 6,
+  "evaluation_horizon": 8,
+  "retention_horizon": 12,
+  "max_targets": 8,
+  "trials_per_target": 6,
+  "confirmation_corpora": [
+    {"width": 5, "height": 5, "seed": 202608161001, "samples": 80},
+    {"width": 5, "height": 5, "seed": 202608161002, "samples": 80},
+    {"width": 5, "height": 5, "seed": 202608161003, "samples": 80},
+    {"width": 7, "height": 7, "seed": 202608161011, "samples": 80},
+    {"width": 7, "height": 7, "seed": 202608161012, "samples": 80},
+    {"width": 7, "height": 7, "seed": 202608161013, "samples": 80},
+    {"width": 9, "height": 9, "seed": 202608161021, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608161022, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608161023, "samples": 64}
+  ],
+  "predeclared_gates": {
+    "minimum_common_recovery_at_8_every_corpus": 0.8,
+    "minimum_common_recovery_at_12_every_corpus": 0.8,
+    "minimum_gain_vs_w3_at_8_every_corpus": 0.05,
+    "minimum_primary_gain_vs_m2_every_corpus": 0.0,
+    "maximum_retention_drop_8_to_12_every_corpus": 0.02,
+    "minimum_causal_drop_when_witness_corrupted_every_corpus": 0.2,
+    "zero_drive_exact_m2_every_corpus": true,
+    "adaptation_every_size": true
+  },
+  "diagnostic_only": {
+    "two_bit_common_mode": true,
+    "two_bit_result_is_not_a_confirmation_gate": true,
+    "reason": "row/column parity uniquely localizes a single binary flip but two simultaneous flips can produce an ambiguous syndrome"
+  },
+  "portable_summary": {
+    "quantization_decimals": 9,
+    "raw_runtime_float_digest_is_normative": false
+  }
+}

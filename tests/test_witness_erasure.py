@@ -68,9 +68,18 @@ class ErasureAwareWitnessTests(unittest.TestCase):
         w5.run([0.0] * 8)
         w6.run([0.0] * 8)
 
-        self.assertNotEqual(w5.state_string(), target)
-        self.assertEqual(w6.state_string(), target)
+        residual = [
+            index
+            for index, (actual, expected) in enumerate(zip(w5.states, target))
+            if actual != expected
+        ]
+        self.assertEqual(len(residual), 1)
+        self.assertEqual(w5.states[residual[0]], "M")
+        self.assertEqual(w5.handoff_events, 0)
         self.assertGreaterEqual(w6.erasure_handoff_events, 1)
+        self.assertTrue(
+            any(new_owner == residual[0] for _, new_owner in w6.handoff_history)
+        )
 
 
 if __name__ == "__main__":

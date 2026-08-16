@@ -102,5 +102,7 @@ jobs:
         run: python -m benchmarks.run_w4_confirmation --output /tmp/w4-confirmation-full.json
       - name: Render portable MORPHOS-W4 confirmation summary
         run: python -m benchmarks.render_w4_confirmation_summary --report /tmp/w4-confirmation-full.json --output /tmp/w4-confirmation-summary.json
+      - name: Verify committed MORPHOS-W4 confirmation summary
+        run: cmp /tmp/w4-confirmation-summary.json results/p1-w4-confirmation-v0.1-summary.json
       - name: Print MORPHOS-W4 confirmation summary
         run: cat /tmp/w4-confirmation-summary.json

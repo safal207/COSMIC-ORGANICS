@@ -94,3 +94,5 @@ jobs:
         run: python -m benchmarks.probe_witness_persistent
       - name: Diagnose MORPHOS-W2 recovery horizon
         run: python -m benchmarks.diagnose_witness_horizon
+      - name: Run MORPHOS-W3 recovery-fence development probe
+        run: python -m benchmarks.probe_witness_fence

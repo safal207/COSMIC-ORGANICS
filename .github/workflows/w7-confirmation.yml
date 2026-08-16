@@ -1,0 +1,22 @@
+name: W7 Confirmation
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  confirm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run frozen W7 confirmation
+        run: python -m benchmarks.run_w7_confirmation --output /tmp/w7-full.json
+      - name: Render portable W7 confirmation summary
+        run: python -m benchmarks.render_w7_confirmation_summary --report /tmp/w7-full.json --output /tmp/w7-summary.json
+      - name: Print W7 confirmation summary
+        run: cat /tmp/w7-summary.json

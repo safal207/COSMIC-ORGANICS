@@ -3,6 +3,9 @@
 W2 freezes the smallest active W1 drive (0.25) and changes only one causal
 mechanism: once parity localizes a one-bit error, the intended binary endpoint
 is latched across the mandatory M phase until reached.
+
+The recovery gates below were predeclared before the first W2 run. Additional
+residual-error metrics are diagnostic only: they do not change those gates.
 """
 from __future__ import annotations
 
@@ -31,7 +34,7 @@ TRIALS_PER_TARGET = 8
 WITNESS_DRIVE = 0.25
 WITNESS_COMMIT_DELAY = 8
 
-# Predeclared before observing this probe.
+# Predeclared before observing the first W2 development probe.
 MIN_COMMON_GAIN_VS_M2 = 0.25
 MIN_GAIN_VS_W1 = 0.10
 MIN_PRIMARY_GAIN_VS_M2 = 0.0
@@ -47,6 +50,10 @@ def _corrupt_all(model, index: int) -> None:
     model.perturb_local_mirror([index])
     model.perturb_domain_mirror([index])
     model.perturb_system_mirror([index])
+
+
+def _hamming(left: str, right: str) -> int:
+    return sum(a != b for a, b in zip(left, right))
 
 
 def _corpus(spec: dict) -> dict:
@@ -71,6 +78,11 @@ def _corpus(spec: dict) -> dict:
     }
     latch_trials = 0
     latch_clear_trials = 0
+    target_cell_repaired = 0
+    collateral_failure_trials = 0
+    residual_hamming_total = 0
+    failed_residual_hamming_total = 0
+    failed_trials = 0
     trials = 0
 
     for target_index, target in enumerate(targets):
@@ -143,6 +155,18 @@ def _corpus(spec: dict) -> dict:
                 ("w2_zero", w2_zero),
             ):
                 counts[key] += int(model.state_string() == target)
+
+            final = w2_common.state_string()
+            residual = _hamming(final, target)
+            repaired_source = final[index] == target[index]
+            exact = residual == 0
+            target_cell_repaired += int(repaired_source)
+            residual_hamming_total += residual
+            if not exact:
+                failed_trials += 1
+                failed_residual_hamming_total += residual
+                collateral_failure_trials += int(repaired_source)
+
             latch_trials += int(w2_common.latch_events > 0)
             latch_clear_trials += int(w2_common.latch_clear_events > 0)
             trials += 1
@@ -167,6 +191,15 @@ def _corpus(spec: dict) -> dict:
         "zero_delta_vs_m2": rate("w2_zero") - rate("m2_common"),
         "latch_fraction": latch_trials / trials,
         "latch_clear_fraction": latch_clear_trials / trials,
+        "target_cell_repaired_fraction": target_cell_repaired / trials,
+        "collateral_failure_fraction": collateral_failure_trials / trials,
+        "collateral_share_of_failures": (
+            collateral_failure_trials / failed_trials if failed_trials else 0.0
+        ),
+        "mean_residual_hamming": residual_hamming_total / trials,
+        "mean_failed_residual_hamming": (
+            failed_residual_hamming_total / failed_trials if failed_trials else 0.0
+        ),
     }
 
 
@@ -180,6 +213,12 @@ def main() -> None:
             r["causal_drop_when_witness_corrupted"] for r in rows
         ),
         "minimum_latch_fraction": min(r["latch_fraction"] for r in rows),
+        "minimum_target_cell_repaired_fraction": min(
+            r["target_cell_repaired_fraction"] for r in rows
+        ),
+        "minimum_collateral_share_of_failures": min(
+            r["collateral_share_of_failures"] for r in rows
+        ),
         "zero_drive_exact_m2": all(abs(r["zero_delta_vs_m2"]) <= 1e-12 for r in rows),
     }
     passes = (
@@ -201,6 +240,13 @@ def main() -> None:
             "minimum_causal_drop_when_witness_corrupted": MIN_CAUSAL_DROP_WHEN_WITNESS_CORRUPTED,
             "zero_drive_must_match_m2": True,
         },
+        "diagnostic_metrics_not_selection_gates": [
+            "target_cell_repaired_fraction",
+            "collateral_failure_fraction",
+            "collateral_share_of_failures",
+            "mean_residual_hamming",
+            "mean_failed_residual_hamming",
+        ],
         "rows": rows,
         "summary": summary,
         "passes": passes,

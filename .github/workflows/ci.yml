@@ -92,3 +92,5 @@ jobs:
         run: python -m benchmarks.probe_witness
       - name: Run MORPHOS-W2 non-evidence persistent-witness probe
         run: python -m benchmarks.probe_witness_persistent
+      - name: Diagnose MORPHOS-W2 recovery horizon
+        run: python -m benchmarks.diagnose_witness_horizon

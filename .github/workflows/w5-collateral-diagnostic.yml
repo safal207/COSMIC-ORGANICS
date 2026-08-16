@@ -16,3 +16,5 @@ jobs:
           python-version: "3.12"
       - name: Classify unresolved W5 collateral failures
         run: python -m benchmarks.diagnose_w5_collateral_boundary
+      - name: Classify W5 no-handoff observability failures
+        run: python -m benchmarks.diagnose_w5_no_handoff_observability

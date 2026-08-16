@@ -1,0 +1,38 @@
+{
+  "schema": "cosmic-organics/w7-confirmation-protocol-0.1",
+  "frozen_from_head": "6443ec1290e4dc05c5815d1564dc7e24ff7b0ae5",
+  "confirmation_only_no_retuning": true,
+  "witness_drive": 0.25,
+  "witness_commit_delay": 8,
+  "evaluation_horizon": 8,
+  "retention_horizon": 12,
+  "target_discovery_steps": 6,
+  "max_targets": 8,
+  "trials_per_target": 6,
+  "confirmation_corpora": [
+    {"width": 5, "height": 5, "seed": 202608164001, "samples": 64},
+    {"width": 5, "height": 5, "seed": 202608164002, "samples": 64},
+    {"width": 5, "height": 5, "seed": 202608164003, "samples": 64},
+    {"width": 7, "height": 7, "seed": 202608164011, "samples": 64},
+    {"width": 7, "height": 7, "seed": 202608164012, "samples": 64},
+    {"width": 7, "height": 7, "seed": 202608164013, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608164021, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608164022, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608164023, "samples": 64}
+  ],
+  "predeclared_gates": {
+    "minimum_w7_recovery_at_8_every_corpus": 0.8,
+    "minimum_w7_recovery_at_12_every_corpus": 0.8,
+    "minimum_delta_vs_w6_at_8_every_corpus": 0.0,
+    "maximum_previous_w6_successes_regressed_every_corpus": 0,
+    "maximum_retention_drop_8_to_12_every_corpus": 0.02,
+    "minimum_causal_drop_when_witness_corrupted_every_corpus": 0.2,
+    "minimum_primary_only_delta_vs_w6_every_corpus": 0.0,
+    "minimum_fresh_w6_pingpong_failures": 3,
+    "minimum_pooled_pingpong_rescue_fraction": 0.8,
+    "maximum_w7_return_handoffs_on_fresh_pingpong_cases": 0,
+    "zero_drive_exact_w6_every_corpus": true,
+    "adaptation_every_size": true
+  },
+  "scope_boundary": "single-bit common-mode repair-set confirmation; source-threshold-limited anchors and multi-error ambiguity remain separate mechanisms"
+}

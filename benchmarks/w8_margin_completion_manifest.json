@@ -1,0 +1,38 @@
+{
+  "schema": "cosmic-organics/w8-margin-completion-development-0.1",
+  "development_only": true,
+  "selected_from_diagnostic_pr": 31,
+  "base_w7_confirmation_head": "77e811ee91a2cc214ca3171f22ade9901a496705",
+  "reuses_w7_confirmation_corpora_for_development": true,
+  "witness_drive": 0.25,
+  "witness_commit_delay": 8,
+  "evaluation_horizon": 8,
+  "retention_horizon": 12,
+  "target_discovery_steps": 6,
+  "max_targets": 8,
+  "trials_per_target": 6,
+  "corpora": [
+    {"width": 5, "height": 5, "seed": 202608164001, "samples": 64},
+    {"width": 5, "height": 5, "seed": 202608164002, "samples": 64},
+    {"width": 5, "height": 5, "seed": 202608164003, "samples": 64},
+    {"width": 7, "height": 7, "seed": 202608164011, "samples": 64},
+    {"width": 7, "height": 7, "seed": 202608164012, "samples": 64},
+    {"width": 7, "height": 7, "seed": 202608164013, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608164021, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608164022, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608164023, "samples": 64}
+  ],
+  "diagnosed_w7_persistent_failures": 14,
+  "predeclared_gates": {
+    "minimum_source_endpoints_rescued": 14,
+    "minimum_exact_persistent_failures_rescued": 12,
+    "maximum_previous_w7_successes_regressed": 0,
+    "maximum_completion_trials_among_previous_w7_successes": 0,
+    "minimum_recovery_at_8_every_corpus": 0.9166666666666666,
+    "minimum_recovery_at_12_every_corpus": 0.9166666666666666,
+    "minimum_causal_drop_when_witness_corrupted_every_corpus": 0.2,
+    "zero_witness_completion_events": 0,
+    "adaptation_completion_events": 0
+  },
+  "scope_boundary": "development on diagnostic-selected frozen W7 corpora; independent fresh confirmation is required before any generalization claim"
+}

@@ -1,0 +1,24 @@
+name: W8.5 Opportunity Continuation
+
+on:
+  pull_request:
+    branches:
+      - agent/morphos-w85-confirmation
+    paths:
+      - benchmarks/w85_opportunity_continuation_manifest.json
+      - benchmarks/run_w85_opportunity_continuation.py
+      - .github/workflows/w85_opportunity_continuation.yml
+  workflow_dispatch:
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Lock frozen W8.5 unit contract
+        run: python -m unittest tests.test_witness_multierasure -v
+      - name: Run preregistered opportunity continuation
+        run: python -m benchmarks.run_w85_opportunity_continuation

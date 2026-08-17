@@ -84,7 +84,7 @@ jobs:
         run: python -m benchmarks.run_multimirror --output /tmp/p1-multimirror-full.json
       - name: Render MORPHOS-M2 portable evidence summary
         run: python -m benchmarks.render_multimirror_summary --report /tmp/p1-multimirror-full.json --output /tmp/p1-multimirror-summary.json
-      - name: Verify committed MORPHOS-M2 portable evidence summary
+      - name: Verify committed P1 MORPHOS-M2 portable evidence summary
         run: cmp /tmp/p1-multimirror-summary.json results/p1-multimirror-v0.1-summary.json
       - name: Run MORPHOS-P1 non-evidence path-gradient probe
         run: python -m benchmarks.probe_path_gradient
@@ -110,3 +110,7 @@ jobs:
         run: python -m benchmarks.diagnose_w4_9x9 > /tmp/w4-9x9-diagnostic.json
       - name: Print MORPHOS-W4 9x9 diagnostic
         run: cat /tmp/w4-9x9-diagnostic.json
+      - name: Trace MORPHOS-W4 collateral handoff
+        run: python -m benchmarks.trace_w4_collateral > /tmp/w4-collateral-trace.json
+      - name: Print MORPHOS-W4 collateral trace
+        run: cat /tmp/w4-collateral-trace.json

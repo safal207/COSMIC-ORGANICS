@@ -1,0 +1,26 @@
+name: W8.4 Causal Locality Development
+
+on:
+  pull_request:
+    branches:
+      - agent/morphos-w83-confirmation
+    paths:
+      - morphos/witness_causal_locality.py
+      - tests/test_witness_causal_locality.py
+      - benchmarks/w84_causal_locality_manifest.json
+      - benchmarks/probe_witness_causal_locality.py
+      - .github/workflows/w84_causal_locality_development.yml
+  workflow_dispatch:
+
+jobs:
+  develop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run W8.4 unit contract
+        run: python -m unittest tests.test_witness_causal_locality -v
+      - name: Run frozen W8.4 development gate
+        run: python -m benchmarks.probe_witness_causal_locality

@@ -1,0 +1,39 @@
+{
+  "schema": "cosmic-organics/w83-confirmation-protocol-0.1",
+  "frozen_from_head": "20e6032944e3e33fcb37da25c31c008b83f2bfdf",
+  "confirmation_only_no_retuning": true,
+  "witness_drive": 0.25,
+  "witness_commit_delay": 8,
+  "evaluation_horizon": 8,
+  "retention_horizon": 12,
+  "target_discovery_steps": 6,
+  "max_targets": 8,
+  "trials_per_target": 6,
+  "confirmation_corpora": [
+    {"width": 5, "height": 5, "seed": 202608166001, "samples": 64},
+    {"width": 5, "height": 5, "seed": 202608166002, "samples": 64},
+    {"width": 5, "height": 5, "seed": 202608166003, "samples": 64},
+    {"width": 7, "height": 7, "seed": 202608166011, "samples": 64},
+    {"width": 7, "height": 7, "seed": 202608166012, "samples": 64},
+    {"width": 7, "height": 7, "seed": 202608166013, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608166021, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608166022, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608166023, "samples": 64}
+  ],
+  "predeclared_gates": {
+    "minimum_w83_recovery_at_8_every_corpus": 1.0,
+    "minimum_w83_recovery_at_12_every_corpus": 1.0,
+    "maximum_previous_w82_successes_regressed": 0,
+    "minimum_fresh_w82_misses": 1,
+    "minimum_history_pair_rescues_of_w82_misses": 1,
+    "maximum_history_pair_decode_trials_among_w82_successes": 0,
+    "minimum_causal_drop_when_witness_corrupted_every_corpus": 0.2,
+    "minimum_primary_only_delta_vs_w82_every_corpus": 0.0,
+    "zero_drive_exact_w82_every_corpus": true,
+    "adaptation_every_size": true,
+    "adaptation_completion_events": 0,
+    "adaptation_executable_closure_events": 0,
+    "adaptation_history_pair_decode_events": 0
+  },
+  "scope_boundary": "fresh-seed confirmation of transaction-history disambiguation for repair-induced 2x2 parity ambiguity; not generic two-error correction"
+}

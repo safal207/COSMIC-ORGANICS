@@ -32,6 +32,12 @@ def _manhattan(a: int, b: int, width: int) -> int:
     return abs(ar - br) + abs(ac - bc)
 
 
+def _counter_dict(values) -> dict[str, int]:
+    """Return a deterministically sorted JSON-safe histogram, including None."""
+    counts = Counter("none" if value is None else str(value) for value in values)
+    return dict(sorted(counts.items()))
+
+
 def _trace_trial(*, target: str, target_index: int, index: int, seed: int, config, hierarchy, m2_law, protocol: dict) -> dict:
     model = SelectiveAuthorityGrid2D(
         target,
@@ -201,9 +207,9 @@ def run_trace() -> dict:
             "blocked_handoff_count": sum(row["blocked_handoff_observed"] for row in rows),
             "direct_neighbor_count": sum(row["relation"]["direct_neighbor"] for row in rows),
             "same_domain_count": sum(row["relation"]["same_domain"] for row in rows),
-            "first_collateral_tick_counts": dict(sorted(Counter(row["first_collateral_tick"] for row in rows).items())),
-            "first_binary_collateral_tick_counts": dict(sorted(Counter(row["first_binary_collateral_tick"] for row in rows).items())),
-            "max_binary_mismatch_counts": dict(sorted(Counter(row["max_binary_mismatches"] for row in rows).items())),
+            "first_collateral_tick_counts": _counter_dict(row["first_collateral_tick"] for row in rows),
+            "first_binary_collateral_tick_counts": _counter_dict(row["first_binary_collateral_tick"] for row in rows),
+            "max_binary_mismatch_counts": _counter_dict(row["max_binary_mismatches"] for row in rows),
         }
 
     return {

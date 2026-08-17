@@ -1,0 +1,20 @@
+name: W8.2 Confirmation
+
+on:
+  pull_request:
+    branches:
+      - agent/morphos-w82-executable-margin
+  workflow_dispatch:
+
+jobs:
+  confirm:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run W8.2 unit contract
+        run: python -m unittest tests.test_witness_executable_margin -v
+      - name: Run frozen W8.2 fresh confirmation
+        run: python -m benchmarks.run_w82_confirmation

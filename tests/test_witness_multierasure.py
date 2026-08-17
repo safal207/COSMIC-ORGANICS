@@ -34,7 +34,9 @@ class MultiErasureAuthorityTests(unittest.TestCase):
     def test_known_persistent_case_decodes_two_M_endpoints(self):
         target, source, model = self._persistent_case()
         _corrupt_all(model, source)
-        model.run([0.0] * 3)
+        # The two-M state exists after tick 3; ownership is evaluated at the
+        # beginning of tick 4, matching the runtime step contract.
+        model.run([0.0] * 4)
         self.assertEqual(model.states[source], target[source])
         self.assertEqual(model.multi_erasure_decode_events, 1)
         self.assertEqual(model.last_multi_erasure_indices, (20, 33))
@@ -51,7 +53,8 @@ class MultiErasureAuthorityTests(unittest.TestCase):
     def test_more_than_two_M_fails_closed(self):
         target, source, model = self._persistent_case()
         _corrupt_all(model, source)
-        model.run([0.0] * 2)
+        # Inspect the post-tick-3 state before the next step can invoke W8.5.
+        model.run([0.0] * 3)
         self.assertEqual(model.states[source], target[source])
         m_indices = [i for i, phase in enumerate(model.states) if phase == "M"]
         self.assertEqual(len(m_indices), 2)

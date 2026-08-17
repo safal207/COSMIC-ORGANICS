@@ -16,3 +16,5 @@ jobs:
           python-version: "3.12"
       - name: Classify frozen W7 residual failures
         run: python -m benchmarks.diagnose_w7_residuals
+      - name: Measure frozen W7 source margins
+        run: python -m benchmarks.diagnose_w7_source_margin

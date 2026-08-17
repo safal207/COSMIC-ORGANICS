@@ -1,0 +1,80 @@
+name: W8.4 Multi-Erasure Solvability Propositions
+
+on:
+  pull_request:
+    branches:
+      - agent/morphos-w84-transition-observability-diagnostic
+  workflow_dispatch:
+
+jobs:
+  propositions:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: No uniquely solved state infers a wrong frozen endpoint
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          from benchmarks.diagnose_w84_multierasure_solvability import run_diagnostic
+          report = run_diagnostic()
+          assert report['summary']['unique_solution_wrong_target'] == 0
+          PY
+
+      - name: Every persistent trajectory has at least one uniquely correct multi-M state
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          from benchmarks.diagnose_w84_multierasure_solvability import run_diagnostic
+          report = run_diagnostic()
+          rows = report['states']
+          keys = {(r['seed'], r['target_index'], r['trial_index'], r['source']) for r in rows if r['class'] == 'persistent'}
+          assert len(keys) == 2
+          for key in keys:
+              group = [r for r in rows if r['class'] == 'persistent' and (r['seed'], r['target_index'], r['trial_index'], r['source']) == key]
+              assert any(r['unique_solution_matches_target'] and r['virtual_full_parity_ok'] for r in group)
+          PY
+
+      - name: Every late trajectory has at least one uniquely correct multi-M state
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          from benchmarks.diagnose_w84_multierasure_solvability import run_diagnostic
+          report = run_diagnostic()
+          rows = report['states']
+          keys = {(r['seed'], r['target_index'], r['trial_index'], r['source']) for r in rows if r['class'] == 'late'}
+          assert len(keys) == 2
+          for key in keys:
+              group = [r for r in rows if r['class'] == 'late' and (r['seed'], r['target_index'], r['trial_index'], r['source']) == key]
+              assert any(r['unique_solution_matches_target'] and r['virtual_full_parity_ok'] for r in group)
+          PY
+
+      - name: Uniquely correct multi-M states never coexist with wrong binary residuals
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          from benchmarks.diagnose_w84_multierasure_solvability import run_diagnostic
+          report = run_diagnostic()
+          assert report['summary']['unique_correct_with_wrong_binary_present'] == 0
+          PY
+
+      - name: Every unique solution passes full virtual parity validation
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          from benchmarks.diagnose_w84_multierasure_solvability import run_diagnostic
+          report = run_diagnostic()
+          assert report['summary']['all_unique_solutions_pass_virtual_parity']
+          PY
+
+      - name: At least one multi-M state is uniquely solvable
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          from benchmarks.diagnose_w84_multierasure_solvability import run_diagnostic
+          report = run_diagnostic()
+          assert report['summary']['unique_solution_states'] > 0
+          PY

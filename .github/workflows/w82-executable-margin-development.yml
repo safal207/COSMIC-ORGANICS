@@ -1,0 +1,20 @@
+name: W8.2 Executable Margin Development
+
+on:
+  pull_request:
+    branches:
+      - agent/morphos-w8-margin-completion
+  workflow_dispatch:
+
+jobs:
+  develop:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run W8.2 unit contract
+        run: python -m unittest tests.test_witness_executable_margin -v
+      - name: Run unchanged frozen W8.1 gate with W8.2
+        run: python -m benchmarks.probe_witness_executable_margin

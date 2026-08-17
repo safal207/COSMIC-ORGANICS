@@ -1,0 +1,112 @@
+name: W8.5 Confirmation Markers
+
+on:
+  pull_request:
+    branches:
+      - agent/morphos-w85-confirmation
+  workflow_dispatch:
+
+jobs:
+  markers:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compute frozen confirmation outputs once
+        id: compute
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          from benchmarks.run_w85_confirmation import run_confirmation
+          r = run_confirmation()
+          s = r['summary']
+          rows = r['rows']
+          print(f"passes={str(r['passes']).lower()}")
+          print(f"fresh_misses={s['fresh_w84_misses']}")
+          print(f"rescues={s['multi_erasure_rescues_of_w84_misses']}")
+          print(f"decode_events={s['multi_erasure_decode_events']}")
+          print(f"decode_trials={s['multi_erasure_decode_trials']}")
+          print(f"decode_on_success={s['multi_erasure_decode_trials_among_w84_successes']}")
+          print(f"regressions={s['total_previous_w84_successes_regressed']}")
+          print(f"nonperfect8={sum(row['w85_recovery_at_8'] < 1.0 for row in rows)}")
+          print(f"nonperfect12={sum(row['w85_recovery_at_12'] < 1.0 for row in rows)}")
+          print(f"min8={s['minimum_w85_recovery_at_8']}")
+          print(f"min12={s['minimum_w85_recovery_at_12']}")
+          print(f"min_causal={s['minimum_causal_drop_when_witness_corrupted']}")
+          print(f"min_primary={s['minimum_primary_only_delta_vs_w84']}")
+          PY
+
+      - name: MARKER overall gate PASS
+        if: steps.compute.outputs.passes == 'true'
+        run: echo PASS
+      - name: MARKER overall gate FAIL
+        if: steps.compute.outputs.passes != 'true'
+        run: echo FAIL
+
+      - name: MARKER fresh misses 0
+        if: steps.compute.outputs.fresh_misses == '0'
+        run: echo 0
+      - name: MARKER fresh misses 1
+        if: steps.compute.outputs.fresh_misses == '1'
+        run: echo 1
+      - name: MARKER fresh misses 2
+        if: steps.compute.outputs.fresh_misses == '2'
+        run: echo 2
+      - name: MARKER fresh misses 3
+        if: steps.compute.outputs.fresh_misses == '3'
+        run: echo 3
+      - name: MARKER fresh misses 4
+        if: steps.compute.outputs.fresh_misses == '4'
+        run: echo 4
+      - name: MARKER fresh misses 5+
+        if: fromJSON(steps.compute.outputs.fresh_misses) >= 5
+        run: echo 5plus
+
+      - name: MARKER rescues 0
+        if: steps.compute.outputs.rescues == '0'
+        run: echo 0
+      - name: MARKER rescues 1
+        if: steps.compute.outputs.rescues == '1'
+        run: echo 1
+      - name: MARKER rescues 2
+        if: steps.compute.outputs.rescues == '2'
+        run: echo 2
+      - name: MARKER rescues 3
+        if: steps.compute.outputs.rescues == '3'
+        run: echo 3
+      - name: MARKER rescues 4
+        if: steps.compute.outputs.rescues == '4'
+        run: echo 4
+      - name: MARKER rescues 5+
+        if: fromJSON(steps.compute.outputs.rescues) >= 5
+        run: echo 5plus
+
+      - name: MARKER nonperfect tick8 corpora 0
+        if: steps.compute.outputs.nonperfect8 == '0'
+        run: echo 0
+      - name: MARKER nonperfect tick8 corpora 1
+        if: steps.compute.outputs.nonperfect8 == '1'
+        run: echo 1
+      - name: MARKER nonperfect tick8 corpora 2+
+        if: fromJSON(steps.compute.outputs.nonperfect8) >= 2
+        run: echo 2plus
+
+      - name: MARKER nonperfect tick12 corpora 0
+        if: steps.compute.outputs.nonperfect12 == '0'
+        run: echo 0
+      - name: MARKER nonperfect tick12 corpora 1+
+        if: fromJSON(steps.compute.outputs.nonperfect12) >= 1
+        run: echo 1plus
+
+      - name: MARKER zero regressions
+        if: steps.compute.outputs.regressions == '0'
+        run: echo zero
+      - name: MARKER decoder activated
+        if: fromJSON(steps.compute.outputs.decode_events) >= 1
+        run: echo active
+      - name: MARKER decoder never activated
+        if: steps.compute.outputs.decode_events == '0'
+        run: echo inactive

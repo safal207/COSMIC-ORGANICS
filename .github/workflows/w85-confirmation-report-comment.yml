@@ -1,0 +1,63 @@
+name: W8.5 Confirmation Report Comment
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+on:
+  pull_request:
+    branches:
+      - agent/morphos-w85-confirmation
+  workflow_dispatch:
+
+jobs:
+  report:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build compact frozen confirmation report
+        run: |
+          python - <<'PY'
+          from benchmarks.run_w85_confirmation import run_confirmation
+          r = run_confirmation()
+          s = r['summary']
+          rows = r['rows']
+          rescues = r['multi_erasure_rescues']
+          nonperfect = [
+              row for row in rows
+              if row['w85_recovery_at_8'] < 1.0
+              or row['w85_recovery_at_12'] < 1.0
+              or row['fresh_w84_misses'] > 0
+              or row['multi_erasure_decode_events'] > 0
+          ]
+          lines = [
+              '## W8.5 frozen confirmation compact report',
+              '',
+              f"- passes: `{r['passes']}`",
+              f"- trials: `{s['trials']}`",
+              f"- fresh_w84_misses: `{s['fresh_w84_misses']}`",
+              f"- multi_erasure_rescues_of_w84_misses: `{s['multi_erasure_rescues_of_w84_misses']}`",
+              f"- multi_erasure_decode_trials: `{s['multi_erasure_decode_trials']}`",
+              f"- multi_erasure_decode_trials_among_w84_successes: `{s['multi_erasure_decode_trials_among_w84_successes']}`",
+              f"- multi_erasure_decode_events: `{s['multi_erasure_decode_events']}`",
+              f"- multi_erasure_added_targets: `{s['multi_erasure_added_targets']}`",
+              f"- regressions: `{s['total_previous_w84_successes_regressed']}`",
+              f"- minimum_w85_recovery_at_8: `{s['minimum_w85_recovery_at_8']}`",
+              f"- minimum_w85_recovery_at_12: `{s['minimum_w85_recovery_at_12']}`",
+              f"- minimum_causal_drop_when_witness_corrupted: `{s['minimum_causal_drop_when_witness_corrupted']}`",
+              f"- minimum_primary_only_delta_vs_w84: `{s['minimum_primary_only_delta_vs_w84']}`",
+              f"- rescue_rows: `{rescues}`",
+              f"- nonperfect_or_active_rows: `{nonperfect}`",
+              '',
+              'Diagnostic replay only; mechanism, frozen manifest, and gates are unchanged.',
+          ]
+          open('/tmp/w85-report.md','w').write('\n'.join(lines))
+          PY
+      - name: Comment compact report on diagnostic PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment 52 --body-file /tmp/w85-report.md

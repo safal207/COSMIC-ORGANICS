@@ -1,0 +1,135 @@
+name: W8.5 Confirmation Propositions
+
+on:
+  pull_request:
+    branches:
+      - agent/morphos-w85-confirmation
+  workflow_dispatch:
+
+jobs:
+  propositions:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compute frozen confirmation once
+        run: |
+          python - <<'PY'
+          import json
+          from benchmarks.run_w85_confirmation import run_confirmation
+          r = run_confirmation()
+          data = {
+              "passes": r["passes"],
+              "summary": r["summary"],
+              "rows": r["rows"],
+              "rescues": r["multi_erasure_rescues"],
+          }
+          with open('/tmp/w85.json','w') as f:
+              json.dump(data,f)
+          PY
+
+      - name: Overall frozen scientific gate PASS
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['passes']"
+
+      - name: W8.5 is 100 percent at tick 8 in every corpus
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['minimum_w85_recovery_at_8'] == 1.0"
+
+      - name: W8.5 is 100 percent at tick 12 in every corpus
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['minimum_w85_recovery_at_12'] == 1.0"
+
+      - name: Zero regressions among previous W8.4 successes
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['total_previous_w84_successes_regressed'] == 0"
+
+      - name: At least one fresh W8.4 miss exists
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['fresh_w84_misses'] >= 1"
+
+      - name: At least one fresh W8.4 miss is rescued by multi-erasure decode
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['multi_erasure_rescues_of_w84_misses'] >= 1"
+
+      - name: Corrupted-witness causal drop gate passes
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['minimum_causal_drop_when_witness_corrupted'] >= 0.2"
+
+      - name: Primary-only non-regression gate passes
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['minimum_primary_only_delta_vs_w84'] >= 0.0"
+
+      - name: All zero-drive rows exactly match W8.4
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert all(r['zero_drive_exact_w84'] for r in d['rows'])"
+
+      - name: Adaptation gate passes with zero repair authority
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/w85.json'))
+          for x in d['summary']['adaptation_by_size'].values():
+              assert x['passes']
+              assert x['completion_events']==0
+              assert x['executable_closure_events']==0
+              assert x['history_pair_decode_events']==0
+              assert x['locality_pair_decode_events']==0
+              assert x['multi_erasure_decode_events']==0
+          PY
+
+      - name: Fresh W8.4 miss count equals 0
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['fresh_w84_misses'] == 0"
+      - name: Fresh W8.4 miss count equals 1
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['fresh_w84_misses'] == 1"
+      - name: Fresh W8.4 miss count equals 2
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['fresh_w84_misses'] == 2"
+      - name: Fresh W8.4 miss count equals 3
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['fresh_w84_misses'] == 3"
+      - name: Fresh W8.4 miss count equals 4
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['fresh_w84_misses'] == 4"
+      - name: Fresh W8.4 miss count is at least 5
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['fresh_w84_misses'] >= 5"
+
+      - name: Fresh multi-erasure rescue count equals 0
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['multi_erasure_rescues_of_w84_misses'] == 0"
+      - name: Fresh multi-erasure rescue count equals 1
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['multi_erasure_rescues_of_w84_misses'] == 1"
+      - name: Fresh multi-erasure rescue count equals 2
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['multi_erasure_rescues_of_w84_misses'] == 2"
+      - name: Fresh multi-erasure rescue count equals 3
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['multi_erasure_rescues_of_w84_misses'] == 3"
+      - name: Fresh multi-erasure rescue count equals 4
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['multi_erasure_rescues_of_w84_misses'] == 4"
+      - name: Fresh multi-erasure rescue count is at least 5
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['multi_erasure_rescues_of_w84_misses'] >= 5"
+
+      - name: Multi-erasure decoder activates at least once on fresh confirmation
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert d['summary']['multi_erasure_decode_events'] >= 1"
+
+      - name: Exactly one corpus is below 100 percent at tick 8
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert sum(r['w85_recovery_at_8'] < 1.0 for r in d['rows']) == 1"
+      - name: Exactly two corpora are below 100 percent at tick 8
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert sum(r['w85_recovery_at_8'] < 1.0 for r in d['rows']) == 2"
+      - name: No corpus is below 100 percent at tick 8
+        continue-on-error: true
+        run: python -c "import json; d=json.load(open('/tmp/w85.json')); assert all(r['w85_recovery_at_8'] == 1.0 for r in d['rows'])"

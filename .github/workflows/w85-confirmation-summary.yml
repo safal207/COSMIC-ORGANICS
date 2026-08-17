@@ -1,0 +1,36 @@
+name: W8.5 Confirmation Summary
+
+on:
+  pull_request:
+    branches:
+      - agent/morphos-w85-confirmation
+  workflow_dispatch:
+
+jobs:
+  summarize:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Recompute frozen confirmation and print compact result
+        run: |
+          python - <<'PY'
+          import json
+          from benchmarks.run_w85_confirmation import run_confirmation
+          report = run_confirmation()
+          compact = {
+              "passes": report["passes"],
+              "summary": report["summary"],
+              "rescues": report["multi_erasure_rescues"],
+              "nonperfect_rows": [
+                  row for row in report["rows"]
+                  if row["w85_recovery_at_8"] < 1.0
+                  or row["w85_recovery_at_12"] < 1.0
+                  or row["fresh_w84_misses"] > 0
+                  or row["multi_erasure_decode_events"] > 0
+              ],
+          }
+          print("W85_COMPACT=" + json.dumps(compact, sort_keys=True))
+          PY

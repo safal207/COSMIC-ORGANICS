@@ -1,0 +1,18 @@
+name: W8.2 History Disambiguation Diagnostic
+
+on:
+  pull_request:
+    branches:
+      - agent/morphos-w82-fresh-residual-diagnostic
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test repair-history parity disambiguation
+        run: python -m benchmarks.diagnose_w82_history_disambiguation

@@ -3,7 +3,7 @@ name: W8.2 Executable Margin Development
 on:
   pull_request:
     branches:
-      - agent/morphos-w8-margin-completion
+      - agent/morphos-w81-path-completion
   workflow_dispatch:
 
 jobs:

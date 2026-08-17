@@ -1,0 +1,18 @@
+name: W8.3 Collateral Geometry Diagnostic
+
+on:
+  pull_request:
+    branches:
+      - agent/morphos-w83-fresh-miss-diagnostic
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Scan repair-induced collateral geometry
+        run: python -m benchmarks.diagnose_w83_collateral_geometry

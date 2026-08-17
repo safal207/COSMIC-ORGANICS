@@ -45,13 +45,19 @@ class HistoryAwarePairAuthorityTests(unittest.TestCase):
         self.assertEqual(model.last_history_pair, (46, 56))
         self.assertEqual(set(model.protected_targets), {46, 47, 56})
 
-    def test_virtual_parity_accepts_actual_pair_and_rejects_false_pair(self):
+    def test_parity_accepts_both_2x2_matchings_but_history_selects_one(self):
         target, source, model = self._case(trial_index=3)
         _corrupt_all(model, source)
         model.step(0.0)
         model.step(0.0)
+        # Row/column parity alone cannot distinguish the two perfect 2x2
+        # matchings; both reconstruct the same committed parity signature.
         self.assertTrue(model._virtual_pair_restores_committed_parity((46, 56)))
-        self.assertFalse(model._virtual_pair_restores_committed_parity((47, 55)))
+        self.assertTrue(model._virtual_pair_restores_committed_parity((47, 55)))
+        self.assertEqual(model._verified_protected_indices(), {47})
+        matchings = model._two_error_matchings()
+        compatible = [pair for pair in matchings if source not in pair]
+        self.assertEqual(compatible, [(46, 56)])
 
     def test_history_decode_requires_source_verified_at_endpoint(self):
         _, source, model = self._case(trial_index=3)

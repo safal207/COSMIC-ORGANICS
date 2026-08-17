@@ -106,3 +106,7 @@ jobs:
         run: cmp /tmp/w4-confirmation-summary.json results/p1-w4-confirmation-v0.1-summary.json
       - name: Print MORPHOS-W4 confirmation summary
         run: cat /tmp/w4-confirmation-summary.json
+      - name: Diagnose MORPHOS-W4 9x9 scale margin
+        run: python -m benchmarks.diagnose_w4_9x9 > /tmp/w4-9x9-diagnostic.json
+      - name: Print MORPHOS-W4 9x9 diagnostic
+        run: cat /tmp/w4-9x9-diagnostic.json

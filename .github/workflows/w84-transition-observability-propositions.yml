@@ -1,0 +1,68 @@
+name: W8.4 Transition Observability Propositions
+
+on:
+  pull_request:
+    branches:
+      - agent/morphos-w84-fresh-miss-diagnostic
+  workflow_dispatch:
+
+jobs:
+  propositions:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Persistent cases both contain multiple simultaneous M after source repair
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          from benchmarks.diagnose_w84_transition_observability import CASES, _replay
+          rows = [_replay(c) for c in CASES if c['class'] == 'persistent']
+          assert len(rows) == 2
+          assert all(r['ticks_with_multiple_m_after_source'] for r in rows)
+          PY
+
+      - name: Persistent residuals both change before first nonempty parity syndrome
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          from benchmarks.diagnose_w84_transition_observability import CASES, _replay
+          rows = [_replay(c) for c in CASES if c['class'] == 'persistent']
+          assert len(rows) == 2
+          assert all(r['residual_changed_before_nonempty_syndrome'] for r in rows)
+          PY
+
+      - name: Late cases decode at tick 8 and become exact at tick 9
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          from benchmarks.diagnose_w84_transition_observability import CASES, _replay
+          rows = [_replay(c) for c in CASES if c['class'] == 'late']
+          assert len(rows) == 2
+          assert [r['first_decoder_event_tick'] for r in rows] == [8, 8]
+          assert [r['first_exact_tick'] for r in rows] == [9, 9]
+          PY
+
+      - name: Late cases also contain multiple simultaneous M after source repair
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          from benchmarks.diagnose_w84_transition_observability import CASES, _replay
+          rows = [_replay(c) for c in CASES if c['class'] == 'late']
+          assert len(rows) == 2
+          assert all(r['ticks_with_multiple_m_after_source'] for r in rows)
+          PY
+
+      - name: Persistent cases remain inexact through tick 12
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          from benchmarks.diagnose_w84_transition_observability import CASES, _replay
+          rows = [_replay(c) for c in CASES if c['class'] == 'persistent']
+          assert len(rows) == 2
+          assert all(r['first_exact_tick'] is None for r in rows)
+          assert all(len(r['final_errors']) > 0 for r in rows)
+          PY

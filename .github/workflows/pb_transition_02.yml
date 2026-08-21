@@ -1,0 +1,47 @@
+name: PB-TRANSITION-02 MORPHOS adapter
+
+on:
+  pull_request:
+    paths:
+      - "benchmarks/pb_transition_02.py"
+      - "morphos/simulator.py"
+      - ".github/workflows/pb_transition_02.yml"
+  workflow_dispatch:
+
+jobs:
+  pb-transition-02:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Execute common MORPHOS transition benchmark
+        run: |
+          python -m benchmarks.pb_transition_02 --trials 10000 --insufficient 0.10 \
+            > /tmp/pb_transition_02.json
+          python -m json.tool /tmp/pb_transition_02.json
+      - name: Validate common oracle contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path('/tmp/pb_transition_02.json').read_text())
+          assert report['benchmark_id'] == 'PB-TRANSITION-02'
+          assert report['version'] == '0.1'
+          assert report['status'] == 'executed'
+          assert report['trials'] == 10000
+          assert report['valid_trials'] == 9000
+          assert report['insufficient_support_trials'] == 1000
+          assert report['source_0_trials'] == 5000
+          assert report['source_1_trials'] == 5000
+          assert report['correct_valid_transitions'] == 9000
+          assert report['invalid_transitions_preserved'] == 1000
+          assert report['unsafe_invalid_transitions'] == 0
+          assert report['missed_valid_transitions'] == 0
+          assert report['oracle_accuracy'] == 1.0
+          assert report['native_justification_coverage'] == 1.0
+          assert report['native_steps_total'] == 20000
+          assert report['trials_per_sec'] > 0
+          PY

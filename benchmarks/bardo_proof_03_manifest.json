@@ -12,6 +12,16 @@
   "candidate_absent_at_freeze": true,
   "primary_decision_rule": "deterministic_proof_size_and_verification_work",
   "timing_can_support_bardo_specific_claim": false,
+  "frozen_config": {
+    "memory_decay": 0.0,
+    "anchor_threshold": 0.5,
+    "adaptive_threshold": 0.35,
+    "anchor_coupling": 0.75,
+    "adaptive_coupling": 0.5,
+    "mixed_relax_threshold": 0.05,
+    "mask": "checkerboard",
+    "neighborhood": "von_neumann"
+  },
   "workload": {
     "grids": ["16x16", "32x32", "64x64"],
     "chain_lengths": [1, 4, 16, 64],

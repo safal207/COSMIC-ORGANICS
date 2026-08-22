@@ -1,6 +1,15 @@
 name: BARDO-EDGE-01 Controls
 
 on:
+  push:
+    branches:
+      - "research/bardo-edge-01-prereg"
+    paths:
+      - "morphos/transition_edges.py"
+      - "tests/test_transition_edges.py"
+      - "benchmarks/bardo_edge_01_manifest.json"
+      - "docs/BARDO_EDGE_01_PREREG.md"
+      - ".github/workflows/bardo_edge_01_controls.yml"
   pull_request:
     paths:
       - "morphos/transition_edges.py"
@@ -21,7 +30,7 @@ jobs:
       matrix:
         python-version: ["3.11", "3.12"]
     steps:
-      - name: Checkout exact pull-request head
+      - name: Checkout exact event head
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}

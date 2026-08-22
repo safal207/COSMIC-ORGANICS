@@ -1,0 +1,205 @@
+name: BARDO-EDGE-01 Candidate
+
+on:
+  push:
+    branches:
+      - "research/bardo-edge-01-candidate"
+    paths:
+      - "morphos/bardo_edges.py"
+      - "morphos/transition_edges.py"
+      - "tests/test_bardo_edges.py"
+      - "tests/test_transition_edges.py"
+      - "benchmarks/run_bardo_edge_01.py"
+      - "benchmarks/bardo_edge_01_manifest.json"
+      - ".github/workflows/bardo_edge_01_candidate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout exact candidate head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install repository
+        run: python -m pip install -e .
+
+      - name: Compile BARDO-EDGE-01 surface
+        run: |
+          python -m compileall -q \
+            morphos/transition_edges.py \
+            morphos/bardo_edges.py \
+            tests/test_transition_edges.py \
+            tests/test_bardo_edges.py \
+            benchmarks/run_bardo_edge_01.py
+
+      - name: Run controls and candidate unit tests
+        run: |
+          python -m unittest -v \
+            tests.test_transition_edges \
+            tests.test_bardo_edges
+
+      - name: Execute frozen held-out benchmark
+        run: PYTHONPATH=. python benchmarks/run_bardo_edge_01.py > bardo-edge-01-result.json
+
+      - name: Validate frozen result boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          result = json.loads(Path("bardo-edge-01-result.json").read_text())
+          assert result["experiment_id"] == "BARDO-EDGE-01/v0.1"
+          assert result["candidate_results_observed_after_preregistration"] is True
+          assert result["control_head"] == "082ad50e8c1870addc8aef41c7abc831704ea151"
+          assert result["summary"]["NODE_ONLY"]["trials"] == 864
+          assert result["summary"]["CONVENTIONAL_EDGE"]["trials"] == 864
+          assert result["summary"]["BARDO_EDGE"]["trials"] == 864
+          assert result["cross_system"]["outcome_mismatches"] == 0
+          assert result["cross_system"]["authority_mismatches"] == 0
+          assert result["cross_system"]["semantic_mismatches_conventional_vs_bardo"] == 0
+          assert result["decision_metric_coverage"]["required_metrics_complete"] is True
+          for name in ("CONVENTIONAL_EDGE", "BARDO_EDGE"):
+              summary = result["summary"][name]
+              assert summary["replay_correctness"] == 1.0
+              assert summary["minimum_phase_change_coverage"] == 1.0
+              assert summary["transition_identity_stability"] == 1.0
+              assert summary["phantom_transitions"] == 0
+              assert summary["missing_transitions"] == 0
+              assert summary["previous_success_regressions"] == 0
+          assert result["decision"] in {
+              "NO_MEASURED_EDGE_REPRESENTATION_VALUE",
+              "BARDO_SPECIFIC_VALUE_SUPPORTED",
+              "EXPLICIT_EDGE_VALUE_ONLY_NO_BARDO_SPECIFIC_ADVANTAGE",
+          }
+          print(json.dumps({
+              "decision": result["decision"],
+              "explicit_edge_supported": result["explicit_edge_supported"],
+              "bardo_specific_supported": result["bardo_specific_supported"],
+              "decision_metric_coverage": result["decision_metric_coverage"],
+              "cross_system": result["cross_system"],
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Prepare exact-head evidence comment
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          result = json.loads(Path("bardo-edge-01-result.json").read_text())
+          s = result["summary"]
+          x = result["cross_system"]
+          coverage = result["decision_metric_coverage"]
+          py = "${{ matrix.python-version }}"
+          sha = os.environ["GITHUB_SHA"]
+          body = f"""## BARDO-EDGE-01 hosted evidence — Python {py}
+
+          Exact candidate head: `{sha}`
+          Frozen prereg/control head: `{result['control_head']}`
+
+          ```text
+          decision={result['decision']}
+          explicit_edge_supported={str(result['explicit_edge_supported']).lower()}
+          bardo_specific_supported={str(result['bardo_specific_supported']).lower()}
+          required_metrics_complete={str(coverage['required_metrics_complete']).lower()}
+          trials={s['NODE_ONLY']['trials']}
+          outcome_mismatches={x['outcome_mismatches']}
+          authority_mismatches={x['authority_mismatches']}
+          semantic_mismatches={x['semantic_mismatches_conventional_vs_bardo']}
+          conventional_replay={s['CONVENTIONAL_EDGE']['replay_correctness']}
+          bardo_replay={s['BARDO_EDGE']['replay_correctness']}
+          conventional_phantom={s['CONVENTIONAL_EDGE']['phantom_transitions']}
+          bardo_phantom={s['BARDO_EDGE']['phantom_transitions']}
+          conventional_missing={s['CONVENTIONAL_EDGE']['missing_transitions']}
+          bardo_missing={s['BARDO_EDGE']['missing_transitions']}
+          conventional_work_reduction={x['conventional_reconstruction_work_reduction']:.6f}
+          bardo_work_reduction={x['bardo_reconstruction_work_reduction']:.6f}
+          metadata_fraction_bardo_vs_conventional={x['metadata_fraction_vs_conventional']:.6f}
+          reconstruction_fraction_bardo_vs_conventional={x['reconstruction_work_fraction_vs_conventional']:.6f}
+          peak_objects_fraction_bardo_vs_conventional={x['peak_transition_objects_fraction_vs_conventional']:.6f}
+          edge_writes_fraction_bardo_vs_conventional={x['edge_writes_fraction_vs_conventional']:.6f}
+          edge_reads_replay_fraction_bardo_vs_conventional={x['edge_reads_replay_fraction_vs_conventional']:.6f}
+          runtime_fraction_bardo_vs_conventional={x['runtime_fraction_vs_conventional']:.6f}
+          replay_time_fraction_bardo_vs_conventional={x['replay_time_fraction_vs_conventional']:.6f}
+          trajectory_time_fraction_bardo_vs_conventional={x['trajectory_reconstruction_time_fraction_vs_conventional']:.6f}
+          ```
+
+          Decision metrics measured: {', '.join(coverage['required_metrics'])}.
+          `additional_allocations` remains non-decisive under the preregistered “where measurable” qualifier; no post-observation allocation profiler was introduced.
+
+          Full machine-readable result is attached to the Actions run as `bardo-edge-01-result.json`.
+
+          Claim boundary: {result['claim_boundary']}
+          """
+          Path("evidence-comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+
+      - name: Publish exact-head evidence to issue 56
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api "repos/${GITHUB_REPOSITORY}/issues/56/comments" --method POST --input evidence-comment.json
+
+      - name: Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: bardo-edge-01-${{ matrix.python-version }}-${{ github.sha }}
+          path: bardo-edge-01-result.json
+          if-no-files-found: error
+
+      - name: Publish hosted failure evidence
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          py = os.environ["PYTHON_VERSION"]
+          run_id = os.environ["RUN_ID"]
+          run_attempt = os.environ["RUN_ATTEMPT"]
+          partial = ""
+          result_path = Path("bardo-edge-01-result.json")
+          if result_path.exists():
+              try:
+                  result = json.loads(result_path.read_text())
+                  partial = (
+                      f"\nPartial machine result: `decision={result.get('decision')}`, "
+                      f"`required_metrics_complete={result.get('decision_metric_coverage', {}).get('required_metrics_complete')}`.\n"
+                  )
+              except Exception as exc:
+                  partial = f"\nA result file existed but was not valid JSON: `{type(exc).__name__}`.\n"
+
+          body = f"""## BARDO-EDGE-01 hosted run failed — Python {py}
+
+          Exact candidate head: `{os.environ['GITHUB_SHA']}`
+          Frozen prereg/control head: `082ad50e8c1870addc8aef41c7abc831704ea151`
+          Workflow run: https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{run_id} (attempt {run_attempt})
+          {partial}
+          The hosted lane failed before a valid frozen verdict could be published. This is retained as RED infrastructure/implementation evidence; no acceptance gate or held-out seed may be changed because of this failure.
+          """
+          Path("failure-comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/56/comments" --method POST --input failure-comment.json

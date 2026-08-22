@@ -1,12 +1,14 @@
 """BARDO-EDGE-01 controls: explicit observational transition events.
 
 This module intentionally implements only the strong conventional explicit-edge
-control frozen by BARDO-EDGE-01.  It is observational: it may record completed
+control frozen by BARDO-EDGE-01. It is observational: it may record completed
 A/M/C phase changes but cannot influence MORPHOS dynamics, repair ownership, or
 witness authority.
 
-The Bardo candidate is deliberately absent from this file.  Controls are frozen
-first so the candidate cannot redefine the baseline after results are observed.
+The conventional control is deliberately indexed so a later Bardo candidate
+cannot win merely because the baseline was forced to scan an inefficient event
+list. The Bardo candidate remains absent from this file until the controls are
+frozen.
 """
 from __future__ import annotations
 
@@ -57,12 +59,17 @@ class TransitionRecord:
 
 
 class ConventionalEdgeObserverGrid2D(MultiErasureAuthorityGrid2D):
-    """W8.5 grid plus a side-effect-free explicit transition-event index."""
+    """W8.5 grid plus a side-effect-free indexed transition-event control."""
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.transition_records: list[TransitionRecord] = []
         self._transition_ids: set[str] = set()
+        self._records_by_id: dict[str, TransitionRecord] = {}
+        self._records_by_site: dict[int, list[TransitionRecord]] = {}
+        self._records_by_relation: dict[
+            tuple[int, str, str], list[TransitionRecord]
+        ] = {}
 
     def step(self, stimulus: float | Sequence[float] = 0.0) -> None:
         before = tuple(self.states)
@@ -82,7 +89,23 @@ class ConventionalEdgeObserverGrid2D(MultiErasureAuthorityGrid2D):
             if transition_id in self._transition_ids:
                 raise RuntimeError("duplicate canonical transition identity")
             self._transition_ids.add(transition_id)
+            self._records_by_id[transition_id] = record
+            self._records_by_site.setdefault(site, []).append(record)
+            self._records_by_relation.setdefault(
+                (site, from_phase, to_phase), []
+            ).append(record)
             self.transition_records.append(record)
+
+    def record_by_id(self, transition_id: str) -> TransitionRecord | None:
+        return self._records_by_id.get(transition_id)
+
+    def records_for_site(self, site: int) -> tuple[TransitionRecord, ...]:
+        return tuple(self._records_by_site.get(site, ()))
+
+    def records_for_relation(
+        self, site: int, from_phase: str, to_phase: str
+    ) -> tuple[TransitionRecord, ...]:
+        return tuple(self._records_by_relation.get((site, from_phase, to_phase), ()))
 
     def transition_metadata_bytes(self) -> int:
         return sum(len(record.canonical_bytes()) for record in self.transition_records)

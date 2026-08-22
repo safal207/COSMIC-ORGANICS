@@ -57,8 +57,8 @@ class BardoEdgeCandidateTests(unittest.TestCase):
         conventional.run([0.0] * 12)
         candidate.run([0.0] * 12)
 
-        conventional_records = conventional.transition_records
-        candidate_records = candidate.transition_records
+        conventional_records = tuple(conventional.transition_records)
+        candidate_records = tuple(candidate.transition_records)
         self.assertEqual(conventional_records, candidate_records)
         self.assertEqual(
             [record.transition_id for record in conventional_records],

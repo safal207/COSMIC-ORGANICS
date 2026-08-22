@@ -45,18 +45,16 @@ def _trial(cls, target, source, config, hierarchy, mirror_law, protocol) -> dict
     )
     _corrupt_all(model, source)
     replay_initial = model.state_string()
-    snapshots = [replay_initial]
     phase_change_checks = 0
-    observer_record_checks = 0
     state_at_8 = None
 
+    # Timed path measures only the real model step path plus the same state-delta
+    # accounting for all three systems.  Observer indexes are inspected only after
+    # the timer so candidate/control timing is not distorted by benchmark probes.
     started = perf_counter_ns()
     for tick in range(1, protocol["workload"]["retention_tick"] + 1):
         before = model.state_string()
         transitions_before = model.transitions
-        records_before = (
-            len(model.transition_records) if hasattr(model, "transition_records") else 0
-        )
         model.step(0.0)
         after = model.state_string()
         actual_changes = sum(a != b for a, b in zip(before, after))
@@ -64,14 +62,6 @@ def _trial(cls, target, source, config, hierarchy, mirror_law, protocol) -> dict
         if actual_changes != counted_changes:
             raise RuntimeError("MORPHOS transition counter diverged from state delta")
         phase_change_checks += actual_changes
-
-        if hasattr(model, "transition_records"):
-            records_after = len(model.transition_records)
-            if records_after - records_before != actual_changes:
-                raise RuntimeError("edge observer missed or invented a transition")
-            observer_record_checks += records_after - records_before
-
-        snapshots.append(after)
         if tick == protocol["workload"]["evaluation_tick"]:
             state_at_8 = after
     elapsed_ns = perf_counter_ns() - started
@@ -93,6 +83,8 @@ def _trial(cls, target, source, config, hierarchy, mirror_law, protocol) -> dict
 
     if hasattr(model, "transition_records"):
         records = tuple(model.transition_records)
+        if len(records) != phase_change_checks:
+            raise RuntimeError("edge observer missed or invented a transition")
         replayed = model.replay(replay_initial)
         result.update(
             {
@@ -117,7 +109,6 @@ def _trial(cls, target, source, config, hierarchy, mirror_law, protocol) -> dict
                     else 1.0
                 ),
                 "edge_reconstruction_work": len(records),
-                "observer_record_checks": observer_record_checks,
             }
         )
     else:
@@ -133,7 +124,6 @@ def _trial(cls, target, source, config, hierarchy, mirror_law, protocol) -> dict
                 "missing_transitions": None,
                 "source_destination_relation_coverage": None,
                 "edge_reconstruction_work": None,
-                "observer_record_checks": None,
             }
         )
     return result
@@ -292,7 +282,6 @@ def build_report(speed_rounds: int = 3) -> dict:
             "median_runtime_round_ns": median(bucket["runtime_round_ns"]),
         }
 
-    node = summary["NODE_ONLY"]
     conventional = summary["CONVENTIONAL_EDGE"]
     bardo = summary["BARDO_EDGE"]
     conventional_work_reduction = 1.0 - (

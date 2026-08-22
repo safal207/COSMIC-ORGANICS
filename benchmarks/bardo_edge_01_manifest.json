@@ -18,9 +18,16 @@
     "transition_replay_required": true
   },
   "workload": {
+    "samples_per_corpus": 64,
+    "target_discovery_steps": 6,
+    "max_targets": 8,
+    "trials_per_target": 6,
     "trials_per_corpus": 48,
+    "witness_drive": 0.25,
+    "witness_commit_delay": 8,
     "evaluation_tick": 8,
     "retention_tick": 12,
+    "fault_shape": "single-bit common-mode corruption",
     "corpora": [
       {"grid": "5x5", "seed": 202608179001},
       {"grid": "5x5", "seed": 202608179002},

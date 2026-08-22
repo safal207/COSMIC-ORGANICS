@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   candidate:
@@ -89,6 +90,54 @@ jobs:
               "cross_system": result["cross_system"],
           }, indent=2, sort_keys=True))
           PY
+
+      - name: Prepare exact-head evidence comment
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          result = json.loads(Path("bardo-edge-01-result.json").read_text())
+          s = result["summary"]
+          x = result["cross_system"]
+          py = "${{ matrix.python-version }}"
+          sha = os.environ["GITHUB_SHA"]
+          body = f"""## BARDO-EDGE-01 hosted evidence — Python {py}
+
+          Exact candidate head: `{sha}`
+          Frozen prereg/control head: `{result['control_head']}`
+
+          ```text
+          decision={result['decision']}
+          explicit_edge_supported={str(result['explicit_edge_supported']).lower()}
+          bardo_specific_supported={str(result['bardo_specific_supported']).lower()}
+          trials={s['NODE_ONLY']['trials']}
+          outcome_mismatches={x['outcome_mismatches']}
+          authority_mismatches={x['authority_mismatches']}
+          semantic_mismatches={x['semantic_mismatches_conventional_vs_bardo']}
+          conventional_replay={s['CONVENTIONAL_EDGE']['replay_correctness']}
+          bardo_replay={s['BARDO_EDGE']['replay_correctness']}
+          conventional_phantom={s['CONVENTIONAL_EDGE']['phantom_transitions']}
+          bardo_phantom={s['BARDO_EDGE']['phantom_transitions']}
+          conventional_work_reduction={x['conventional_reconstruction_work_reduction']:.6f}
+          bardo_work_reduction={x['bardo_reconstruction_work_reduction']:.6f}
+          metadata_fraction_bardo_vs_conventional={x['metadata_fraction_vs_conventional']:.6f}
+          reconstruction_fraction_bardo_vs_conventional={x['reconstruction_work_fraction_vs_conventional']:.6f}
+          runtime_fraction_bardo_vs_conventional={x['runtime_fraction_vs_conventional']:.6f}
+          ```
+
+          Full machine-readable result is attached to the Actions run as `bardo-edge-01-result.json`.
+
+          Claim boundary: {result['claim_boundary']}
+          """
+          Path("evidence-comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+
+      - name: Publish exact-head evidence to issue 56
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api "repos/${GITHUB_REPOSITORY}/issues/56/comments" --method POST --input evidence-comment.json
 
       - name: Upload result
         uses: actions/upload-artifact@v4

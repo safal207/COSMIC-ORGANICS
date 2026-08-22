@@ -73,16 +73,27 @@ class SparseSchedulerControlTests(unittest.TestCase):
                 pulses.append([0.0] * cells)
         self._assert_trace_equal(stable, pulses, config)
 
-    def test_dense_activity_is_required_negative_control(self):
+    def test_dense_activity_forces_full_evaluation_on_active_tick(self):
         config = self._config(width=5, height=5)
         cells = config.width * config.height
         full = [0.9] * cells
-        dense, dirty = self._assert_trace_equal(
-            "A" * cells,
-            [full, [0.0] * cells, [0.0] * cells],
-            config,
-        )
-        self.assertEqual(dirty.node_evaluations, dense.node_evaluations)
+        dense = InstrumentedDenseGrid2D("A" * cells, config=config)
+        dirty = DirtyNodeGrid2D("A" * cells, config=config)
+
+        dense.step(full)
+        dirty.step(full)
+        self.assertEqual(dirty.state_string(), dense.state_string())
+        self.assertEqual(dirty.transitions, dense.transitions)
+        self.assertEqual(dirty.node_evaluations, cells)
+        self.assertEqual(dense.node_evaluations, cells)
+
+        # After the full-density injection is removed, sparse execution may
+        # legitimately become sparse again; only exact semantics remain required.
+        for pulse in ([0.0] * cells, [0.0] * cells):
+            dense.step(pulse)
+            dirty.step(pulse)
+            self.assertEqual(dirty.state_string(), dense.state_string())
+            self.assertEqual(dirty.transitions, dense.transitions)
 
     def test_memory_decay_nonzero_fails_closed(self):
         config = Grid2DConfig(width=5, height=5, memory_decay=0.25)

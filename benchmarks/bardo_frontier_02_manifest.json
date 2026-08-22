@@ -1,0 +1,81 @@
+{
+  "experiment_id": "BARDO-FRONTIER-02/v0.1",
+  "status": "preregistered_before_candidate_implementation",
+  "tracking_issue": 59,
+  "parent_head": "565570e2c6c1942ad1f5c755fca654421f61b609",
+  "model_surface": "MORPHOS Grid2D local A/M/C transition law",
+  "systems": [
+    "DENSE_NODE",
+    "DIRTY_NODE",
+    "BARDO_FRONTIER"
+  ],
+  "candidate_absent_at_freeze": true,
+  "primary_decision_rule": "architecture_specific_operation_counts_only",
+  "timing_can_support_bardo_specific_claim": false,
+  "frozen_config": {
+    "memory_decay": 0.0,
+    "anchor_threshold": 0.5,
+    "adaptive_threshold": 0.35,
+    "anchor_coupling": 0.75,
+    "adaptive_coupling": 0.5,
+    "mixed_relax_threshold": 0.05,
+    "mask": "checkerboard",
+    "neighborhood": "von_neumann"
+  },
+  "workload": {
+    "grids": ["16x16", "32x32", "64x64"],
+    "activity_densities": [0.01, 0.05, 0.20, 1.00],
+    "seed_families": [202608225901, 202608225902],
+    "trials_per_grid_density_family": 8,
+    "logical_ticks_per_trial": 24,
+    "injection_ticks": [1, 9, 17],
+    "pulse_magnitude": 0.9,
+    "precondition_relaxation_max_ticks": 64,
+    "precondition_requires_fixed_point": true,
+    "total_trials": 192,
+    "seed_use": "Seeds generate initial A/C states, pulse sites, and pulse signs deterministically. No seed may be replaced after candidate results."
+  },
+  "frozen_invariants": {
+    "state_equality_every_logical_tick": true,
+    "transition_count_equality": true,
+    "logical_tick_equality": true,
+    "stimulus_equality": true,
+    "deterministic_schedule_order": true,
+    "future_state_truth_allowed": false,
+    "candidate_specific_thresholds_allowed": false,
+    "candidate_specific_stimuli_allowed": false
+  },
+  "primary_metrics": [
+    "node_evaluations",
+    "scheduled_work_items",
+    "unchanged_node_evaluations_avoided",
+    "state_writes",
+    "transition_records_emitted"
+  ],
+  "diagnostic_metrics": [
+    "relation_evaluations",
+    "frontier_insert_attempts",
+    "dedup_hits",
+    "runtime_ns"
+  ],
+  "acceptance": {
+    "generic_sparse_node_evaluation_reduction_min_fraction_sparse_band": 0.25,
+    "bardo_specific_node_evaluation_reduction_min_fraction_vs_dirty": 0.10,
+    "bardo_specific_required_sparse_density_bands": 2,
+    "sparse_density_bands": [0.01, 0.05, 0.20],
+    "dense_negative_control_density": 1.0,
+    "maximum_state_mismatches": 0,
+    "maximum_transition_count_mismatches": 0,
+    "maximum_bardo_node_evaluation_regression_vs_dirty_fraction": 0.0,
+    "timing_only_win_allowed": false,
+    "synthetic_combined_score_allowed": false
+  },
+  "decision_classes": [
+    "CONTROL_FAILURE",
+    "INCOMPLETE_REQUIRED_METRICS",
+    "NO_SPARSE_EXECUTION_VALUE",
+    "SPARSE_EXECUTION_VALUE_ONLY",
+    "BARDO_FRONTIER_VALUE_SUPPORTED"
+  ],
+  "claim_boundary": "Classical deterministic software scheduling experiment. No quantum, physical-energy, or custom-silicon claim."
+}

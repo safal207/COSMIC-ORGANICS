@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   controls:
@@ -65,3 +66,52 @@ jobs:
           assert m["acceptance"]["bardo_specific_node_evaluation_reduction_min_fraction_vs_dirty"] == 0.10
           print("BARDO-FRONTIER-02 preregistration PASS")
           PY
+
+      - name: Publish control PASS evidence
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          body = f"""## BARDO-FRONTIER-02 controls PASS — Python {os.environ['PYTHON_VERSION']}
+
+          Exact control head: `{os.environ['GITHUB_SHA']}`
+          Frozen parent: `565570e2c6c1942ad1f5c755fca654421f61b609`
+
+          - candidate absent: PASS
+          - dense/dirty exactness tests: PASS
+          - preregistration validation: PASS
+          - timing-only Bardo claim: forbidden
+
+          This head may be used as the frozen control base for a separate BARDO_FRONTIER candidate branch.
+          """
+          Path("comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/59/comments" --method POST --input comment.json
+
+      - name: Publish control RED evidence
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          body = f"""## BARDO-FRONTIER-02 controls RED — Python {os.environ['PYTHON_VERSION']}
+
+          Exact control head: `{os.environ['GITHUB_SHA']}`
+          Frozen parent: `565570e2c6c1942ad1f5c755fca654421f61b609`
+
+          The controls/preregistration lane failed. No BARDO_FRONTIER candidate should be interpreted until the control failure is diagnosed without changing frozen workload seeds or acceptance thresholds.
+          """
+          Path("comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/59/comments" --method POST --input comment.json

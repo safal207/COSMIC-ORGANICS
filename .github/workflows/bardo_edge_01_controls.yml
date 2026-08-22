@@ -1,0 +1,72 @@
+name: BARDO-EDGE-01 Controls
+
+on:
+  push:
+    branches:
+      - "research/bardo-edge-01-prereg"
+    paths:
+      - "morphos/transition_edges.py"
+      - "tests/test_transition_edges.py"
+      - "benchmarks/bardo_edge_01_manifest.json"
+      - "docs/BARDO_EDGE_01_PREREG.md"
+      - ".github/workflows/bardo_edge_01_controls.yml"
+  pull_request:
+    paths:
+      - "morphos/transition_edges.py"
+      - "tests/test_transition_edges.py"
+      - "benchmarks/bardo_edge_01_manifest.json"
+      - "docs/BARDO_EDGE_01_PREREG.md"
+      - ".github/workflows/bardo_edge_01_controls.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  controls:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout exact event head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install repository
+        run: python -m pip install -e .
+
+      - name: Compile control surface
+        run: python -m compileall -q morphos/transition_edges.py tests/test_transition_edges.py
+
+      - name: Run frozen control tests
+        run: python -m unittest -v tests.test_transition_edges
+
+      - name: Validate preregistration manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          manifest = json.loads(Path("benchmarks/bardo_edge_01_manifest.json").read_text())
+          assert manifest["experiment_id"] == "BARDO-EDGE-01/v0.1"
+          assert manifest["status"] == "preregistered_before_candidate_results"
+          assert manifest["parent_head"] == "55ee39d9c248cb3b6f4f93359740e502ae9ad41e"
+          assert manifest["systems"] == ["NODE_ONLY", "CONVENTIONAL_EDGE", "BARDO_EDGE"]
+          assert manifest["authority_mode"] == "observational_only"
+          assert manifest["workload"]["total_trials"] == 864
+          assert len(manifest["workload"]["corpora"]) == 18
+          assert manifest["frozen_invariants"]["modify_w85_dynamics"] is False
+          assert manifest["frozen_invariants"]["future_target_truth_allowed"] is False
+          assert manifest["frozen_invariants"]["phantom_transitions_allowed"] == 0
+          assert manifest["acceptance"]["synthetic_winner_score_allowed"] is False
+          print("BARDO-EDGE-01 manifest PASS")
+          PY

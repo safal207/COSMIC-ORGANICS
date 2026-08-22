@@ -1,0 +1,99 @@
+{
+  "experiment_id": "BARDO-EDGE-01/v0.1",
+  "status": "preregistered_before_candidate_results",
+  "tracking_issue": 56,
+  "parent_head": "55ee39d9c248cb3b6f4f93359740e502ae9ad41e",
+  "systems": [
+    "NODE_ONLY",
+    "CONVENTIONAL_EDGE",
+    "BARDO_EDGE"
+  ],
+  "authority_mode": "observational_only",
+  "frozen_invariants": {
+    "modify_w85_dynamics": false,
+    "future_target_truth_allowed": false,
+    "wall_clock_transition_ordering_allowed": false,
+    "outcome_behavior_must_match_node_only": true,
+    "phantom_transitions_allowed": 0,
+    "transition_replay_required": true
+  },
+  "workload": {
+    "samples_per_corpus": 64,
+    "target_discovery_steps": 6,
+    "max_targets": 8,
+    "trials_per_target": 6,
+    "trials_per_corpus": 48,
+    "witness_drive": 0.25,
+    "witness_commit_delay": 8,
+    "evaluation_tick": 8,
+    "retention_tick": 12,
+    "fault_shape": "single-bit common-mode corruption",
+    "corpora": [
+      {"grid": "5x5", "seed": 202608179001},
+      {"grid": "5x5", "seed": 202608179002},
+      {"grid": "5x5", "seed": 202608179003},
+      {"grid": "7x7", "seed": 202608179011},
+      {"grid": "7x7", "seed": 202608179012},
+      {"grid": "7x7", "seed": 202608179013},
+      {"grid": "9x9", "seed": 202608179021},
+      {"grid": "9x9", "seed": 202608179022},
+      {"grid": "9x9", "seed": 202608179023},
+      {"grid": "5x5", "seed": 202608180001},
+      {"grid": "5x5", "seed": 202608180002},
+      {"grid": "5x5", "seed": 202608180003},
+      {"grid": "7x7", "seed": 202608180011},
+      {"grid": "7x7", "seed": 202608180012},
+      {"grid": "7x7", "seed": 202608180013},
+      {"grid": "9x9", "seed": 202608180021},
+      {"grid": "9x9", "seed": 202608180022},
+      {"grid": "9x9", "seed": 202608180023}
+    ],
+    "total_trials": 864
+  },
+  "transition_record_fields": [
+    "site",
+    "from_phase",
+    "to_phase",
+    "logical_tick",
+    "source_site",
+    "destination_site",
+    "admissible",
+    "evidence_ref"
+  ],
+  "metrics": {
+    "utility": [
+      "exact_recovery_tick_8",
+      "exact_recovery_tick_12",
+      "previous_success_regressions",
+      "phase_change_coverage",
+      "phantom_transition_count",
+      "ambiguous_transition_reconstructions"
+    ],
+    "proof": [
+      "trajectory_reconstruction_work",
+      "replay_equality",
+      "transition_identity_stability",
+      "source_destination_relation_coverage"
+    ],
+    "cost": [
+      "transition_metadata_bytes",
+      "peak_transition_objects",
+      "edge_writes",
+      "edge_reads_during_replay",
+      "additional_allocations"
+    ],
+    "speed": [
+      "runtime_per_trial",
+      "transition_replay_time",
+      "trajectory_reconstruction_time"
+    ]
+  },
+  "acceptance": {
+    "explicit_edge_reconstruction_work_reduction_min_fraction": 0.25,
+    "bardo_specific_improvement_min_fraction": 0.10,
+    "replay_correctness_required": 1.0,
+    "semantic_coverage_must_equal_conventional_edge": true,
+    "outcome_behavior_must_equal_node_only": true,
+    "synthetic_winner_score_allowed": false
+  }
+}

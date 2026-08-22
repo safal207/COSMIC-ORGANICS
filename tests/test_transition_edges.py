@@ -87,6 +87,21 @@ class TransitionEdgeControlTests(unittest.TestCase):
             second.transition_metadata_bytes(),
         )
 
+    def test_conventional_control_has_indexed_lookup(self):
+        _, source, observed = self._case(ConventionalEdgeObserverGrid2D)
+        _corrupt_all(observed, source)
+        observed.run([0.0] * 8)
+
+        first = observed.transition_records[0]
+        self.assertEqual(observed.record_by_id(first.transition_id), first)
+        self.assertIn(first, observed.records_for_site(first.site))
+        self.assertIn(
+            first,
+            observed.records_for_relation(
+                first.site, first.from_phase, first.to_phase
+            ),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

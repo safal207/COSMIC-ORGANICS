@@ -56,7 +56,7 @@ jobs:
             tests.test_bardo_edges
 
       - name: Execute frozen held-out benchmark
-        run: python benchmarks/run_bardo_edge_01.py > bardo-edge-01-result.json
+        run: PYTHONPATH=. python benchmarks/run_bardo_edge_01.py > bardo-edge-01-result.json
 
       - name: Validate frozen result boundary
         run: |

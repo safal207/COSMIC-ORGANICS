@@ -169,6 +169,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PYTHON_VERSION: ${{ matrix.python-version }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
           python - <<'PY'
           import json
@@ -176,11 +178,26 @@ jobs:
           from pathlib import Path
 
           py = os.environ["PYTHON_VERSION"]
+          run_id = os.environ["RUN_ID"]
+          run_attempt = os.environ["RUN_ATTEMPT"]
+          partial = ""
+          result_path = Path("bardo-edge-01-result.json")
+          if result_path.exists():
+              try:
+                  result = json.loads(result_path.read_text())
+                  partial = (
+                      f"\nPartial machine result: `decision={result.get('decision')}`, "
+                      f"`required_metrics_complete={result.get('decision_metric_coverage', {}).get('required_metrics_complete')}`.\n"
+                  )
+              except Exception as exc:
+                  partial = f"\nA result file existed but was not valid JSON: `{type(exc).__name__}`.\n"
+
           body = f"""## BARDO-EDGE-01 hosted run failed — Python {py}
 
           Exact candidate head: `{os.environ['GITHUB_SHA']}`
           Frozen prereg/control head: `082ad50e8c1870addc8aef41c7abc831704ea151`
-
+          Workflow run: https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{run_id} (attempt {run_attempt})
+          {partial}
           The hosted lane failed before a valid frozen verdict could be published. This is retained as RED infrastructure/implementation evidence; no acceptance gate or held-out seed may be changed because of this failure.
           """
           Path("failure-comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")

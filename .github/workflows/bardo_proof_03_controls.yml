@@ -1,0 +1,124 @@
+name: BARDO-PROOF-03 Controls
+
+on:
+  push:
+    branches:
+      - "research/bardo-proof-03-prereg"
+    paths:
+      - "benchmarks/bardo_proof_03_v02_manifest.json"
+      - "morphos/proof_controls_v02.py"
+      - "tests/test_proof_controls_v02.py"
+      - "tests/test_proof_controls.py"
+      - ".github/workflows/bardo_proof_03_controls.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  controls-v02:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout exact control head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install repository
+        run: python -m pip install -e .
+
+      - name: Assert Bardo proof candidate is absent
+        run: test ! -e morphos/bardo_proof_edges.py
+
+      - name: Compile v0.2 controls
+        run: python -m compileall -q morphos/proof_controls_v02.py tests/test_proof_controls_v02.py
+
+      - name: Run commitment-bound proof controls
+        run: python -m unittest -v tests.test_proof_controls_v02
+
+      - name: Check historical v0.1 is non-active
+        run: python -m unittest -v tests.test_proof_controls
+
+      - name: Validate frozen v0.2 preregistration
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          m = json.loads(Path("benchmarks/bardo_proof_03_v02_manifest.json").read_text())
+          assert m["experiment_id"] == "BARDO-PROOF-03/v0.2"
+          assert m["status"] == "preregistered_after_v01_control_design_red_before_bardo_candidate"
+          assert m["v01_red_head"] == "6837ccb1a166e6247b58c0ffb1d4f28e7240c315"
+          assert m["candidate_absent_at_freeze"] is True
+          assert m["workload"]["total_queries"] == 192
+          assert m["workload"]["chain_lengths"] == [1, 4, 16, 64]
+          assert len(m["workload"]["mutation_types"]) == 6
+          assert m["state_commitment"]["algorithm"] == "sha256_binary_merkle_tree"
+          assert m["frozen_invariants"]["state_fact_commitment_binding_required"] == 1.0
+          assert m["primary_decision_rule"] == "deterministic_proof_size_and_verification_work"
+          assert m["timing_can_support_bardo_specific_claim"] is False
+          assert m["acceptance"]["timing_only_win_allowed"] is False
+          print("BARDO-PROOF-03/v0.2 preregistration PASS")
+          PY
+
+      - name: Publish v0.2 control PASS evidence
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          body = f"""## BARDO-PROOF-03/v0.2 controls PASS — Python {os.environ['PYTHON_VERSION']}
+
+          Exact v0.2 control head: `{os.environ['GITHUB_SHA']}`
+          Historical v0.1 RED head: `6837ccb1a166e6247b58c0ffb1d4f28e7240c315`
+
+          - Bardo proof candidate absent: PASS
+          - Merkle state commitment binding: PASS
+          - snapshot/local/DAG valid proof controls: PASS
+          - semantics-preserving neighbor substitution rejection: PASS
+          - public-stimulus binding: PASS
+          - missing/substituted causal parent rejection: PASS
+          - v0.2 preregistration validation: PASS
+          - timing-only Bardo claim: forbidden
+
+          This exact head may be frozen as the base for a separate BARDO_PROOF_EDGE candidate.
+          """
+          Path("comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/62/comments" --method POST --input comment.json
+
+      - name: Publish v0.2 control RED evidence
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          body = f"""## BARDO-PROOF-03/v0.2 controls RED — Python {os.environ['PYTHON_VERSION']}
+
+          Exact v0.2 control head: `{os.environ['GITHUB_SHA']}`
+          Historical v0.1 RED head: `6837ccb1a166e6247b58c0ffb1d4f28e7240c315`
+
+          The commitment-bound proof-control lane still failed before any Bardo candidate exists. No held-out seed or acceptance threshold was changed.
+          """
+          Path("comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/62/comments" --method POST --input comment.json

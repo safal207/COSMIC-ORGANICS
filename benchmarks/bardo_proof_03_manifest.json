@@ -1,0 +1,85 @@
+{
+  "experiment_id": "BARDO-PROOF-03/v0.1",
+  "status": "preregistered_before_bardo_candidate_implementation",
+  "tracking_issue": 62,
+  "parent_head": "2021c7ea03519f58c30e37c6e720b6a1db4e4d32",
+  "systems": [
+    "SNAPSHOT_LOCAL",
+    "LOCAL_WITNESS",
+    "CAUSAL_DAG",
+    "BARDO_PROOF_EDGE"
+  ],
+  "candidate_absent_at_freeze": true,
+  "primary_decision_rule": "deterministic_proof_size_and_verification_work",
+  "timing_can_support_bardo_specific_claim": false,
+  "frozen_config": {
+    "memory_decay": 0.0,
+    "anchor_threshold": 0.5,
+    "adaptive_threshold": 0.35,
+    "anchor_coupling": 0.75,
+    "adaptive_coupling": 0.5,
+    "mixed_relax_threshold": 0.05,
+    "mask": "checkerboard",
+    "neighborhood": "von_neumann"
+  },
+  "workload": {
+    "grids": ["16x16", "32x32", "64x64"],
+    "chain_lengths": [1, 4, 16, 64],
+    "seed_families": [202608226201, 202608226202],
+    "trials_per_grid_chain_family": 8,
+    "total_queries": 192,
+    "activity_density": 0.05,
+    "pulse_magnitude": 0.9,
+    "maximum_trace_ticks": 96,
+    "chain_shape": "deterministic overlapping and branching local transition queries",
+    "mutation_types": [
+      "wrong_next_phase",
+      "mutated_local_stimulus",
+      "mutated_neighbor_phase",
+      "wrong_logical_tick",
+      "missing_required_parent",
+      "substituted_parent_identity"
+    ]
+  },
+  "frozen_invariants": {
+    "valid_proof_acceptance_required": 1.0,
+    "invalid_proof_rejection_required": 1.0,
+    "transition_law_agreement_required": 1.0,
+    "hidden_runtime_state_allowed": false,
+    "future_state_truth_allowed": false,
+    "post_result_schema_change_allowed": false,
+    "canonical_encoding_required": true
+  },
+  "primary_metrics": [
+    "canonical_proof_payload_bytes",
+    "unique_phase_facts_disclosed",
+    "unique_stimulus_facts_disclosed",
+    "parent_references_disclosed",
+    "local_transition_evaluations",
+    "hash_evaluations",
+    "proof_objects_traversed",
+    "invalid_proof_detection_rate"
+  ],
+  "diagnostic_metrics": [
+    "verification_runtime_ns"
+  ],
+  "acceptance": {
+    "local_proof_payload_reduction_vs_snapshot_min_fraction": 0.25,
+    "causal_dag_payload_or_work_reduction_vs_local_min_fraction": 0.10,
+    "bardo_specific_improvement_vs_causal_dag_min_fraction": 0.10,
+    "maximum_primary_metric_regression_fraction_for_bardo": 0.02,
+    "valid_proof_acceptance_required": 1.0,
+    "invalid_proof_rejection_required": 1.0,
+    "timing_only_win_allowed": false,
+    "synthetic_combined_score_allowed": false
+  },
+  "decision_classes": [
+    "CONTROL_FAILURE",
+    "INCOMPLETE_REQUIRED_METRICS",
+    "NO_PROOF_LOCALITY_VALUE",
+    "LOCAL_PROOF_VALUE_ONLY",
+    "CAUSAL_DAG_VALUE_ONLY",
+    "BARDO_PROOF_VALUE_SUPPORTED"
+  ],
+  "claim_boundary": "Classical deterministic software proof/audit experiment. No cryptographic-security, quantum, physical-energy, or custom-silicon claim beyond explicitly measured behavior."
+}

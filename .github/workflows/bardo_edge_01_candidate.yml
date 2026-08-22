@@ -1,0 +1,98 @@
+name: BARDO-EDGE-01 Candidate
+
+on:
+  push:
+    branches:
+      - "research/bardo-edge-01-candidate"
+    paths:
+      - "morphos/bardo_edges.py"
+      - "morphos/transition_edges.py"
+      - "tests/test_bardo_edges.py"
+      - "tests/test_transition_edges.py"
+      - "benchmarks/run_bardo_edge_01.py"
+      - "benchmarks/bardo_edge_01_manifest.json"
+      - ".github/workflows/bardo_edge_01_candidate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout exact candidate head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install repository
+        run: python -m pip install -e .
+
+      - name: Compile BARDO-EDGE-01 surface
+        run: |
+          python -m compileall -q \
+            morphos/transition_edges.py \
+            morphos/bardo_edges.py \
+            tests/test_transition_edges.py \
+            tests/test_bardo_edges.py \
+            benchmarks/run_bardo_edge_01.py
+
+      - name: Run controls and candidate unit tests
+        run: |
+          python -m unittest -v \
+            tests.test_transition_edges \
+            tests.test_bardo_edges
+
+      - name: Execute frozen held-out benchmark
+        run: python benchmarks/run_bardo_edge_01.py > bardo-edge-01-result.json
+
+      - name: Validate frozen result boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          result = json.loads(Path("bardo-edge-01-result.json").read_text())
+          assert result["experiment_id"] == "BARDO-EDGE-01/v0.1"
+          assert result["candidate_results_observed_after_preregistration"] is True
+          assert result["control_head"] == "082ad50e8c1870addc8aef41c7abc831704ea151"
+          assert result["summary"]["NODE_ONLY"]["trials"] == 864
+          assert result["summary"]["CONVENTIONAL_EDGE"]["trials"] == 864
+          assert result["summary"]["BARDO_EDGE"]["trials"] == 864
+          assert result["cross_system"]["outcome_mismatches"] == 0
+          assert result["cross_system"]["authority_mismatches"] == 0
+          assert result["cross_system"]["semantic_mismatches_conventional_vs_bardo"] == 0
+          assert result["summary"]["CONVENTIONAL_EDGE"]["replay_correctness"] == 1.0
+          assert result["summary"]["BARDO_EDGE"]["replay_correctness"] == 1.0
+          assert result["summary"]["CONVENTIONAL_EDGE"]["phantom_transitions"] == 0
+          assert result["summary"]["BARDO_EDGE"]["phantom_transitions"] == 0
+          assert result["decision"] in {
+              "NO_MEASURED_EDGE_REPRESENTATION_VALUE",
+              "BARDO_SPECIFIC_VALUE_SUPPORTED",
+              "EXPLICIT_EDGE_VALUE_ONLY_NO_BARDO_SPECIFIC_ADVANTAGE",
+          }
+          print(json.dumps({
+              "decision": result["decision"],
+              "explicit_edge_supported": result["explicit_edge_supported"],
+              "bardo_specific_supported": result["bardo_specific_supported"],
+              "cross_system": result["cross_system"],
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: bardo-edge-01-${{ matrix.python-version }}-${{ github.sha }}
+          path: bardo-edge-01-result.json
+          if-no-files-found: error

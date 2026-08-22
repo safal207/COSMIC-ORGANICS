@@ -74,10 +74,15 @@ jobs:
           assert result["cross_system"]["outcome_mismatches"] == 0
           assert result["cross_system"]["authority_mismatches"] == 0
           assert result["cross_system"]["semantic_mismatches_conventional_vs_bardo"] == 0
-          assert result["summary"]["CONVENTIONAL_EDGE"]["replay_correctness"] == 1.0
-          assert result["summary"]["BARDO_EDGE"]["replay_correctness"] == 1.0
-          assert result["summary"]["CONVENTIONAL_EDGE"]["phantom_transitions"] == 0
-          assert result["summary"]["BARDO_EDGE"]["phantom_transitions"] == 0
+          assert result["decision_metric_coverage"]["required_metrics_complete"] is True
+          for name in ("CONVENTIONAL_EDGE", "BARDO_EDGE"):
+              summary = result["summary"][name]
+              assert summary["replay_correctness"] == 1.0
+              assert summary["minimum_phase_change_coverage"] == 1.0
+              assert summary["transition_identity_stability"] == 1.0
+              assert summary["phantom_transitions"] == 0
+              assert summary["missing_transitions"] == 0
+              assert summary["previous_success_regressions"] == 0
           assert result["decision"] in {
               "NO_MEASURED_EDGE_REPRESENTATION_VALUE",
               "BARDO_SPECIFIC_VALUE_SUPPORTED",
@@ -87,6 +92,7 @@ jobs:
               "decision": result["decision"],
               "explicit_edge_supported": result["explicit_edge_supported"],
               "bardo_specific_supported": result["bardo_specific_supported"],
+              "decision_metric_coverage": result["decision_metric_coverage"],
               "cross_system": result["cross_system"],
           }, indent=2, sort_keys=True))
           PY
@@ -101,6 +107,7 @@ jobs:
           result = json.loads(Path("bardo-edge-01-result.json").read_text())
           s = result["summary"]
           x = result["cross_system"]
+          coverage = result["decision_metric_coverage"]
           py = "${{ matrix.python-version }}"
           sha = os.environ["GITHUB_SHA"]
           body = f"""## BARDO-EDGE-01 hosted evidence — Python {py}
@@ -112,6 +119,7 @@ jobs:
           decision={result['decision']}
           explicit_edge_supported={str(result['explicit_edge_supported']).lower()}
           bardo_specific_supported={str(result['bardo_specific_supported']).lower()}
+          required_metrics_complete={str(coverage['required_metrics_complete']).lower()}
           trials={s['NODE_ONLY']['trials']}
           outcome_mismatches={x['outcome_mismatches']}
           authority_mismatches={x['authority_mismatches']}
@@ -120,12 +128,22 @@ jobs:
           bardo_replay={s['BARDO_EDGE']['replay_correctness']}
           conventional_phantom={s['CONVENTIONAL_EDGE']['phantom_transitions']}
           bardo_phantom={s['BARDO_EDGE']['phantom_transitions']}
+          conventional_missing={s['CONVENTIONAL_EDGE']['missing_transitions']}
+          bardo_missing={s['BARDO_EDGE']['missing_transitions']}
           conventional_work_reduction={x['conventional_reconstruction_work_reduction']:.6f}
           bardo_work_reduction={x['bardo_reconstruction_work_reduction']:.6f}
           metadata_fraction_bardo_vs_conventional={x['metadata_fraction_vs_conventional']:.6f}
           reconstruction_fraction_bardo_vs_conventional={x['reconstruction_work_fraction_vs_conventional']:.6f}
+          peak_objects_fraction_bardo_vs_conventional={x['peak_transition_objects_fraction_vs_conventional']:.6f}
+          edge_writes_fraction_bardo_vs_conventional={x['edge_writes_fraction_vs_conventional']:.6f}
+          edge_reads_replay_fraction_bardo_vs_conventional={x['edge_reads_replay_fraction_vs_conventional']:.6f}
           runtime_fraction_bardo_vs_conventional={x['runtime_fraction_vs_conventional']:.6f}
+          replay_time_fraction_bardo_vs_conventional={x['replay_time_fraction_vs_conventional']:.6f}
+          trajectory_time_fraction_bardo_vs_conventional={x['trajectory_reconstruction_time_fraction_vs_conventional']:.6f}
           ```
+
+          Decision metrics measured: {', '.join(coverage['required_metrics'])}.
+          `additional_allocations` remains non-decisive under the preregistered “where measurable” qualifier; no post-observation allocation profiler was introduced.
 
           Full machine-readable result is attached to the Actions run as `bardo-edge-01-result.json`.
 

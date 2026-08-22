@@ -168,13 +168,15 @@ jobs:
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
         run: |
           python - <<'PY'
           import json
           import os
           from pathlib import Path
 
-          body = f"""## BARDO-EDGE-01 hosted run failed — Python ${{{{ matrix.python-version }}}}
+          py = os.environ["PYTHON_VERSION"]
+          body = f"""## BARDO-EDGE-01 hosted run failed — Python {py}
 
           Exact candidate head: `{os.environ['GITHUB_SHA']}`
           Frozen prereg/control head: `082ad50e8c1870addc8aef41c7abc831704ea151`

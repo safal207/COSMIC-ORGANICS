@@ -145,3 +145,24 @@ jobs:
           name: bardo-edge-01-${{ matrix.python-version }}-${{ github.sha }}
           path: bardo-edge-01-result.json
           if-no-files-found: error
+
+      - name: Publish hosted failure evidence
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          body = f"""## BARDO-EDGE-01 hosted run failed — Python ${{{{ matrix.python-version }}}}
+
+          Exact candidate head: `{os.environ['GITHUB_SHA']}`
+          Frozen prereg/control head: `082ad50e8c1870addc8aef41c7abc831704ea151`
+
+          The hosted lane failed before a valid frozen verdict could be published. This is retained as RED infrastructure/implementation evidence; no acceptance gate or held-out seed may be changed because of this failure.
+          """
+          Path("failure-comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/56/comments" --method POST --input failure-comment.json

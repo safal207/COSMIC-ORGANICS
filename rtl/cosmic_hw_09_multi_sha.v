@@ -90,15 +90,21 @@ module cosmic_hw09_sparse_receipt_sha256_multi #(
     reg retire_found;
     reg [1:0] retire_idx;
     reg [255:0] retire_digest;
-    integer i;
+
+    // Separate loop variables are intentional. A shared module-scope integer
+    // across independent procedural blocks creates a simulation race and was
+    // preserved as the first HW-09 RED at receipt index 24,617.
+    integer dispatch_i;
+    integer retire_i;
+    integer reset_i;
 
     always @* begin
         dispatch_found = 1'b0;
         dispatch_idx = 2'd0;
-        for (i = 0; i < ENGINES; i = i + 1) begin
-            if (!dispatch_found && sha_block_ready[i]) begin
+        for (dispatch_i = 0; dispatch_i < ENGINES; dispatch_i = dispatch_i + 1) begin
+            if (!dispatch_found && sha_block_ready[dispatch_i]) begin
                 dispatch_found = 1'b1;
-                dispatch_idx = i[1:0];
+                dispatch_idx = dispatch_i[1:0];
             end
         end
     end
@@ -107,12 +113,12 @@ module cosmic_hw09_sparse_receipt_sha256_multi #(
         retire_found = 1'b0;
         retire_idx = 2'd0;
         retire_digest = 256'b0;
-        for (i = 0; i < ENGINES; i = i + 1) begin
-            if (!retire_found && sha_digest_valid[i] &&
-                active_sequence[i] == next_retire_sequence) begin
+        for (retire_i = 0; retire_i < ENGINES; retire_i = retire_i + 1) begin
+            if (!retire_found && sha_digest_valid[retire_i] &&
+                active_sequence[retire_i] == next_retire_sequence) begin
                 retire_found = 1'b1;
-                retire_idx = i[1:0];
-                retire_digest = sha_digest_data[i];
+                retire_idx = retire_i[1:0];
+                retire_digest = sha_digest_data[retire_i];
             end
         end
     end
@@ -187,8 +193,8 @@ module cosmic_hw09_sparse_receipt_sha256_multi #(
             waiting_block <= 512'b0;
             waiting_sequence <= 16'd0;
             next_retire_sequence <= 16'd0;
-            for (i = 0; i < ENGINES; i = i + 1)
-                active_sequence[i] <= 16'd0;
+            for (reset_i = 0; reset_i < ENGINES; reset_i = reset_i + 1)
+                active_sequence[reset_i] <= 16'd0;
         end else begin
             // Dispatch at most one waiting block per physical cycle to the
             // lowest-index engine that can accept it.

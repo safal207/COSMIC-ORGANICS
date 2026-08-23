@@ -1,0 +1,109 @@
+name: COSMIC-KERNEL-05 Controls
+
+on:
+  push:
+    branches:
+      - "research/cosmic-kernel-05-prereg"
+    paths:
+      - "benchmarks/cosmic_kernel_05_manifest.json"
+      - "docs/COSMIC_KERNEL_05_PREREG.md"
+      - ".github/workflows/cosmic_kernel_05_controls.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  controls:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout exact prereg head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install repository
+        run: python -m pip install -e .
+
+      - name: Assert integrated candidate is absent
+        run: test ! -e morphos/cosmic_kernel.py
+
+      - name: Run surviving mechanism controls
+        run: python -m unittest -v tests.test_sparse_scheduler tests.test_proof_controls_v02 tests.test_dag_parent_commit
+
+      - name: Validate preregistration
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m = json.loads(Path("benchmarks/cosmic_kernel_05_manifest.json").read_text())
+          assert m["experiment_id"] == "COSMIC-KERNEL-05/v0.1"
+          assert m["status"] == "preregistered_before_integrated_kernel_implementation"
+          assert m["parent_head"] == "7c047673c8b4d5d49e19e699558560db9b099ded"
+          assert m["candidate_absent_at_freeze"] is True
+          assert m["workload"]["total_instances"] == 288
+          assert m["workload"]["activity_densities"] == [0.01, 0.05, 0.20, 1.00]
+          assert m["workload"]["proof_sampling_densities"] == [0.01, 0.10, 1.00]
+          assert m["decision"]["sparse_committed_proof_node_reduction_min_fraction_vs_dense_committed"] == 0.50
+          assert m["decision"]["synthetic_combined_score_allowed"] is False
+          assert m["decision"]["timing_only_win_allowed"] is False
+          print("COSMIC-KERNEL-05 preregistration PASS")
+          PY
+
+      - name: Publish control PASS
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          body = f"""## COSMIC-KERNEL-05 controls PASS — Python {os.environ['PYTHON_VERSION']}
+
+          Exact prereg head: `{os.environ['GITHUB_SHA']}`
+          Parent research head: `7c047673c8b4d5d49e19e699558560db9b099ded`
+
+          - integrated candidate absent: PASS
+          - sparse scheduler controls: PASS
+          - Merkle/proof controls: PASS
+          - generic committed DAG controls: PASS
+          - 288-instance fresh workload frozen: PASS
+          - synthetic combined score: forbidden
+          - timing-only claim: forbidden
+
+          This head may be frozen before implementing the integrated kernel candidate.
+          """
+          Path("comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/67/comments" --method POST --input comment.json
+
+      - name: Publish control RED
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          body = f"""## COSMIC-KERNEL-05 controls RED — Python {os.environ['PYTHON_VERSION']}
+
+          Exact prereg head: `{os.environ['GITHUB_SHA']}`
+
+          Controls failed before integrated candidate implementation. Do not alter frozen seeds or acceptance gates to force a later result.
+          """
+          Path("comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/67/comments" --method POST --input comment.json

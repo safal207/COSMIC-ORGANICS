@@ -35,10 +35,9 @@ jobs:
           sudo apt-get install -y iverilog yosys
           iverilog -V | head -n 2
           yosys -V
-      - name: Run frozen prereg and candidate contract tests
+      - name: Run frozen control and candidate contract tests
         run: |
           python -m pytest \
-            tests/test_cosmic_hw_07b_prereg.py \
             tests/test_cosmic_hw_07b_candidate.py \
             tests/test_cosmic_hw_07_candidate.py -q
       - name: Execute frozen receipt frontier

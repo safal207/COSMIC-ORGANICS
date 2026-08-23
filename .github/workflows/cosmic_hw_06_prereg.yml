@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   prereg:
@@ -49,3 +50,25 @@ jobs:
           assert not any(p.exists() for p in forbidden), 'RTL candidate must be absent on prereg head'
           print('COSMIC-HW-06 prereg PASS')
           PY
+      - name: Publish prereg PASS
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: 70,
+              body: `## COSMIC-HW-06 prereg PASS — Python ${{ matrix.python-version }}\n\nExact prereg head: \`${context.sha}\`\n\n- frozen 8x8 / 64-PE interface: PASS\n- A/M/C semantic contract: PASS\n- minimum 256 vector sequences: PASS\n- >=50% sparse PE-evaluation gate frozen: PASS\n- synthetic winner score forbidden: PASS\n- timing not decisive: PASS\n- RTL candidate absent on prereg head: PASS`
+            })
+      - name: Publish prereg RED
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: 70,
+              body: `## COSMIC-HW-06 prereg RED — Python ${{ matrix.python-version }}\n\nExact prereg head: \`${context.sha}\`\n\nThe prereg gate failed. Do not implement or credit the RTL candidate until this frozen control boundary is green.`
+            })

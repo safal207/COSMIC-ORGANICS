@@ -217,9 +217,13 @@ def cell_counts_from_json(path: Path, top: str) -> dict:
 
 def synthesize(yosys: str, rtl: Path, top: str, tmp: Path) -> dict:
     json_path = tmp / f"{top}.json"
+    # Flatten the benchmark design hierarchy before Xilinx mapping. Without
+    # this, the wrapper top contains only one parameterized core instance and
+    # top-level I/O cells, which makes direct top-module cell accounting report
+    # false zero LUT/FF values even though synthesis itself succeeded.
     synth_script = (
-        f"read_verilog -sv {rtl}; synth_xilinx -family xc7 -top {top}; "
-        f"write_json {json_path}"
+        f"read_verilog -sv {rtl}; hierarchy -check -top {top}; flatten; "
+        f"synth_xilinx -family xc7 -top {top}; write_json {json_path}"
     )
     run_cmd([yosys, "-q", "-p", synth_script])
     row = cell_counts_from_json(json_path, top)

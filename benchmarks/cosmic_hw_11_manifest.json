@@ -1,0 +1,91 @@
+{
+  "experiment_id": "COSMIC-HW-11/v0.1",
+  "parent_hw10_source_head": "fb855d03093813e21bc751ff8051ce5c9f0b861f",
+  "parent_decision": "MERKLE_INCLUSION_COST_MEASURED",
+  "frozen_oracle_fingerprint": "b716b577e7b7efa7e0ccb4f1c92f2b51a1d219e33d0f125e7ce461e656929978",
+  "systems": {
+    "B1_M1_CONTROL": {"tree_buffers": 1, "merkle_sha_engines": 1},
+    "B2_M1": {"tree_buffers": 2, "merkle_sha_engines": 1},
+    "B1_M2": {"tree_buffers": 1, "merkle_sha_engines": 2},
+    "B2_M2": {"tree_buffers": 2, "merkle_sha_engines": 2}
+  },
+  "semantic_contract": {
+    "tree_leaf_capacity": 16,
+    "proof_levels": 4,
+    "pad_leaf_hex": "14681950aa66cab259fa8da32adef6daa59316cf2bf4d43669d27efe69201ebe",
+    "parent_definition": "SHA256(0x01 || left_digest_32B || right_digest_32B)",
+    "parent_message_bytes": 65,
+    "parent_sha_blocks": 2,
+    "sha_rounds_per_block": 64,
+    "proof_serializer_lanes": 1,
+    "proof_order": "source_sequence,tree_ordinal,leaf_ordinal,level",
+    "tree_cross_sequence": false
+  },
+  "frozen_workload": {
+    "source_sequences": 320,
+    "logical_ticks": 3840,
+    "transition_receipts": 41144,
+    "leaf_digests": 4240,
+    "trees": 444,
+    "padding_leaves": 2864,
+    "parent_hashes": 6660,
+    "parent_compression_blocks": 13320,
+    "parent_sha_rounds_aggregate": 852480,
+    "proof_fragments": 16960,
+    "verified_real_leaf_proofs": 4240
+  },
+  "m2_schedule": {
+    "parents_per_level": [8, 4, 2, 1],
+    "max_parallel_parents": 2,
+    "waves_per_level": [4, 2, 1, 1],
+    "waves_per_tree": 8,
+    "total_waves": 3552,
+    "ideal_parent_round_wall_cycles_per_tree_excluding_handshake": 1024,
+    "ideal_parent_round_wall_cycles_total_excluding_handshake": 454656,
+    "dispatch_order": "ascending parent index within dependency-ready level",
+    "next_level_requires_current_level_complete": true
+  },
+  "control_hw10": {
+    "physical_cycles": 1027209,
+    "backpressure_stalls": {"0.01": 0, "0.05": 542, "0.20": 11184, "1.00": 13456, "stress": 80560},
+    "leaf_to_tree_stalls": 230795,
+    "merkle_sha_busy_cycles": 852480,
+    "root_sink_stalls": 42,
+    "proof_sink_stalls": 4059,
+    "lut": 36907,
+    "ff": 21380,
+    "core_cells_excluding_io": 62125,
+    "logic_depth_proxy": 266,
+    "bram": 0,
+    "lutram": 0
+  },
+  "eligibility": {
+    "functional_gates_all_pass": true,
+    "max_stalls_1pct": 0,
+    "max_stalls_5pct": 542,
+    "max_physical_cycles": 719046,
+    "min_physical_cycle_reduction_fraction": 0.30,
+    "max_stress_stalls": 80560,
+    "max_logic_depth_proxy": 266,
+    "no_drops": true,
+    "no_unbounded_queue": true,
+    "proof_order_preserved": true
+  },
+  "handoff_tiebreak": [
+    "minimum_core_cells_excluding_io",
+    "minimum_ff",
+    "minimum_lut",
+    "minimum_physical_cycles",
+    "minimum_logic_depth_proxy"
+  ],
+  "decision_classes": [
+    "CONTROL_FAILURE",
+    "MERKLE_SEMANTIC_FAILURE",
+    "NO_ELIGIBLE_MERKLE_THROUGHPUT_IMPROVEMENT",
+    "MERKLE_THROUGHPUT_FRONTIER_MEASURED",
+    "MERKLE_THROUGHPUT_VALUE_SUPPORTED"
+  ],
+  "synthetic_combined_score": false,
+  "candidate_rtl_path": "rtl/cosmic_hw_11_merkle_frontier.v",
+  "candidate_benchmark_path": "benchmarks/cosmic_hw_11_candidate.py"
+}

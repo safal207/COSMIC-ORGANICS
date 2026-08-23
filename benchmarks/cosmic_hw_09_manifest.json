@@ -1,0 +1,133 @@
+{
+  "experiment_id": "COSMIC-HW-09/v0.1",
+  "parent_hw08_head": "84e1bbc8cd7cb42fba8e7f4de736ebf48161307d",
+  "parent_hw08_decision": "SHA256_COMMITMENT_COST_MEASURED",
+  "systems": [
+    "SHA256x1_CONTROL",
+    "SHA256x2",
+    "SHA256x4"
+  ],
+  "receipt_contract": {
+    "width_bits": 40,
+    "receipts_per_full_commitment": 10,
+    "full_domain_hex": "434f",
+    "partial_domain_rule": "0x4340 | real_receipt_count",
+    "canonical_message_bytes": 54,
+    "sha_block_bytes": 64,
+    "byte_order": "big_endian",
+    "collector_fifo_depth": 4,
+    "collector_selector": "flat_64_site_priority",
+    "collector_output_lanes": 1
+  },
+  "sha_engine": {
+    "standard": "FIPS 180-4 SHA-256",
+    "architecture": "iterative_64_round",
+    "rounds_per_cycle": 1,
+    "rounds_per_digest": 64,
+    "vendor_ip_allowed": false,
+    "unrolled_64_round_datapath_allowed": false
+  },
+  "multi_engine_dispatch": {
+    "engines": [1, 2, 4],
+    "currently_filling_messages": 1,
+    "complete_waiting_blocks": 1,
+    "dispatch_rule": "lowest_index_ready_engine",
+    "digest_retirement": "strictly_increasing_commitment_sequence",
+    "digest_selection_rule": "lowest_sequence_completed_digest_first",
+    "infinite_queue_allowed": false,
+    "drop_allowed": false,
+    "backpressure_propagates_to_receipt_ready": true
+  },
+  "workload": {
+    "phase1_sequences": 256,
+    "receipt_stress_sequences": 64,
+    "total_sequences": 320,
+    "accepted_logical_ticks": 3840,
+    "real_receipts": 41144,
+    "sha_blocks": 4240,
+    "full_blocks": 3951,
+    "partial_blocks": 289,
+    "stress_fingerprint": "sha256:be033839531356f0695b6c270b8d22a2abb8f388dd1ecb9c4b93644c9b291110"
+  },
+  "frozen_x1_control": {
+    "physical_cycles": 280885,
+    "sha_busy_cycles": 271360,
+    "assembler_stalls": 191599,
+    "digest_sink_stalls": 1001,
+    "backpressure_stalls": {
+      "0.01": 0,
+      "0.05": 542,
+      "0.20": 22914,
+      "1.00": 26966,
+      "stress": 57563
+    },
+    "synthesis": {
+      "lut": 17713,
+      "ff": 7872,
+      "core_cells_excluding_io": 31226,
+      "logic_depth_proxy": 266,
+      "bram": 0,
+      "lutram": 0
+    }
+  },
+  "functional_gates": {
+    "exact_phase_state": true,
+    "exact_sparse_active_mask": true,
+    "exact_sparse_dirty_mask": true,
+    "exact_changed_mask": true,
+    "exact_receipt_stream": true,
+    "real_receipt_commit_coverage_fraction": 1.0,
+    "digest_match_fraction": 1.0,
+    "digest_sequence_match_fraction": 1.0,
+    "missing_duplicate_phantom_receipts": 0,
+    "missing_duplicate_phantom_digests": 0,
+    "execution_semantic_contamination": 0,
+    "x1_control_stalls_must_reproduce_exactly": true
+  },
+  "throughput_gates": {
+    "low_activity": {
+      "0.01_max_stalls": 0,
+      "0.05_max_stalls": 542
+    },
+    "minimum_reduction_fraction_each_group": 0.5,
+    "primary_groups": {
+      "0.20": 22914,
+      "1.00": 26966,
+      "stress": 57563
+    },
+    "average_or_weighted_rescue_allowed": false
+  },
+  "selection_rule": {
+    "eligible_requires_all_functional_gates": true,
+    "eligible_requires_low_activity_non_regression": true,
+    "eligible_requires_each_primary_group_gate": true,
+    "tie_break_order": [
+      "minimum_core_cells_excluding_io",
+      "minimum_ff",
+      "minimum_lut",
+      "minimum_logic_depth_proxy"
+    ],
+    "synthetic_combined_score_allowed": false
+  },
+  "decision_classes": [
+    "CONTROL_FAILURE",
+    "MULTI_SHA_SEMANTIC_FAILURE",
+    "NO_VALID_SHA_THROUGHPUT_IMPROVEMENT",
+    "SHA_THROUGHPUT_VALUE_SUPPORTED"
+  ],
+  "candidate_rtl_path": "rtl/cosmic_hw_09_multi_sha.v",
+  "deferred": {
+    "merkle_tree": true,
+    "proof_inclusion_paths": true,
+    "signatures": true,
+    "alternative_sha_algorithms": true,
+    "altered_receipt_batching": true,
+    "board_power": true,
+    "post_route_fmax": true,
+    "asic_ppa": true,
+    "security_certification": true,
+    "side_channel_resistance": true,
+    "cpu_gpu_superiority": true,
+    "full_software_proof_end_to_end": true
+  }
+}

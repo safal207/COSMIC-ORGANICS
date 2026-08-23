@@ -9,6 +9,7 @@
     "levels": 4,
     "grouping": "within each frozen source sequence; consecutive digest-retirement order; final group padded; no cross-sequence tree",
     "padding_leaf_definition": "SHA256(ASCII(COSMIC-HW-10/PAD))",
+    "padding_leaf_hex": "14681950aa66cab259fa8da32adef6daa59316cf2bf4d43669d27efe69201ebe",
     "parent_definition": "SHA256(0x01 || left_digest_32B || right_digest_32B)",
     "parent_message_bytes": 65,
     "parent_sha_blocks": 2
@@ -36,6 +37,17 @@
     "transition_receipts": 41144,
     "leaf_commitment_digests": 4240
   },
+  "frozen_oracle": {
+    "tree_count": 444,
+    "real_leaves": 4240,
+    "padding_leaves": 2864,
+    "parent_hashes": 6660,
+    "parent_compression_blocks": 13320,
+    "parent_sha_rounds": 852480,
+    "proof_fragments": 16960,
+    "verified_real_leaf_proofs": 4240,
+    "oracle_fingerprint": "b716b577e7b7efa7e0ccb4f1c92f2b51a1d219e33d0f125e7ce461e656929978"
+  },
   "control_x2": {
     "stalls": {"0.01": 0, "0.05": 542, "0.20": 11184, "1.00": 13456, "stress": 28675},
     "physical_cycles": 148926,
@@ -49,13 +61,14 @@
     "exact_execution_semantics": true,
     "exact_receipts": 41144,
     "exact_leaf_digests": 4240,
+    "exact_roots": 444,
+    "exact_proof_fragments": 16960,
     "root_match_fraction": 1.0,
     "verified_proof_fraction": 1.0,
-    "proof_fragments_formula": "4 * 4240",
     "semantic_contamination": 0
   },
   "decision_classes": ["CONTROL_FAILURE", "MERKLE_SEMANTIC_FAILURE", "MERKLE_INCLUSION_COST_MEASURED"],
   "synthetic_combined_score": false,
-  "oracle_summary_status": "DERIVE_AND_FREEZE_BEFORE_CANDIDATE_RTL",
+  "oracle_summary_status": "FROZEN_BEFORE_CANDIDATE_RTL",
   "candidate_rtl_path": "rtl/cosmic_hw_10_merkle.v"
 }

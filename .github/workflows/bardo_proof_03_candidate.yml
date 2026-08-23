@@ -1,0 +1,135 @@
+name: BARDO-PROOF-03 Candidate
+
+on:
+  push:
+    branches:
+      - "research/bardo-proof-03-candidate"
+    paths:
+      - "morphos/bardo_proof_edges.py"
+      - "tests/test_bardo_proof_edges.py"
+      - "benchmarks/run_bardo_proof_03.py"
+      - ".github/workflows/bardo_proof_03_candidate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout exact candidate head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install repository
+        run: python -m pip install -e .
+
+      - name: Compile candidate
+        run: python -m compileall -q morphos/bardo_proof_edges.py tests/test_bardo_proof_edges.py benchmarks/run_bardo_proof_03.py
+
+      - name: Run frozen control and candidate soundness tests
+        run: python -m unittest -v tests.test_proof_controls_v02 tests.test_bardo_proof_edges
+
+      - name: Execute frozen 192-instance benchmark
+        run: PYTHONPATH=. python benchmarks/run_bardo_proof_03.py > bardo-proof-03-result.json
+
+      - name: Validate machine-readable result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path("bardo-proof-03-result.json").read_text())
+          assert result["experiment_id"] == "BARDO-PROOF-03/v0.2"
+          assert result["instances"] == 192
+          assert result["aggregation"] == "totals_across_all_192_frozen_instances"
+          assert result["timing_decisive"] is False
+          assert result["decision"] in {
+              "CONTROL_FAILURE",
+              "INCOMPLETE_REQUIRED_METRICS",
+              "NO_PROOF_LOCALITY_VALUE",
+              "LOCAL_PROOF_VALUE_ONLY",
+              "CAUSAL_DAG_VALUE_ONLY",
+              "BARDO_PROOF_VALUE_SUPPORTED",
+          }
+          print(result["decision"])
+          PY
+
+      - name: Upload machine-readable evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: bardo-proof-03-result-py${{ matrix.python-version }}
+          path: bardo-proof-03-result.json
+
+      - name: Publish hosted evidence
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          r = json.loads(Path("bardo-proof-03-result.json").read_text())
+          reductions = r["bardo_reduction_vs_causal_dag"]
+          metric_lines = "\n".join(
+              f"{name}={value:.6f}" for name, value in reductions.items()
+          )
+          body = f"""## BARDO-PROOF-03/v0.2 hosted evidence — Python {os.environ['PYTHON_VERSION']}
+
+          Exact candidate head: `{os.environ['GITHUB_SHA']}`
+          Frozen commitment-bound control head: `eeaeafd8856103ce04d8465ee862b8e77e0268f2`
+
+          ```text
+          decision={r['decision']}
+          instances={r['instances']}
+          bardo_specific_supported={str(r['bardo_specific_supported']).lower()}
+          bardo_max_improvement={r['bardo_max_improvement']:.6f}
+          bardo_max_regression={r['bardo_max_regression']:.6f}
+          local_payload_reduction_vs_snapshot={r['local_payload_reduction_vs_snapshot']:.6f}
+          {metric_lines}
+          ```
+
+          Valid-proof acceptance: `{r['valid_proof_acceptance']}`
+          Invalid-proof detection: `{r['invalid_proof_detection']}`
+
+          Primary verdict uses deterministic totals across all 192 frozen instances. Wall-clock timing is diagnostic only. If a positive Bardo verdict is driven only by parent-set commitment compression, that construct-validity limitation must be stated explicitly rather than generalized to a broader Bardo or processor advantage.
+          """
+          Path("comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/62/comments" --method POST --input comment.json
+
+      - name: Publish hosted RED evidence
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          body = f"""## BARDO-PROOF-03/v0.2 hosted run RED — Python {os.environ['PYTHON_VERSION']}
+
+          Exact candidate head: `{os.environ['GITHUB_SHA']}`
+          Frozen commitment-bound control head: `eeaeafd8856103ce04d8465ee862b8e77e0268f2`
+
+          Candidate tests or frozen benchmark execution failed before a valid verdict was published. Do not alter v0.2 seeds or acceptance thresholds to force a result.
+          """
+          Path("comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/62/comments" --method POST --input comment.json

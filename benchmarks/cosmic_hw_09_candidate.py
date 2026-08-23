@@ -120,7 +120,9 @@ task note_stall; input [2:0] group; begin
  endcase
 end endtask
 
-always @(negedge clk) begin
+// Sample handshakes at the active edge, before DUT nonblocking state updates.
+// This matches the frozen HW-07 receipt harness and avoids post-edge ready drift.
+always @(posedge clk) begin
  if(!reset) begin
   if(receipt_valid_out && receipt_ready_out) begin
    if(receipt_cursor>=TOTAL_RECEIPTS) $fatal(1,"phantom receipt");

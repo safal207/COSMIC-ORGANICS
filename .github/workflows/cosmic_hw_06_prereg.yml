@@ -1,0 +1,51 @@
+name: COSMIC-HW-06 Prereg Gate
+
+on:
+  push:
+    branches:
+      - "research/cosmic-hw-06-prereg"
+    paths:
+      - "benchmarks/cosmic_hw_06_manifest.json"
+      - "docs/cosmic-hw-06-methodology.md"
+      - ".github/workflows/cosmic_hw_06_prereg.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prereg:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Validate frozen manifest and candidate absence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m = json.loads(Path('benchmarks/cosmic_hw_06_manifest.json').read_text())
+          assert m['experiment_id'] == 'COSMIC-HW-06/v0.1'
+          assert m['lattice']['width'] == 8 and m['lattice']['height'] == 8
+          assert m['lattice']['phases'] == ['A','M','C']
+          assert m['minimum_vector_sequences'] >= 256
+          assert m['sparse_primary_gate']['minimum_pe_evaluation_reduction'] == 0.50
+          assert m['timing_decisive'] is False
+          assert m['synthetic_combined_score_allowed'] is False
+          forbidden = [
+              Path('rtl/cosmic_hw_06.v'),
+              Path('rtl/cosmic_hw_06_tb.v'),
+              Path('benchmarks/run_cosmic_hw_06.py'),
+          ]
+          assert not any(p.exists() for p in forbidden), 'RTL candidate must be absent on prereg head'
+          print('COSMIC-HW-06 prereg PASS')
+          PY

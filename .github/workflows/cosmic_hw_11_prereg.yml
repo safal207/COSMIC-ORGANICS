@@ -1,0 +1,49 @@
+name: COSMIC-HW-11 Prereg
+
+on:
+  push:
+    branches:
+      - "research/cosmic-hw-11-prereg"
+  pull_request:
+    paths:
+      - "benchmarks/cosmic_hw_11_manifest.json"
+      - "tests/test_cosmic_hw_11_prereg.py"
+      - ".github/workflows/cosmic_hw_11_prereg.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prereg:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install pytest
+        run: python -m pip install --quiet pytest
+      - name: Run frozen HW-11 prereg gate
+        run: PYTHONPATH=. python -m pytest -q tests/test_cosmic_hw_11_prereg.py
+      - name: Print frozen HW-11 boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m=json.loads(Path('benchmarks/cosmic_hw_11_manifest.json').read_text())
+          print('experiment', m['experiment_id'])
+          print('parent', m['parent_hw10_source_head'])
+          print('systems', ','.join(m['systems']))
+          print('physical_cycle_gate', m['eligibility']['max_physical_cycles'])
+          print('m2_waves_total', m['m2_schedule']['total_waves'])
+          print('candidate_rtl_absent', not Path(m['candidate_rtl_path']).exists())
+          print('candidate_benchmark_absent', not Path(m['candidate_benchmark_path']).exists())
+          PY

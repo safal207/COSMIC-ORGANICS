@@ -1,0 +1,123 @@
+name: COSMIC-HW-07B Receipt Frontier
+
+on:
+  push:
+    branches:
+      - "research/cosmic-hw-07b-candidate"
+  pull_request:
+    paths:
+      - "rtl/cosmic_hw_07b_receipt.v"
+      - "benchmarks/cosmic_hw_07b_*.py"
+      - "benchmarks/cosmic_hw_07b_manifest.json"
+      - "tests/test_cosmic_hw_07b_*.py"
+      - ".github/workflows/cosmic_hw_07b_candidate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  frontier:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install open-source RTL tools and test dependency
+        run: |
+          python -m pip install --quiet pytest
+          sudo apt-get update -qq
+          sudo apt-get install -y iverilog yosys
+          iverilog -V | head -n 2
+          yosys -V
+      - name: Run frozen prereg and candidate contract tests
+        run: |
+          python -m pytest \
+            tests/test_cosmic_hw_07b_prereg.py \
+            tests/test_cosmic_hw_07b_candidate.py \
+            tests/test_cosmic_hw_07_candidate.py -q
+      - name: Execute frozen receipt frontier
+        run: |
+          PYTHONPATH=. python benchmarks/cosmic_hw_07b_candidate.py --json > /tmp/cosmic_hw_07b_result.json
+          python -m json.tool /tmp/cosmic_hw_07b_result.json
+      - name: Validate frozen HW-07B gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/cosmic_hw_07b_result.json').read_text())
+          assert r['benchmark_id']=='COSMIC-HW-07B-CANDIDATE'
+          assert r['protocol']=='COSMIC-HW-07B/v0.1'
+          assert r['parent_hw07_head']=='1e71648e1a2f375d7eeb3147a301a81dc8bc2399'
+          assert r['stress_fingerprint']=='sha256:be033839531356f0695b6c270b8d22a2abb8f388dd1ecb9c4b93644c9b291110'
+          assert r['control_reproduction_gate'] is True
+          assert all(r['semantic_gates'].values())
+          assert r['f4_hier_identical_stall_gate'] is True
+          assert r['decision'] in {'NO_VALID_MICROARCHITECTURE_IMPROVEMENT','RECEIPT_FRONTIER_MEASURED'}
+          assert r['synthetic_combined_score_used'] is False
+          assert r['timing_decisive'] is False
+          assert r['sha_merkle_present'] is False
+          for name in ('CONTROL_F4_FLAT','CANDIDATE_F4_HIER','CANDIDATE_F2_HIER','CANDIDATE_F1_HIER'):
+              assert r['simulation'][name]['accepted_ticks']==3840
+              assert r['simulation'][name]['receipts_emitted']==41144
+              assert r['simulation'][name]['batch_fifo_writes']==r['simulation'][name]['batch_fifo_reads']
+              assert r['synthesis'][name]['core_cells_excluding_io']>0
+              assert r['synthesis'][name]['ff']>0
+              assert r['synthesis'][name]['logic_depth_proxy']>0
+          c=r['simulation']['CONTROL_F4_FLAT']['backpressure_stalls']
+          assert c=={'0.01':0,'0.05':542,'0.20':4506,'1.00':5212,'stress':15298}
+          assert r['simulation']['CANDIDATE_F4_HIER']['backpressure_stalls']==c
+
+          lines=[
+              '## COSMIC-HW-07B hosted evidence','',
+              f"Exact candidate head: `{__import__('os').environ['GITHUB_SHA']}`",'',
+              f"decision=`{r['decision']}`",
+              f"pareto_frontier={r['pareto_frontier']}",
+              f"hw08_eligible={r['hw08_eligible']}",
+              f"hw08_selected=`{r['hw08_selected']}`",'',
+          ]
+          for name in ('CONTROL_F4_FLAT','CANDIDATE_F4_HIER','CANDIDATE_F2_HIER','CANDIDATE_F1_HIER'):
+              s=r['simulation'][name]; y=r['synthesis'][name]
+              lines += [
+                  f"### {name}",
+                  f"- LUT={y['lut']} FF={y['ff']} core_cells={y['core_cells_excluding_io']} depth={y['logic_depth_proxy']} state_bits={y['declared_receipt_state_bits']}",
+                  f"- stalls={s['backpressure_stalls']}",
+                  f"- max_occupancy={s['max_reserved_occupancy']}",
+                  f"- physical_cycles={s['physical_cycles']} serializer_cycles={s['serializer_active_cycles']}",
+                  ''
+              ]
+          lines += [
+              'F4 hierarchical candidate reproduces exact frozen F4 control stall semantics.',
+              'Boundary: structural/simulation frontier only; no SHA/Merkle, board power, post-route Fmax or ASIC PPA claim.'
+          ]
+          Path('/tmp/cosmic_hw_07b_evidence.md').write_text('\n'.join(lines))
+          PY
+      - name: Upload machine-readable evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-hw-07b-result
+          path: /tmp/cosmic_hw_07b_result.json
+          if-no-files-found: ignore
+      - name: Publish hosted evidence to issue 76
+        if: success() && github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs');
+            const body=fs.readFileSync('/tmp/cosmic_hw_07b_evidence.md','utf8');
+            await github.rest.issues.createComment({owner:context.repo.owner,repo:context.repo.repo,issue_number:76,body});
+      - name: Publish hosted RED to issue 76
+        if: failure() && github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner:context.repo.owner,repo:context.repo.repo,issue_number:76,
+              body:`## COSMIC-HW-07B hosted RED\n\nExact candidate head: \`${context.sha}\`\n\nThe frozen frontier failed before a valid verdict. Do not alter receipt fields, workloads, ready patterns, control evidence, Pareto rule or HW-08 handoff thresholds to force a PASS.`
+            });

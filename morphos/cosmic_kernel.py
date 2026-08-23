@@ -18,11 +18,12 @@ from morphos.dag_parent_commit import (
 )
 from morphos.grid2d import Grid2DConfig
 from morphos.proof_controls_v02 import (
+    CommittedPhaseFact,
     TransitionClaim,
     VerificationContext,
+    _merkle_leaves,
     _neighbors,
-    committed_fact,
-    state_root,
+    _parent,
 )
 from morphos.sparse_scheduler import (
     DirtyNodeGrid2D,
@@ -48,6 +49,35 @@ class TransitionOccurrence:
         return "sha256:" + hashlib.sha256(payload).hexdigest()
 
 
+def _batch_committed_facts(
+    state: str, tick: int, sites: Sequence[int]
+) -> tuple[str, dict[int, CommittedPhaseFact]]:
+    """Build one Merkle tree and extract frozen-format paths for many sites."""
+    levels = [_merkle_leaves(state)]
+    while len(levels[-1]) > 1:
+        level = levels[-1]
+        levels.append(
+            [_parent(level[i], level[i + 1]) for i in range(0, len(level), 2)]
+        )
+    root = "sha256:" + levels[-1][0].hex()
+    facts: dict[int, CommittedPhaseFact] = {}
+    for site in sorted(set(sites)):
+        if not 0 <= site < len(state):
+            raise IndexError("site outside state")
+        index = site
+        path: list[str] = []
+        for level in levels[:-1]:
+            path.append(level[index ^ 1].hex())
+            index //= 2
+        facts[site] = CommittedPhaseFact(
+            tick=tick,
+            site=site,
+            phase=state[site],
+            auth_path=tuple(path),
+        )
+    return root, facts
+
+
 class CommittedProofKernel:
     """Wrap a frozen scheduler with a deterministic sampled proof observer."""
 
@@ -71,7 +101,7 @@ class CommittedProofKernel:
         self.initial_state = initial
 
         self._claims: list[TransitionClaim] = []
-        self._phase_facts = {}
+        self._phase_facts: dict[tuple[int, int], CommittedPhaseFact] = {}
         self._state_roots: dict[int, str] = {}
         self._queries: list[tuple[int, int]] = []
         self._stimulus_facts: list[tuple[int, int, float]] = []
@@ -147,8 +177,13 @@ class CommittedProofKernel:
         if not selected:
             return
 
-        root = state_root(before)
+        fact_sites: set[int] = set()
+        for site, _ in selected:
+            fact_sites.add(site)
+            fact_sites.update(_neighbors(site, self.config))
+        root, facts = _batch_committed_facts(before, pre_tick, tuple(fact_sites))
         self._state_roots[pre_tick] = root
+
         for site, occurrence in selected:
             claim = TransitionClaim(logical_tick, site, occurrence.to_phase)
             self._claims.append(claim)
@@ -156,7 +191,7 @@ class CommittedProofKernel:
             self._stimulus_facts.append((logical_tick, site, stimuli[site]))
             for fact_site in (site, *_neighbors(site, self.config)):
                 key = (pre_tick, fact_site)
-                fact = committed_fact(before, pre_tick, fact_site)
+                fact = facts[fact_site]
                 previous = self._phase_facts.get(key)
                 if previous is not None and previous != fact:
                     raise RuntimeError("committed phase fact instability")

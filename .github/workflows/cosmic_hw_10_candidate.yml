@@ -1,0 +1,92 @@
+name: COSMIC-HW-10 Candidate Merkle
+
+on:
+  push:
+    branches:
+      - "research/cosmic-hw-10-candidate"
+  pull_request:
+    paths:
+      - "rtl/cosmic_hw_10_merkle.v"
+      - "benchmarks/run_cosmic_hw_10_parent_kat.py"
+      - "benchmarks/cosmic_hw_10_candidate.py"
+      - ".github/workflows/cosmic_hw_10_candidate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install open-source RTL tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y iverilog yosys
+          iverilog -V | head -n 2
+          yosys -V
+      - name: Revalidate frozen HW-10 oracle
+        run: |
+          PYTHONPATH=. python benchmarks/cosmic_hw_10_oracle.py > /tmp/hw10-oracle.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/hw10-oracle.json').read_text())
+          assert r['tree_count']==444
+          assert r['real_leaves']==4240
+          assert r['padding_leaves']==2864
+          assert r['parent_hashes']==6660
+          assert r['parent_compression_blocks']==13320
+          assert r['parent_sha_rounds']==852480
+          assert r['proof_fragments']==16960
+          assert r['verified_real_leaf_proofs']==4240
+          assert r['oracle_fingerprint']=='b716b577e7b7efa7e0ccb4f1c92f2b51a1d219e33d0f125e7ce461e656929978'
+          print('HW-10 frozen oracle PASS')
+          PY
+      - name: Re-run frozen leaf SHA KAT
+        run: PYTHONPATH=. python benchmarks/run_cosmic_hw_08_sha_kat.py
+      - name: Gate two-block Merkle parent SHA
+        run: PYTHONPATH=. python benchmarks/run_cosmic_hw_10_parent_kat.py
+      - name: Execute frozen HW-10 root/proof cost
+        run: |
+          PYTHONPATH=. python benchmarks/cosmic_hw_10_candidate.py --json > /tmp/cosmic_hw_10_result.json
+          python -m json.tool /tmp/cosmic_hw_10_result.json
+      - name: Validate frozen HW-10 gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/cosmic_hw_10_result.json').read_text())
+          assert r['benchmark_id']=='COSMIC-HW-10-CANDIDATE'
+          assert r['protocol']=='COSMIC-HW-10/v0.1'
+          assert r['decision']=='MERKLE_INCLUSION_COST_MEASURED'
+          c=r['control']['simulation']
+          assert c['backpressure_stalls']=={'0.01':0,'0.05':542,'0.20':11184,'1.00':13456,'stress':28675}
+          s=r['candidate']['simulation']
+          assert s['sequences']==320
+          assert s['accepted_ticks']==3840
+          assert s['receipts_emitted']==41144
+          assert s['leaf_digests_emitted']==4240
+          assert s['roots_emitted']==444
+          assert s['proof_fragments_emitted']==16960
+          assert s['parent_hashes']==6660
+          assert s['merkle_sha_busy_cycles']==852480
+          assert r['candidate']['root_match_fraction']==1.0
+          assert r['candidate']['proof_fragment_match_fraction']==1.0
+          assert r['candidate']['independently_verified_proof_fraction']==1.0
+          assert r['candidate']['synthesis']['lut']>0
+          assert r['synthetic_combined_score_used'] is False
+          print('COSMIC-HW-10 frozen gates PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-hw-10-result
+          path: /tmp/cosmic_hw_10_result.json

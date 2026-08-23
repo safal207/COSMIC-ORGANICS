@@ -1,0 +1,37 @@
+name: COSMIC-HW-10 Prereg Oracle
+
+on:
+  push:
+    branches:
+      - "research/cosmic-hw-10-prereg"
+  pull_request:
+    paths:
+      - "benchmarks/cosmic_hw_10_manifest.json"
+      - "benchmarks/cosmic_hw_10_oracle.py"
+      - "tests/test_cosmic_hw_10_prereg.py"
+      - ".github/workflows/cosmic_hw_10_prereg.yml"
+  workflow_dispatch:
+
+jobs:
+  prereg:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install pytest
+        run: python -m pip install -q pytest
+      - name: Verify candidate absence and prereg contract
+        run: PYTHONPATH=. pytest -q tests/test_cosmic_hw_10_prereg.py
+      - name: Derive frozen Merkle oracle summary
+        run: |
+          PYTHONPATH=. python benchmarks/cosmic_hw_10_oracle.py > /tmp/cosmic_hw_10_oracle.json
+          python -m json.tool /tmp/cosmic_hw_10_oracle.json

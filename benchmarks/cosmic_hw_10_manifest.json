@@ -1,0 +1,61 @@
+{
+  "experiment_id": "COSMIC-HW-10/v0.1",
+  "parent_hw09_source_head": "2cbc6442ff81f49ff6e247ffc5552ca2efa54c3d",
+  "selected_baseline": "SHA256x2",
+  "candidate_system": "SHA256x2_MERKLE16_PROOF1",
+  "tree": {
+    "arity": 2,
+    "leaf_capacity": 16,
+    "levels": 4,
+    "grouping": "within each frozen source sequence; consecutive digest-retirement order; final group padded; no cross-sequence tree",
+    "padding_leaf_definition": "SHA256(ASCII(COSMIC-HW-10/PAD))",
+    "parent_definition": "SHA256(0x01 || left_digest_32B || right_digest_32B)",
+    "parent_message_bytes": 65,
+    "parent_sha_blocks": 2
+  },
+  "proof_output": {
+    "proof_for_every_real_leaf": true,
+    "fragments_per_real_leaf": 4,
+    "order": "source sequence, tree ordinal, leaf ordinal, level",
+    "fragment_fields": ["source_sequence", "tree_ordinal", "leaf_ordinal", "level", "sibling_is_left", "sibling_digest"]
+  },
+  "architecture": {
+    "leaf_commitment_engines": 2,
+    "dedicated_merkle_sha_engines": 1,
+    "merkle_sha_rounds_per_block": 64,
+    "tree_buffers": 1,
+    "store_all_16_leaves": true,
+    "store_all_15_internal_nodes": true,
+    "parent_order": "bottom-up, left-to-right within level",
+    "double_buffering": false,
+    "vendor_hash_ip": false
+  },
+  "frozen_workload": {
+    "source_sequences": 320,
+    "logical_ticks": 3840,
+    "transition_receipts": 41144,
+    "leaf_commitment_digests": 4240
+  },
+  "control_x2": {
+    "stalls": {"0.01": 0, "0.05": 542, "0.20": 11184, "1.00": 13456, "stress": 28675},
+    "physical_cycles": 148926,
+    "assembler_stalls": 74869,
+    "lut": 22774,
+    "ff": 10504,
+    "core_cells_excluding_io": 38267,
+    "logic_depth_proxy": 266
+  },
+  "functional_gates": {
+    "exact_execution_semantics": true,
+    "exact_receipts": 41144,
+    "exact_leaf_digests": 4240,
+    "root_match_fraction": 1.0,
+    "verified_proof_fraction": 1.0,
+    "proof_fragments_formula": "4 * 4240",
+    "semantic_contamination": 0
+  },
+  "decision_classes": ["CONTROL_FAILURE", "MERKLE_SEMANTIC_FAILURE", "MERKLE_INCLUSION_COST_MEASURED"],
+  "synthetic_combined_score": false,
+  "oracle_summary_status": "DERIVE_AND_FREEZE_BEFORE_CANDIDATE_RTL",
+  "candidate_rtl_path": "rtl/cosmic_hw_10_merkle.v"
+}

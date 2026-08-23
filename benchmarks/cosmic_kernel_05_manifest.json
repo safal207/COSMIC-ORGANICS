@@ -1,0 +1,81 @@
+{
+  "experiment_id": "COSMIC-KERNEL-05/v0.1",
+  "status": "preregistered_before_integrated_kernel_implementation",
+  "tracking_issue": 67,
+  "parent_head": "7c047673c8b4d5d49e19e699558560db9b099ded",
+  "candidate_absent_at_freeze": true,
+  "candidate_path": "morphos/cosmic_kernel.py",
+  "systems": [
+    "DENSE_EXECUTION",
+    "DENSE_COMMITTED_PROOF",
+    "SPARSE_EXECUTION",
+    "SPARSE_COMMITTED_PROOF"
+  ],
+  "workload": {
+    "grids": ["16x16", "32x32", "64x64"],
+    "activity_densities": [0.01, 0.05, 0.20, 1.00],
+    "proof_sampling_densities": [0.01, 0.10, 1.00],
+    "seed_families": [202608236701, 202608236702],
+    "trials_per_grid_activity_proof_family": 4,
+    "total_instances": 288,
+    "logical_ticks": 24,
+    "injection_ticks": [1, 9, 17],
+    "pulse_magnitude": 0.9,
+    "proof_sample_rule": "sha256(transition_identity|proof_density|seed) deterministic threshold over completed transitions",
+    "relaxation_between_injections": true,
+    "dense_activity_negative_control_required": true
+  },
+  "frozen_config": {
+    "memory_decay": 0.0,
+    "anchor_threshold": 0.5,
+    "adaptive_threshold": 0.35,
+    "anchor_coupling": 0.75,
+    "adaptive_coupling": 0.5,
+    "mixed_relax_threshold": 0.05,
+    "mask": "checkerboard",
+    "neighborhood": "von_neumann"
+  },
+  "semantic_gates": {
+    "per_tick_state_equality_required": true,
+    "transition_count_equality_required": true,
+    "deterministic_replay_required": true,
+    "valid_proof_acceptance_required": 1.0,
+    "invalid_proof_rejection_required": 1.0,
+    "hidden_target_truth_allowed": false,
+    "future_state_truth_allowed": false
+  },
+  "execution_metrics": [
+    "node_evaluations",
+    "scheduled_work_items",
+    "state_writes",
+    "unchanged_evaluations_avoided"
+  ],
+  "proof_metrics": [
+    "canonical_proof_payload_bytes",
+    "merkle_sibling_hashes_disclosed",
+    "hash_evaluations",
+    "parent_commitments_disclosed",
+    "proof_objects_traversed",
+    "audited_transitions"
+  ],
+  "diagnostic_metrics": [
+    "wall_runtime_ns"
+  ],
+  "decision": {
+    "primary_aggregation": "report execution and proof dimensions separately; no synthetic combined score",
+    "sparse_replication_required_in_activity_bands": [0.01, 0.05],
+    "sparse_committed_proof_node_reduction_min_fraction_vs_dense_committed": 0.50,
+    "valid_proof_acceptance_required": 1.0,
+    "invalid_proof_rejection_required": 1.0,
+    "timing_only_win_allowed": false,
+    "synthetic_combined_score_allowed": false,
+    "dense_activity_must_be_reported_even_if_sparse_loses": true
+  },
+  "decision_classes": [
+    "CONTROL_FAILURE",
+    "SPARSE_VALUE_NOT_REPLICATED",
+    "SPARSE_VALUE_PROOF_OVERHEAD_TOO_HIGH",
+    "SPARSE_PLUS_PROOF_PARETO_SUPPORTED"
+  ],
+  "claim_boundary": "Classical deterministic software evidence for an integrated COSMIC/MORPHOS kernel. No Bardo-specific, custom-silicon, physical-energy, quantum, CPU, GPU, TPU, or accelerator superiority claim."
+}

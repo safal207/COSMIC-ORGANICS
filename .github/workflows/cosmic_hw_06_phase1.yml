@@ -39,7 +39,7 @@ jobs:
           python -m pytest tests/test_cosmic_hw_06_vectors.py tests/test_cosmic_hw_06_phase1.py -q
       - name: Simulate and synthesize dense/sparse 64-PE RTL
         run: |
-          python benchmarks/cosmic_hw_06_phase1.py --json > /tmp/cosmic_hw_06_phase1.json
+          PYTHONPATH=. python benchmarks/cosmic_hw_06_phase1.py --json > /tmp/cosmic_hw_06_phase1.json
           python -m json.tool /tmp/cosmic_hw_06_phase1.json
       - name: Validate frozen phase-1 gates
         run: |

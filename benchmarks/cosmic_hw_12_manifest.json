@@ -45,7 +45,7 @@
   "frozen_oracle": {
     "root_count": 444,
     "fingerprint_algorithm": "sha256(concat(record_41_bytes || tag_32_bytes) in frozen root order)",
-    "fingerprint": null
+    "fingerprint": "3b3f577479cf42343196ce1245024c38f3a3209ff18bd2e157ce761e60096885"
   },
   "candidate_rtl_path": "rtl/cosmic_hw_12_hmac.v",
   "candidate_benchmark_path": "benchmarks/cosmic_hw_12_candidate.py",

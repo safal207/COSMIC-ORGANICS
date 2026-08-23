@@ -1,0 +1,66 @@
+name: COSMIC-HW-09 Candidate Frontier
+
+on:
+  push:
+    branches:
+      - "research/cosmic-hw-09-candidate"
+  pull_request:
+    paths:
+      - "rtl/cosmic_hw_09_multi_sha.v"
+      - "benchmarks/cosmic_hw_09_candidate.py"
+      - ".github/workflows/cosmic_hw_09_candidate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  frontier:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install open-source RTL tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y iverilog yosys
+          iverilog -V | head -n 2
+          yosys -V
+      - name: Re-run frozen HW-08 SHA KAT
+        run: PYTHONPATH=. python benchmarks/run_cosmic_hw_08_sha_kat.py
+      - name: Execute frozen HW-09 frontier
+        run: |
+          PYTHONPATH=. python benchmarks/cosmic_hw_09_candidate.py --json > /tmp/cosmic_hw_09_result.json
+          python -m json.tool /tmp/cosmic_hw_09_result.json
+      - name: Validate frozen HW-09 gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/cosmic_hw_09_result.json').read_text())
+          assert r['benchmark_id']=='COSMIC-HW-09-CANDIDATE'
+          assert r['protocol']=='COSMIC-HW-09/v0.1'
+          assert r['decision'] in {'SHA_THROUGHPUT_VALUE_SUPPORTED','NO_VALID_SHA_THROUGHPUT_IMPROVEMENT'}
+          c=r['systems']['SHA256x1_CONTROL']['simulation']
+          assert c['backpressure_stalls']=={'0.01':0,'0.05':542,'0.20':22914,'1.00':26966,'stress':57563}
+          for name in ('SHA256x2','SHA256x4'):
+              s=r['systems'][name]['simulation']
+              assert s['sequences']==320
+              assert s['accepted_ticks']==3840
+              assert s['receipts_emitted']==41144
+              assert s['digests_emitted']==4240
+              assert r['systems'][name]['synthesis']['lut']>0
+          assert r['synthetic_combined_score_used'] is False
+          assert r['merkle_present'] is False
+          print('COSMIC-HW-09 frozen gates PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-hw-09-result
+          path: /tmp/cosmic_hw_09_result.json

@@ -1,0 +1,55 @@
+{
+  "experiment_id": "COSMIC-HW-12/v0.1",
+  "parent_hw11_source_head": "1ed75676e59a7a745ace852c8b24982dfb41a614",
+  "selected_control": "B1_M2",
+  "control": {
+    "tree_buffers": 1,
+    "merkle_sha_engines": 2,
+    "physical_cycles": 624253,
+    "backpressure_stalls": {"0.01": 0, "0.05": 542, "0.20": 11184, "1.00": 13456, "stress": 56985},
+    "leaf_to_tree_stalls": 124682,
+    "lut": 48437,
+    "ff": 24287,
+    "core_cells_excluding_io": 75967,
+    "logic_depth_proxy": 266
+  },
+  "authenticated_root_record": {
+    "domain_hex": "434f3132",
+    "domain_ascii": "CO12",
+    "source_sequence_bytes": 2,
+    "tree_ordinal_bytes": 2,
+    "real_leaf_count_bytes": 1,
+    "root_bytes": 32,
+    "record_bytes": 41,
+    "byte_order": "big-endian"
+  },
+  "test_key": {
+    "derivation": "SHA256(ASCII('COSMIC-HW-12/TEST-KEY'))",
+    "hex": "04ff8909facf51a6f8942238fc5c65bd65b9ed816fe0c10bc179476c0911eb42",
+    "public_test_key_only": true,
+    "hmac_key_block_bytes": 64
+  },
+  "hmac": {
+    "algorithm": "HMAC-SHA256",
+    "inner_compression_blocks_per_root": 2,
+    "outer_compression_blocks_per_root": 2,
+    "compression_blocks_per_root": 4,
+    "compression_rounds_per_root": 256,
+    "frozen_roots": 444,
+    "total_compression_blocks": 1776,
+    "total_compression_rounds": 113664,
+    "engines": 1,
+    "pending_root_slots": 1,
+    "completed_tag_slots": 1
+  },
+  "frozen_oracle": {
+    "root_count": 444,
+    "fingerprint_algorithm": "sha256(concat(record_41_bytes || tag_32_bytes) in frozen root order)",
+    "fingerprint": "3b3f577479cf42343196ce1245024c38f3a3209ff18bd2e157ce761e60096885"
+  },
+  "candidate_rtl_path": "rtl/cosmic_hw_12_hmac.v",
+  "candidate_benchmark_path": "benchmarks/cosmic_hw_12_candidate.py",
+  "decision_classes": ["CONTROL_FAILURE", "HMAC_SEMANTIC_FAILURE", "HMAC_ROOT_AUTH_COST_MEASURED"],
+  "synthetic_combined_score_allowed": false,
+  "claim_boundary": "Symmetric HMAC-SHA256 cost/correctness under a public deterministic test key only; no public signature, secure key storage, side-channel, physical-power, placed/routed-Fmax, ASIC-PPA, or full software+proof E2E claim."
+}

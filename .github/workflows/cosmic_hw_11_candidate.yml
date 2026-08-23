@@ -32,10 +32,13 @@ jobs:
           sudo apt-get install -y iverilog yosys
           iverilog -V | head -n 2
           yosys -V
-      - name: Revalidate frozen HW-11 prereg
+      - name: Revalidate frozen HW-11 prereg semantics
         run: |
           python -m pip install --quiet pytest
-          PYTHONPATH=. python -m pytest -q tests/test_cosmic_hw_11_prereg.py
+          # The candidate branch intentionally contains the two files whose
+          # absence is asserted only on the frozen prereg head. Keep every
+          # other frozen prereg assertion active here.
+          PYTHONPATH=. python -m pytest -q tests/test_cosmic_hw_11_prereg.py -k 'not candidate_files_do_not_exist_on_prereg_head'
       - name: Re-run inherited leaf SHA KAT
         run: PYTHONPATH=. python benchmarks/run_cosmic_hw_08_sha_kat.py
       - name: Re-run inherited two-block parent SHA KAT

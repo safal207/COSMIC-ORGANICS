@@ -23,15 +23,11 @@ from morphos.proof_controls_v02 import (
     evaluate_local_transition,
 )
 
-_EMPTY_PARENT_COMMITMENT = "sha256:" + hashlib.sha256(
-    b"bardo-parent-set:empty"
-).hexdigest()
 
-
-def parent_set_commitment(parent_relation_ids: Sequence[str]) -> str:
+def parent_set_commitment(parent_relation_ids: Sequence[str]) -> str | None:
     ids = tuple(sorted(parent_relation_ids))
     if not ids:
-        return _EMPTY_PARENT_COMMITMENT
+        return None
     payload = b"bardo-parent-set:" + b"\x00".join(
         item.encode("ascii") for item in ids
     )
@@ -41,7 +37,7 @@ def parent_set_commitment(parent_relation_ids: Sequence[str]) -> str:
 @dataclass(frozen=True)
 class BardoProofEdge:
     claim: TransitionClaim
-    parent_commitment: str
+    parent_commitment: str | None
 
     @property
     def relation_id(self) -> str:
@@ -180,7 +176,7 @@ def verify_bardo_proof(
 def bardo_proof_metrics(proof: BardoProof, config: Grid2DConfig) -> dict:
     paths = sum(len(fact.auth_path) for fact in proof.phase_facts)
     parent_commitments = sum(
-        edge.parent_commitment != _EMPTY_PARENT_COMMITMENT for edge in proof.edges
+        edge.parent_commitment is not None for edge in proof.edges
     )
     return {
         "canonical_proof_payload_bytes": len(proof.canonical_bytes()),

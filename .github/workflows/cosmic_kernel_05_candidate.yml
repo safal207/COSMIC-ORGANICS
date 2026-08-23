@@ -1,0 +1,137 @@
+name: COSMIC-KERNEL-05 Candidate
+
+on:
+  push:
+    branches:
+      - "research/cosmic-kernel-05-candidate"
+    paths:
+      - "morphos/cosmic_kernel.py"
+      - "tests/test_cosmic_kernel.py"
+      - "benchmarks/run_cosmic_kernel_05.py"
+      - ".github/workflows/cosmic_kernel_05_candidate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout exact candidate head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install repository
+        run: python -m pip install -e .
+
+      - name: Compile candidate
+        run: python -m compileall -q morphos/cosmic_kernel.py tests/test_cosmic_kernel.py benchmarks/run_cosmic_kernel_05.py
+
+      - name: Run frozen controls plus integration tests
+        run: python -m unittest -v tests.test_sparse_scheduler tests.test_proof_controls_v02 tests.test_dag_parent_commit tests.test_cosmic_kernel
+
+      - name: Execute frozen 288-instance workload
+        run: PYTHONPATH=. python benchmarks/run_cosmic_kernel_05.py > cosmic-kernel-05-result.json
+
+      - name: Validate machine-readable result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path("cosmic-kernel-05-result.json").read_text())
+          assert r["experiment_id"] == "COSMIC-KERNEL-05/v0.1"
+          assert r["instances"] == 288
+          assert r["timing_decisive"] is False
+          assert r["synthetic_combined_score_used"] is False
+          assert r["decision"] in {
+              "CONTROL_FAILURE",
+              "SPARSE_VALUE_NOT_REPLICATED",
+              "SPARSE_VALUE_PROOF_OVERHEAD_TOO_HIGH",
+              "SPARSE_PLUS_PROOF_PARETO_SUPPORTED",
+          }
+          print(r["decision"])
+          PY
+
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-kernel-05-result-py${{ matrix.python-version }}
+          path: cosmic-kernel-05-result.json
+
+      - name: Publish hosted evidence
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          r = json.loads(Path("cosmic-kernel-05-result.json").read_text())
+          sparse = "\n".join(
+              f"activity={k} sparse_reduction={r['sparse_node_reduction_vs_dense'][k]:.6f} sparse_committed_reduction={r['sparse_committed_node_reduction_vs_dense_committed'][k]:.6f}"
+              for k in sorted(r["sparse_node_reduction_vs_dense"])
+          )
+          proof = "\n".join(
+              f"proof_density={k} audited={v['audited_transitions']} bytes_per_audit={v['canonical_proof_payload_bytes'] if v['canonical_proof_payload_bytes'] is not None else 'NA'} hash_evals_per_audit={v['hash_evaluations'] if v['hash_evaluations'] is not None else 'NA'}"
+              for k, v in sorted(r["proof_cost_per_audited_transition"].items())
+          )
+          body = f"""## COSMIC-KERNEL-05 hosted evidence — Python {os.environ['PYTHON_VERSION']}
+
+          Exact candidate head: `{os.environ['GITHUB_SHA']}`
+          Frozen prereg head: `7e615f59893ce076d1d2b2da610e186dfcce74ca`
+
+          ```text
+          decision={r['decision']}
+          instances={r['instances']}
+          state_mismatches={r['state_mismatches']}
+          transition_mismatches={r['transition_mismatches']}
+          proof_representation_mismatches={r['proof_representation_mismatches']}
+          replay_failures={r['replay_failures']}
+          execution_contamination_instances={r['execution_contamination_instances']}
+          max_execution_regression_from_proof={r['max_execution_regression_from_proof']:.6f}
+          {sparse}
+          {proof}
+          ```
+
+          Valid-proof acceptance: `{r['valid_proof_acceptance']}`
+          Invalid-proof rejection: `{r['invalid_proof_rejection']}`
+
+          Execution and proof costs are reported as separate dimensions; no synthetic combined score or timing-only claim is used.
+          """
+          Path("comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/67/comments" --method POST --input comment.json
+
+      - name: Publish hosted RED evidence
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          body = f"""## COSMIC-KERNEL-05 hosted RED — Python {os.environ['PYTHON_VERSION']}
+
+          Exact candidate head: `{os.environ['GITHUB_SHA']}`
+          Frozen prereg head: `7e615f59893ce076d1d2b2da610e186dfcce74ca`
+
+          Candidate tests or the frozen workload failed before a valid verdict. Do not alter the frozen 288-instance workload or acceptance bars to force a result.
+          """
+          Path("comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/67/comments" --method POST --input comment.json

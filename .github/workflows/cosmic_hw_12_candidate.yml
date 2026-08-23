@@ -1,0 +1,80 @@
+name: COSMIC-HW-12 Candidate Cost
+
+on:
+  push:
+    branches:
+      - "research/cosmic-hw-12-candidate"
+  pull_request:
+    paths:
+      - "rtl/cosmic_hw_12_integrated.v"
+      - "benchmarks/cosmic_hw_12_candidate.py"
+      - ".github/workflows/cosmic_hw_12_candidate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install open-source RTL tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y iverilog yosys
+          python -m pip install --quiet pytest
+          iverilog -V | head -n 2
+          yosys -V
+      - name: Revalidate frozen HW-12 prereg semantics
+        run: PYTHONPATH=. python -m pytest -q tests/test_cosmic_hw_12_prereg.py -k 'not candidate_files_absent_on_prereg_head'
+      - name: Re-run 446-vector HMAC RTL gate
+        run: PYTHONPATH=. python benchmarks/run_cosmic_hw_12_hmac_kat.py
+      - name: Execute frozen HW-12 full cost experiment
+        run: |
+          PYTHONPATH=. python benchmarks/cosmic_hw_12_candidate.py --json > /tmp/cosmic_hw_12_result.json
+          python -m json.tool /tmp/cosmic_hw_12_result.json
+      - name: Validate frozen HW-12 gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/cosmic_hw_12_result.json').read_text())
+          assert r['benchmark_id']=='COSMIC-HW-12-CANDIDATE'
+          assert r['protocol']=='COSMIC-HW-12/v0.1'
+          assert r['decision']=='HMAC_ROOT_AUTH_COST_MEASURED'
+          c=r['control']
+          assert c['simulation']['physical_cycles']==624253
+          assert c['simulation']['backpressure_stalls']=={'0.01':0,'0.05':542,'0.20':11184,'1.00':13456,'stress':56985}
+          assert c['simulation']['leaf_to_tree_stalls']==124682
+          assert c['synthesis']['lut']==48437
+          assert c['synthesis']['ff']==24287
+          assert c['synthesis']['core_cells_excluding_io']==75967
+          assert c['synthesis']['logic_depth_proxy']==266
+          s=r['candidate']['simulation']
+          assert s['sequences']==320 and s['accepted_ticks']==3840
+          assert s['receipts_emitted']==41144 and s['leaf_digests_emitted']==4240
+          assert s['roots_emitted']==444 and s['proof_fragments_emitted']==16960
+          assert s['parent_hashes']==6660 and s['merkle_sha_busy_cycles_aggregate']==852480
+          assert s['hmac_tags_emitted']==444
+          assert s['hmac_message_accepts']==444
+          assert s['hmac_compression_accepts']==1776
+          assert s['hmac_compression_busy_cycles']==113664
+          assert r['candidate']['hmac_tag_match_fraction']==1.0
+          assert r['candidate']['root_to_tag_association_match_fraction']==1.0
+          assert r['candidate']['independently_verified_proof_fraction']==1.0
+          assert r['candidate']['synthesis']['lut']>0 and r['candidate']['synthesis']['ff']>0
+          assert r['synthetic_combined_score_used'] is False
+          print('COSMIC-HW-12 frozen gates PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-hw-12-result
+          path: /tmp/cosmic_hw_12_result.json

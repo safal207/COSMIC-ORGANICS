@@ -1,0 +1,68 @@
+{
+  "experiment_id": "BARDO-PROOF-04/v0.1",
+  "status": "fresh_heldout_construct_validity_challenge_after_bardo_proof_03",
+  "tracking_issue": 65,
+  "frozen_parent_head": "81917d355699adc7d3c77cbf0aec72ea9f63db75",
+  "frozen_bardo_implementation": "morphos/bardo_proof_edges.py@81917d355699adc7d3c77cbf0aec72ea9f63db75",
+  "bardo_code_changes_allowed": false,
+  "systems": [
+    "EXPLICIT_CAUSAL_DAG",
+    "CAUSAL_DAG_PARENTSET_COMMIT",
+    "BARDO_PROOF_EDGE_FROZEN"
+  ],
+  "workload": {
+    "grids": ["16x16", "32x32", "64x64"],
+    "chain_lengths": [4, 16, 64, 128],
+    "seed_families": [202608236501, 202608236502],
+    "trials_per_grid_chain_family": 8,
+    "total_queries": 192,
+    "activity_density": 0.05,
+    "pulse_magnitude": 0.9,
+    "maximum_trace_ticks": 96,
+    "chain_shape": "deterministic overlapping and branching local transition queries",
+    "mutation_types": [
+      "wrong_next_phase",
+      "mutated_local_stimulus",
+      "mutated_neighbor_phase",
+      "wrong_logical_tick",
+      "missing_required_parent",
+      "substituted_parent_identity"
+    ]
+  },
+  "frozen_config": {
+    "memory_decay": 0.0,
+    "anchor_threshold": 0.5,
+    "adaptive_threshold": 0.35,
+    "anchor_coupling": 0.75,
+    "adaptive_coupling": 0.5,
+    "mixed_relax_threshold": 0.05,
+    "mask": "checkerboard",
+    "neighborhood": "von_neumann"
+  },
+  "primary_metrics": [
+    "canonical_proof_payload_bytes",
+    "unique_phase_facts_disclosed",
+    "merkle_sibling_hashes_disclosed",
+    "unique_stimulus_facts_disclosed",
+    "parent_references_disclosed",
+    "local_transition_evaluations",
+    "hash_evaluations",
+    "proof_objects_traversed"
+  ],
+  "aggregation": "totals_across_all_192_fresh_heldout_instances",
+  "acceptance": {
+    "generic_parent_commitment_improvement_vs_explicit_min_fraction": 0.10,
+    "bardo_relation_improvement_vs_generic_commit_dag_min_fraction": 0.10,
+    "maximum_primary_metric_regression_fraction": 0.02,
+    "valid_proof_acceptance_required": 1.0,
+    "invalid_proof_rejection_required": 1.0,
+    "timing_only_win_allowed": false
+  },
+  "decision_classes": [
+    "CONTROL_FAILURE",
+    "NO_PARENT_COMMITMENT_VALUE",
+    "GENERIC_PARENT_COMMITMENT_VALUE_ONLY",
+    "BARDO_RELATION_VALUE_SUPPORTED"
+  ],
+  "claim_boundary": "Classical deterministic proof-representation construct-validity challenge. A tie between generic committed DAG and frozen Bardo is evidence against a uniquely Bardo interpretation of BARDO-PROOF-03."
+}

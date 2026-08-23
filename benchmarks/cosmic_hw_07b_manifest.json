@@ -1,0 +1,146 @@
+{
+  "experiment_id": "COSMIC-HW-07B/v0.1",
+  "parent_hw07_head": "1e71648e1a2f375d7eeb3147a301a81dc8bc2399",
+  "parent_hw07_decision": "SPARSE_PLUS_RECEIPT_PARETO_SUPPORTED",
+  "parent_hw06_head": "5b3b4c8c77ffdbe17ad573951cca59a1c15aeb44",
+  "stress_fingerprint": "sha256:be033839531356f0695b6c270b8d22a2abb8f388dd1ecb9c4b93644c9b291110",
+  "receipt_contract": {
+    "width_bits": 40,
+    "fields": [
+      {"name": "logical_tick", "bits": 16},
+      {"name": "site_id", "bits": 6},
+      {"name": "phase_before", "bits": 2},
+      {"name": "phase_after", "bits": 2},
+      {"name": "stimulus_s100", "bits": 8},
+      {"name": "ordinal_in_batch", "bits": 6}
+    ],
+    "serialization_order": "ascending_site_id",
+    "output_lanes": 1,
+    "output_handshake": "valid_ready",
+    "batch_snapshot_bits": 848,
+    "drop_allowed": false,
+    "duplicate_allowed": false,
+    "phantom_allowed": false,
+    "cryptographic_commitment_generated_in_hw": false
+  },
+  "frozen_control": {
+    "system": "CONTROL_F4_FLAT",
+    "fifo_depth": 4,
+    "selector": "flat_64_site_priority",
+    "official_hw07": {
+      "receipts": 41144,
+      "accepted_ticks": 3840,
+      "checks": 136368,
+      "batch_fifo_writes": 2181,
+      "batch_fifo_reads": 2181,
+      "physical_cycles": 52610,
+      "serializer_active_cycles": 51203,
+      "backpressure_stalls": {
+        "0.01": 0,
+        "0.05": 542,
+        "0.20": 4506,
+        "1.00": 5212,
+        "stress": 15298
+      },
+      "sparse_receipt_mapping": {
+        "lut": 8698,
+        "ff": 4386,
+        "core_cells_excluding_io": 16903,
+        "logic_depth_proxy": 266
+      }
+    }
+  },
+  "systems": [
+    {
+      "name": "CONTROL_F4_FLAT",
+      "fifo_depth": 4,
+      "selector": "flat_64_site_priority"
+    },
+    {
+      "name": "CANDIDATE_F4_HIER",
+      "fifo_depth": 4,
+      "selector": "hierarchical_8x8_priority"
+    },
+    {
+      "name": "CANDIDATE_F2_HIER",
+      "fifo_depth": 2,
+      "selector": "hierarchical_8x8_priority"
+    },
+    {
+      "name": "CANDIDATE_F1_HIER",
+      "fifo_depth": 1,
+      "selector": "hierarchical_8x8_priority"
+    }
+  ],
+  "hierarchical_selector": {
+    "rows": 8,
+    "columns": 8,
+    "row_selection": "lowest_nonempty_row",
+    "column_selection": "lowest_set_column_within_selected_row",
+    "site_expression": "row_times_8_plus_column",
+    "global_order_must_remain": "ascending_site_id",
+    "receipt_fields_may_change": false
+  },
+  "workloads": {
+    "reuse_hw06_phase1_sequences": 256,
+    "reuse_hw07_stress_sequences": 64,
+    "ticks_per_sequence": 12,
+    "total_sequences": 320,
+    "total_accepted_ticks": 3840,
+    "ready_patterns_unchanged": true
+  },
+  "functional_gates": {
+    "exact_phase_state": true,
+    "exact_sparse_active_mask": true,
+    "exact_sparse_dirty_mask": true,
+    "exact_changed_mask": true,
+    "exact_receipt_stream": true,
+    "missing_receipts": 0,
+    "duplicate_receipts": 0,
+    "phantom_receipts": 0,
+    "execution_semantic_contamination": 0,
+    "sparse_low_activity_minimum_pe_evaluation_reduction": 0.50,
+    "f4_hier_stalls_must_exactly_match_control": true
+  },
+  "pareto_dimensions": [
+    "lut",
+    "ff",
+    "core_cells_excluding_io",
+    "logic_depth_proxy",
+    "backpressure_stalls_0.01",
+    "backpressure_stalls_0.05",
+    "backpressure_stalls_0.20",
+    "backpressure_stalls_1.00",
+    "backpressure_stalls_stress"
+  ],
+  "pareto_rule": "A dominates B iff A is no worse on every frozen dimension and strictly better on at least one",
+  "hw08_handoff": {
+    "purpose": "low_activity_processor_path",
+    "eligibility": {
+      "all_semantic_gates_pass": true,
+      "backpressure_stalls_0.01_max": 0,
+      "backpressure_stalls_0.05_max": 542,
+      "logic_depth_proxy_max": 266,
+      "drop_or_infinite_buffer_allowed": false
+    },
+    "selection_order": [
+      "minimum_core_cells_excluding_io",
+      "minimum_ff",
+      "minimum_lut",
+      "minimum_logic_depth_proxy"
+    ],
+    "fallback": "CONTROL_F4_FLAT"
+  },
+  "possible_outcomes": [
+    "CONTROL_FAILURE",
+    "RECEIPT_SEMANTIC_FAILURE",
+    "NO_VALID_MICROARCHITECTURE_IMPROVEMENT",
+    "RECEIPT_FRONTIER_MEASURED"
+  ],
+  "synthetic_combined_score_allowed": false,
+  "timing_decisive": false,
+  "sha_merkle_deferred": true,
+  "physical_power_deferred": true,
+  "post_route_fmax_deferred": true,
+  "asic_ppa_deferred": true
+}

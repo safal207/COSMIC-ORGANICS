@@ -163,7 +163,7 @@ def make_testbench(rows: list[dict]) -> str:
         body.append("reset_models(); vectors=vectors+1;")
         for tick in row["ticks"]:
             body.append(
-                "drive_tick(512'h{stim:0128x},128'h{state:032x},64'h{active:016x},64'h{changed:016x},64'h{dirty:016x});".format(
+                "drive_tick(512'h{stimulus:0128x},128'h{state:032x},64'h{active:016x},64'h{changed:016x},64'h{dirty:016x});".format(
                     **tick
                 )
             )

@@ -1,0 +1,113 @@
+{
+  "experiment_id": "COSMIC-HW-08/v0.1",
+  "parent_hw07_green_head": "1e71648e1a2f375d7eeb3147a301a81dc8bc2399",
+  "parent_hw07b_head": "9ad5b01b9960a49f4800dbffcdf96b4dac50bd6e",
+  "parent_hw07b_decision": "NO_VALID_MICROARCHITECTURE_IMPROVEMENT",
+  "selected_receipt_baseline": "CONTROL_F4_FLAT",
+  "stress_fingerprint": "sha256:be033839531356f0695b6c270b8d22a2abb8f388dd1ecb9c4b93644c9b291110",
+  "systems": [
+    "SPARSE_RECEIPT_F4",
+    "SPARSE_RECEIPT_F4_SHA256x1"
+  ],
+  "receipt": {
+    "width_bits": 40,
+    "receipts_per_full_commitment": 10,
+    "serialization_order": "ascending_site_id",
+    "collector_fifo_depth": 4,
+    "collector_selector": "flat_64_site_priority",
+    "collector_output_lanes": 1,
+    "collector_output_handshake": "valid_ready"
+  },
+  "canonical_message": {
+    "message_bytes": 54,
+    "message_bits": 432,
+    "sha_block_bytes_after_padding": 64,
+    "header_bytes": 4,
+    "full_domain_hex": "434f",
+    "sequence_bits": 16,
+    "sequence_initial": 0,
+    "sequence_increment": 1,
+    "receipt_bytes_each": 5,
+    "receipt_slots": 10,
+    "byte_order": "big_endian",
+    "full_layout": "domain16 || sequence16 || receipt[0..9] each big-endian 40-bit",
+    "full_padding": "0x80 || 0x00 || uint64_be(432)",
+    "partial_domain_rule": "0x4340 | real_receipt_count for count 1..9",
+    "partial_zero_fill_receipt_slots": true,
+    "partial_flush_boundary": "explicit sequence drain"
+  },
+  "sha256_core": {
+    "standard": "FIPS 180-4 SHA-256",
+    "engines": 1,
+    "architecture": "iterative_64_round",
+    "rounds_per_cycle": 1,
+    "working_words": 8,
+    "word_bits": 32,
+    "vendor_ip_allowed": false,
+    "unrolled_64_round_datapath_allowed": false,
+    "input_blocks_when_busy_allowed": false,
+    "digest_handshake": "valid_ready"
+  },
+  "assembler": {
+    "currently_filling_messages": 1,
+    "complete_waiting_blocks": 1,
+    "infinite_queue_allowed": false,
+    "drop_allowed": false,
+    "backpressure_propagates_to_receipt_ready": true
+  },
+  "known_answer_tests": {
+    "standard_messages": ["empty", "abc"],
+    "canonical_receipt_batches": 128,
+    "kat_seed": 202608230801,
+    "hash_reference": "python_hashlib_sha256",
+    "kat_fingerprint_algorithm": "sha256_over_canonical_json"
+  },
+  "workload": {
+    "phase1_sequences": 256,
+    "receipt_stress_sequences": 64,
+    "total_sequences": 320,
+    "accepted_logical_ticks": 3840,
+    "ready_patterns_reused": true
+  },
+  "functional_gates": {
+    "exact_phase_state": true,
+    "exact_sparse_active_mask": true,
+    "exact_sparse_dirty_mask": true,
+    "exact_changed_mask": true,
+    "exact_receipt_stream": true,
+    "receipt_missing": 0,
+    "receipt_duplicate": 0,
+    "receipt_phantom": 0,
+    "execution_semantic_contamination": 0,
+    "digest_match_fraction": 1.0,
+    "digest_sequence_match_fraction": 1.0,
+    "real_receipt_commit_coverage_fraction": 1.0,
+    "phantom_receipt_coverage": 0
+  },
+  "metrics": {
+    "separate_dimensions": [
+      "execution_receipt_work",
+      "sha_commitment_work",
+      "structural_mapping"
+    ],
+    "synthetic_combined_score_allowed": false,
+    "timing_decisive": false
+  },
+  "decision_classes": [
+    "CONTROL_FAILURE",
+    "SHA256_SEMANTIC_FAILURE",
+    "SHA256_COMMITMENT_COST_MEASURED"
+  ],
+  "deferred": {
+    "merkle_tree": true,
+    "multi_sha_engine": true,
+    "proof_inclusion_paths": true,
+    "signatures": true,
+    "security_certification": true,
+    "side_channel_resistance": true,
+    "board_power": true,
+    "post_route_fmax": true,
+    "asic_ppa": true,
+    "full_software_proof_end_to_end": true
+  }
+}

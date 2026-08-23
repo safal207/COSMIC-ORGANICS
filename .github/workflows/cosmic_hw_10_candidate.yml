@@ -1,0 +1,54 @@
+name: COSMIC-HW-10 Candidate Merkle
+
+on:
+  push:
+    branches:
+      - "research/cosmic-hw-10-candidate"
+  pull_request:
+    paths:
+      - "rtl/cosmic_hw_10_merkle.v"
+      - "benchmarks/run_cosmic_hw_10_parent_kat.py"
+      - "benchmarks/cosmic_hw_10_candidate.py"
+      - ".github/workflows/cosmic_hw_10_candidate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  parent-kat:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Icarus
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y iverilog
+          iverilog -V | head -n 2
+      - name: Revalidate frozen HW-10 oracle
+        run: |
+          PYTHONPATH=. python benchmarks/cosmic_hw_10_oracle.py > /tmp/hw10-oracle.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/hw10-oracle.json').read_text())
+          assert r['tree_count']==444
+          assert r['real_leaves']==4240
+          assert r['padding_leaves']==2864
+          assert r['parent_hashes']==6660
+          assert r['proof_fragments']==16960
+          assert r['verified_real_leaf_proofs']==4240
+          assert r['oracle_fingerprint']=='b716b577e7b7efa7e0ccb4f1c92f2b51a1d219e33d0f125e7ce461e656929978'
+          print('HW-10 frozen oracle PASS')
+          PY
+      - name: Re-run frozen leaf SHA KAT
+        run: PYTHONPATH=. python benchmarks/run_cosmic_hw_08_sha_kat.py
+      - name: Gate two-block Merkle parent SHA
+        run: PYTHONPATH=. python benchmarks/run_cosmic_hw_10_parent_kat.py

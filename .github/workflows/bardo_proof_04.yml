@@ -1,0 +1,135 @@
+name: BARDO-PROOF-04 Construct Validity
+
+on:
+  push:
+    branches:
+      - "research/bardo-proof-04-construct-validity"
+    paths:
+      - "benchmarks/bardo_proof_04_manifest.json"
+      - "morphos/dag_parent_commit.py"
+      - "tests/test_dag_parent_commit.py"
+      - "benchmarks/run_bardo_proof_04.py"
+      - ".github/workflows/bardo_proof_04.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  construct-validity:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout exact challenge head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install repository
+        run: python -m pip install -e .
+
+      - name: Assert frozen Bardo file unchanged from parent
+        run: git diff --exit-code 81917d355699adc7d3c77cbf0aec72ea9f63db75 -- morphos/bardo_proof_edges.py
+
+      - name: Run generic-control tests
+        run: python -m unittest -v tests.test_proof_controls_v02 tests.test_bardo_proof_edges tests.test_dag_parent_commit
+
+      - name: Execute fresh held-out construct-validity benchmark
+        run: PYTHONPATH=. python benchmarks/run_bardo_proof_04.py > bardo-proof-04-result.json
+
+      - name: Validate result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path("bardo-proof-04-result.json").read_text())
+          assert r["experiment_id"] == "BARDO-PROOF-04/v0.1"
+          assert r["instances"] == 192
+          assert r["frozen_bardo_head"] == "81917d355699adc7d3c77cbf0aec72ea9f63db75"
+          assert r["timing_decisive"] is False
+          assert r["decision"] in {
+              "CONTROL_FAILURE",
+              "NO_PARENT_COMMITMENT_VALUE",
+              "GENERIC_PARENT_COMMITMENT_VALUE_ONLY",
+              "BARDO_RELATION_VALUE_SUPPORTED",
+          }
+          print(r["decision"])
+          PY
+
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: bardo-proof-04-result-py${{ matrix.python-version }}
+          path: bardo-proof-04-result.json
+
+      - name: Publish hosted evidence
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          r = json.loads(Path("bardo-proof-04-result.json").read_text())
+          generic = "\n".join(f"generic_{k}={v:.6f}" for k, v in r["generic_reduction_vs_explicit"].items())
+          bardo = "\n".join(f"bardo_{k}={v:.6f}" for k, v in r["bardo_reduction_vs_generic"].items())
+          body = f"""## BARDO-PROOF-04 hosted evidence — Python {os.environ['PYTHON_VERSION']}
+
+          Exact challenge head: `{os.environ['GITHUB_SHA']}`
+          Frozen Bardo implementation head: `81917d355699adc7d3c77cbf0aec72ea9f63db75`
+
+          ```text
+          decision={r['decision']}
+          instances={r['instances']}
+          generic_parent_commitment_supported={str(r['generic_parent_commitment_supported']).lower()}
+          bardo_relation_supported={str(r['bardo_relation_supported']).lower()}
+          generic_max_improvement={r['generic_max_improvement']:.6f}
+          generic_max_regression={r['generic_max_regression']:.6f}
+          bardo_max_improvement={r['bardo_max_improvement']:.6f}
+          bardo_max_regression={r['bardo_max_regression']:.6f}
+          {generic}
+          {bardo}
+          ```
+
+          Valid acceptance: `{r['valid_proof_acceptance']}`
+          Invalid rejection: `{r['invalid_proof_detection']}`
+
+          A tie between generic committed DAG and frozen Bardo invalidates a uniquely Bardo interpretation of BARDO-PROOF-03's parent-compression gain.
+          """
+          Path("comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/65/comments" --method POST --input comment.json
+
+      - name: Publish RED evidence
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          body = f"""## BARDO-PROOF-04 hosted RED — Python {os.environ['PYTHON_VERSION']}
+
+          Exact challenge head: `{os.environ['GITHUB_SHA']}`
+          Frozen Bardo implementation head: `81917d355699adc7d3c77cbf0aec72ea9f63db75`
+
+          The construct-validity lane failed before a valid verdict. Do not change the frozen Bardo implementation, fresh seeds, or acceptance bars to force a result.
+          """
+          Path("comment.json").write_text(json.dumps({"body": body}), encoding="utf-8")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/65/comments" --method POST --input comment.json

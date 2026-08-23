@@ -111,9 +111,9 @@ module cosmic_hw12_b1_m2_hmacx1 (
     wire pending_fire = pending_valid && hmac_message_ready;
     wire pending_can_accept = !pending_valid || hmac_message_ready;
     assign inner_root_ready = root_ready && pending_can_accept;
-    wire root_fire = inner_root_valid && inner_root_ready;
+    assign root_valid = inner_root_valid && pending_can_accept;
+    wire root_fire = root_valid && root_ready;
 
-    assign root_valid = inner_root_valid;
     assign root_data = inner_root_data;
     assign root_source_sequence = inner_root_source_sequence;
     assign root_tree_ordinal = inner_root_tree_ordinal;

@@ -25,5 +25,5 @@ def test_cosmic_hw_06_phase1_frozen_work_oracle() -> None:
 def test_cosmic_hw_06_generated_testbench_contains_all_ticks() -> None:
     rows, _ = build_expected()
     text = make_testbench(rows)
-    assert text.count("drive_tick(") == 256 * 12 + 1  # task declaration + calls
+    assert text.count("drive_tick(") == 256 * 12
     assert "COSMIC_HW06_PHASE1_SIM PASS" in text

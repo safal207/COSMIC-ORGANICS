@@ -133,7 +133,7 @@ def simulate_frontier(root: Path, execution: dict, commitments: dict, merkle: di
         str(root / "rtl" / "cosmic_hw_11_merkle_frontier.v"),
         str(tb),
     ])
-    return parse_candidate_sim(run_cmd([require_tool("vvp"), str(sim)], timeout=240))
+    return parse_candidate_sim(run_cmd([require_tool("vvp"), str(sim)]))
 
 
 def synthesize_frontier(yosys: str, root: Path, tmp: Path, system: str, buffers: int, engines: int) -> dict:
@@ -148,9 +148,9 @@ def synthesize_frontier(yosys: str, root: Path, tmp: Path, system: str, buffers:
     ))
     json_path = tmp / f"hw11_{system}.json"
     hierarchy = f"hierarchy -check -top {top} -chparam TREE_BUFFERS {buffers} -chparam MERKLE_ENGINES {engines}"
-    run_cmd([yosys, "-q", "-p", f"read_verilog -sv {sources}; {hierarchy}; flatten; synth_xilinx -family xc7 -top {top}; write_json {json_path}"], timeout=240)
+    run_cmd([yosys, "-q", "-p", f"read_verilog -sv {sources}; {hierarchy}; flatten; synth_xilinx -family xc7 -top {top}; write_json {json_path}"])
     row = cell_counts_from_json(json_path, top)
-    depth_text = run_cmd([yosys, "-p", f"read_verilog -sv {sources}; {hierarchy}; proc; memory_map; opt; flatten; opt; ltp -noff"], timeout=240)
+    depth_text = run_cmd([yosys, "-p", f"read_verilog -sv {sources}; {hierarchy}; proc; memory_map; opt; flatten; opt; ltp -noff"])
     row["logic_depth_proxy"] = parse_ltp(depth_text)
     return row
 

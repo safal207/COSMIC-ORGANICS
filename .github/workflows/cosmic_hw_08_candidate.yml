@@ -1,0 +1,101 @@
+name: COSMIC-HW-08 Commitment Cost
+
+on:
+  push:
+    branches:
+      - "research/cosmic-hw-08-candidate"
+  pull_request:
+    paths:
+      - "rtl/cosmic_hw_08_sha256.v"
+      - "benchmarks/cosmic_hw_08_candidate.py"
+      - "benchmarks/cosmic_hw_08_kat.py"
+      - ".github/workflows/cosmic_hw_08_candidate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  commitment-cost:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install open-source RTL tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y iverilog yosys
+          iverilog -V | head -n 2
+          yosys -V
+      - name: Re-run frozen SHA KAT
+        run: |
+          PYTHONPATH=. python benchmarks/run_cosmic_hw_08_sha_kat.py
+      - name: Execute full frozen HW-08 benchmark
+        run: |
+          PYTHONPATH=. python benchmarks/cosmic_hw_08_candidate.py --json > /tmp/cosmic_hw_08_result.json
+          python -m json.tool /tmp/cosmic_hw_08_result.json
+      - name: Validate frozen HW-08 gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/cosmic_hw_08_result.json').read_text())
+          assert r['benchmark_id']=='COSMIC-HW-08-CANDIDATE'
+          assert r['protocol']=='COSMIC-HW-08/v0.1'
+          assert r['decision']=='SHA256_COMMITMENT_COST_MEASURED'
+          assert r['kat_fingerprint']=='3919530f4fb110bb453429fb50d8f6c6f664cf9506f5391a4b3a1e9fac5d5bbd'
+          assert r['simulation']['sequences']==320
+          assert r['simulation']['accepted_ticks']==3840
+          assert r['simulation']['receipts_emitted']==41144
+          assert r['commitments']['real_receipts_committed']==41144
+          assert r['commitments']['digests_emitted']==r['commitments']['sha_blocks_accepted']
+          assert r['commitments']['digest_match_fraction']==1.0
+          assert r['commitments']['digest_sequence_match_fraction']==1.0
+          assert r['commitments']['real_receipt_commit_coverage_fraction']==1.0
+          assert r['synthesis']['receipt_only_control']['lut']>0
+          assert r['synthesis']['receipt_plus_sha256x1']['lut']>0
+          assert r['synthetic_combined_score_used'] is False
+          assert r['timing_decisive'] is False
+          assert r['merkle_present'] is False
+          print('COSMIC-HW-08 frozen gates PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-hw-08-result
+          path: /tmp/cosmic_hw_08_result.json
+      - name: Publish hosted evidence to issue 79
+        if: success() && github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs');
+            const r=JSON.parse(fs.readFileSync('/tmp/cosmic_hw_08_result.json','utf8'));
+            const c=r.synthesis.receipt_only_control;
+            const s=r.synthesis.receipt_plus_sha256x1;
+            const d=r.synthesis.delta;
+            const body=[
+              '## COSMIC-HW-08 hosted evidence','',
+              `Exact candidate head: \`${context.sha}\``,'',
+              `decision=\`${r.decision}\``,'',
+              `- receipts committed: ${r.commitments.real_receipts_committed}`,
+              `- full blocks: ${r.commitments.full_10_receipt_blocks}`,
+              `- partial blocks: ${r.commitments.partial_blocks}`,
+              `- digests: ${r.commitments.digests_emitted}`,
+              `- compression rounds: ${r.commitments.compression_rounds}`,
+              `- physical cycles: ${r.simulation.physical_cycles}`,
+              `- SHA busy cycles: ${r.simulation.sha_busy_cycles}`,
+              `- digest sink stalls: ${r.simulation.digest_sink_stalls}`,
+              `- assembler stalls: ${r.simulation.assembler_stalls}`,'',
+              '### Structural mapping','',
+              `receipt-only: LUT=${c.lut} FF=${c.ff} core=${c.core_cells_excluding_io} depth=${c.logic_depth_proxy}`,
+              `receipt+SHA: LUT=${s.lut} FF=${s.ff} core=${s.core_cells_excluding_io} depth=${s.logic_depth_proxy}`,
+              `delta: LUT=${d.lut} FF=${d.ff} core=${d.core_cells_excluding_io} depth=${d.logic_depth_proxy}`,'',
+              'Boundary: simulation + Yosys Xilinx-7 structural mapping only; no Merkle, board power, post-route Fmax or ASIC PPA claim.'
+            ].join('\n');
+            await github.rest.issues.createComment({owner:context.repo.owner,repo:context.repo.repo,issue_number:79,body});

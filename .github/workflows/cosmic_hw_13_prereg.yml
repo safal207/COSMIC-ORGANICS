@@ -1,0 +1,68 @@
+name: COSMIC-HW-13 Prereg
+
+on:
+  pull_request:
+    paths:
+      - 'benchmarks/cosmic_hw_13_manifest.json'
+      - 'tests/test_cosmic_hw_13_prereg.py'
+      - '.github/workflows/cosmic_hw_13_prereg.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prereg:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install frozen open FPGA toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            yosys=0.33-5build2 \
+            iverilog=12.0-2build2 \
+            nextpnr-ecp5=0.6-3build5 \
+            fpga-trellis=1.4-2build4
+          python -m pip install --quiet pytest
+          yosys -V
+          iverilog -V | head -n 2
+          nextpnr-ecp5 --version
+          dpkg-query -W -f='${Version}\n' fpga-trellis
+
+      - name: Run frozen HW-13 prereg assertions
+        run: PYTHONPATH=. python -m pytest -q tests/test_cosmic_hw_13_prereg.py
+
+      - name: Verify target flags exist
+        run: |
+          nextpnr-ecp5 --help 2>&1 | grep -q -- '--85k'
+          nextpnr-ecp5 --help 2>&1 | grep -q -- '--package'
+          nextpnr-ecp5 --help 2>&1 | grep -q -- '--speed'
+          nextpnr-ecp5 --help 2>&1 | grep -q -- '--seed'
+          nextpnr-ecp5 --help 2>&1 | grep -q -- '--freq'
+
+      - name: Smoke exact ECP5-85F open flow before candidate
+        run: |
+          cat > /tmp/hw13_toy.v <<'VERILOG'
+          module hw13_toy(input wire clk, input wire reset, output reg [7:0] status);
+            always @(posedge clk) begin
+              if (reset) status <= 8'h1;
+              else status <= {status[6:0], status[7] ^ status[5] ^ status[4] ^ status[3]};
+            end
+          endmodule
+          VERILOG
+          yosys -q -p 'read_verilog /tmp/hw13_toy.v; synth_ecp5 -top hw13_toy -json /tmp/hw13_toy.json'
+          nextpnr-ecp5 --85k --package CABGA381 --speed 8 --json /tmp/hw13_toy.json \
+            --textcfg /tmp/hw13_toy.config --freq 10 --seed 1301 2>&1 | tee /tmp/hw13_toy_nextpnr.log
+          ecppack /tmp/hw13_toy.config /tmp/hw13_toy.bit
+          test -s /tmp/hw13_toy.bit
+          grep -q 'Max frequency for clock' /tmp/hw13_toy_nextpnr.log
+          echo 'COSMIC_HW13_TOOLCHAIN_SMOKE PASS target=LFE5U-85F-8BG381C seed=1301 freq=10MHz'

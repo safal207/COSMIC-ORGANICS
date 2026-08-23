@@ -1,0 +1,74 @@
+{
+  "experiment_id": "COSMIC-HW-13/v0.1",
+  "parent_hw12_source_head": "7bad7ba095c65221e057696df40fcd6c53dee2b8",
+  "parent_system": "B1_M2_HMACx1",
+  "target": {
+    "vendor": "Lattice",
+    "family": "ECP5",
+    "part": "LFE5U-85F-8BG381C",
+    "nextpnr_density_flag": "--85k",
+    "package": "CABGA381",
+    "speed_grade": "8",
+    "requested_clock_mhz": 10.0
+  },
+  "toolchain": {
+    "runner": "ubuntu-24.04",
+    "yosys_apt_version": "0.33-5build2",
+    "iverilog_apt_version": "12.0-2build2",
+    "nextpnr_ecp5_apt_version": "0.6-3build5",
+    "fpga_trellis_apt_version": "1.4-2build4",
+    "synthesis_command_family": "synth_ecp5",
+    "packer": "ecppack"
+  },
+  "physical_harness": {
+    "top": "cosmic_hw13_ecp5_harness",
+    "exact_core_module": "cosmic_hw12_b1_m2_hmacx1",
+    "external_ports": ["clk", "reset", "status[7:0]"],
+    "external_pin_count": 10,
+    "stimulus_state_bits": 512,
+    "stimulus_must_be_dynamic": true,
+    "flush_must_be_dynamic": true,
+    "tree_flush_must_be_dynamic": true,
+    "source_sequence_must_be_dynamic": true,
+    "sink_ready_must_be_dynamic": true,
+    "all_major_outputs_must_feed_observable_checksum": true,
+    "checksum_feedback_to_core_allowed": false,
+    "expected_answer_rom_allowed": false
+  },
+  "anti_pruning_gate": {
+    "min_harness_lut_fraction_of_core_only": 0.98,
+    "min_harness_ff_fraction_of_core_only": 0.98,
+    "min_harness_multiplier_fraction_of_core_only": 1.0,
+    "exact_core_instance_required": true,
+    "all_hw12_source_files_required": true
+  },
+  "placement": {
+    "seeds": [1301, 1302, 1303, 1304, 1305],
+    "required_successful_routes": 3,
+    "required_10mhz_passes": 3,
+    "report_all_seeds": true,
+    "best_seed_only_reporting_allowed": false
+  },
+  "functional_gates": {
+    "rerun_hw12_prereg": true,
+    "rerun_hmac_kat_vectors": 446,
+    "hmac_frozen_root_vectors": 444,
+    "hmac_oracle_fingerprint": "3b3f577479cf42343196ce1245024c38f3a3209ff18bd2e157ce761e60096885",
+    "harness_smoke_required": true
+  },
+  "candidate_paths": {
+    "harness_rtl": "rtl/cosmic_hw_13_ecp5_harness.v",
+    "candidate_runner": "benchmarks/cosmic_hw_13_candidate.py"
+  },
+  "decision_classes": [
+    "CONTROL_FAILURE",
+    "HARNESS_PRESERVATION_FAILURE",
+    "DEVICE_CAPACITY_NOT_SUPPORTED",
+    "PLACE_ROUTE_FAILED",
+    "ECP5_10MHZ_TIMING_NOT_SUPPORTED",
+    "ECP5_POST_ROUTE_FEASIBILITY_SUPPORTED"
+  ],
+  "synthetic_combined_score_allowed": false,
+  "larger_fpga_fallback_allowed_in_hw13": false,
+  "claim_boundary": "Open-source ECP5 synthesis/place-route/packing and reported post-route timing estimate only; no board power, hardware-in-loop execution, secure key storage, public signature, ASIC PPA, or full software+proof E2E claim."
+}

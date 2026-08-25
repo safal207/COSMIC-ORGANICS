@@ -1,0 +1,69 @@
+name: COSMIC-HW-14 Prereg
+
+on:
+  pull_request:
+    paths:
+      - 'benchmarks/cosmic_hw_14_manifest.json'
+      - 'tests/test_cosmic_hw_14_prereg.py'
+      - '.github/workflows/cosmic_hw_14_prereg.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prereg:
+    name: prereg (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install frozen open FPGA toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            yosys=0.33-5build2 \
+            iverilog=12.0-2build2 \
+            nextpnr-ecp5=0.6-3build5 \
+            fpga-trellis=1.4-2build4
+          python -m pip install --quiet pytest
+          yosys -V
+          iverilog -V | head -n 2
+          nextpnr-ecp5 --version
+          ecppack --help 2>&1 | head -n 2 || true
+
+      - name: Run frozen HW-14 prereg assertions
+        run: PYTHONPATH=. python -m pytest -q tests/test_cosmic_hw_14_prereg.py
+
+      - name: Verify exact target flags exist
+        run: |
+          nextpnr-ecp5 --help 2>&1 | grep -q -- '--85k'
+          nextpnr-ecp5 --help 2>&1 | grep -q -- '--package'
+          nextpnr-ecp5 --help 2>&1 | grep -q -- '--speed'
+          nextpnr-ecp5 --help 2>&1 | grep -q -- '--seed'
+          nextpnr-ecp5 --help 2>&1 | grep -q -- '--freq'
+
+      - name: Smoke frozen ECP5-85F flow before profile harnesses exist
+        run: |
+          cat > /tmp/hw14_toy.v <<'VERILOG'
+          module hw14_toy(input wire clk, input wire reset, output reg [7:0] status);
+            always @(posedge clk) begin
+              if (reset) status <= 8'h1;
+              else status <= {status[6:0], status[7] ^ status[5] ^ status[4] ^ status[3]};
+            end
+          endmodule
+          VERILOG
+          yosys -q -p 'read_verilog /tmp/hw14_toy.v; synth_ecp5 -top hw14_toy -json /tmp/hw14_toy.json'
+          nextpnr-ecp5 --85k --package CABGA381 --speed 8 --json /tmp/hw14_toy.json \
+            --textcfg /tmp/hw14_toy.config --freq 10 --seed 1401 2>&1 | tee /tmp/hw14_toy_nextpnr.log
+          ecppack /tmp/hw14_toy.config /tmp/hw14_toy.bit
+          test -s /tmp/hw14_toy.bit
+          grep -q 'Max frequency for clock' /tmp/hw14_toy_nextpnr.log
+          echo 'COSMIC_HW14_TOOLCHAIN_SMOKE PASS target=LFE5U-85F-8BG381C seed=1401 freq=10MHz'

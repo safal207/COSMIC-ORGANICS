@@ -1,0 +1,165 @@
+{
+  "experiment_id": "COSMIC-HW-14/v0.1",
+  "tracking_issue": 101,
+  "parent": {
+    "experiment": "COSMIC-HW-13",
+    "source_head": "773b68597b9136c12867ecc1a3a1749edcba1627",
+    "canonical_run": 32853523449,
+    "canonical_job": 97819854308,
+    "decision": "DEVICE_CAPACITY_NOT_SUPPORTED",
+    "full_profile_capacity": {
+      "comb_used": 116535,
+      "comb_available": 83640,
+      "ff_fraction": 0.35,
+      "mult_used": 201,
+      "mult_available": 156,
+      "routed_seeds": 0,
+      "frozen_seed_count": 5
+    }
+  },
+  "target": {
+    "device": "LFE5U-85F-8BG381C",
+    "architecture": "ECP5",
+    "density_flag": "--85k",
+    "package": "CABGA381",
+    "speed_grade": 8,
+    "requested_clock_mhz": 10.0,
+    "synthesis": "yosys synth_ecp5",
+    "place_route": "nextpnr-ecp5",
+    "packer": "ecppack",
+    "larger_device_fallback_allowed": false
+  },
+  "toolchain_packages": {
+    "ubuntu": "24.04",
+    "yosys": "0.33-5build2",
+    "iverilog": "12.0-2build2",
+    "nextpnr_ecp5": "0.6-3build5",
+    "fpga_trellis": "1.4-2build4"
+  },
+  "placement_seeds": [1401, 1402, 1403, 1404, 1405],
+  "inherited_source_git_blobs": {
+    "rtl/cosmic_hw_06.v": "7890a1b256b467fe8726e0e7ef7ff84bf8a03bd8",
+    "rtl/cosmic_hw_07_receipt.v": "13a81d6b7576b929ec3167a0d5ad2795cd40ef5a",
+    "rtl/cosmic_hw_08_sha256.v": "19c1165eb48a9a626520a6fe131003dc90a9ded8",
+    "rtl/cosmic_hw_09_multi_sha.v": "4c6a2f420ce2ddab556f2f5e29a6c4c1fec9403d",
+    "rtl/cosmic_hw_10_merkle.v": "afc01660793fc9e7ad3dbc6f4d0dc0fac40caa43",
+    "rtl/cosmic_hw_11_merkle_frontier.v": "1d2a83f3f612035f3d0830865df70f1d57497a6c",
+    "rtl/cosmic_hw_12_hmac.v": "13d82e9e97aeb0b73b677e10ca6ef411fb9a94aa",
+    "rtl/cosmic_hw_12_hmac_safe.v": "712b5dd3e43e44421b2ff713ffe3de70f39403b7",
+    "rtl/cosmic_hw_12_integrated.v": "b3e72aa4678af7615b0f7530bfd4ebd6f4d98e7a",
+    "rtl/cosmic_hw_13_ecp5_harness.v": "10b77bb5348710a3e3ea0a0eef2d4e2de341b9b4"
+  },
+  "profiles": [
+    {
+      "tier": 1,
+      "id": "CORE_LITE_R40",
+      "top_module": "cosmic_hw07_mesh64_receipt",
+      "parameters": {"SPARSE": 1, "FIFO_DEPTH": 4},
+      "source_files": [
+        "rtl/cosmic_hw_06.v",
+        "rtl/cosmic_hw_07_receipt.v"
+      ],
+      "required_evidence": [
+        "64-PE sparse A/M/C execution",
+        "strong dirty-frontier scheduling",
+        "exact ordered 40-bit transition receipts",
+        "finite F4 receipt queue"
+      ],
+      "forbidden_on_core": ["SHA-256", "Merkle", "HMAC"]
+    },
+    {
+      "tier": 2,
+      "id": "PROOF_EDGE_SHA1",
+      "top_module": "cosmic_hw08_sparse_receipt_sha256",
+      "parameters": {},
+      "source_files": [
+        "rtl/cosmic_hw_06.v",
+        "rtl/cosmic_hw_07_receipt.v",
+        "rtl/cosmic_hw_08_sha256.v"
+      ],
+      "required_evidence": [
+        "all CORE_LITE_R40 semantics",
+        "canonical 10-receipt batching",
+        "one iterative standard SHA-256 engine",
+        "exact full and partial commitment domains"
+      ],
+      "forbidden_on_core": ["Merkle", "HMAC"]
+    },
+    {
+      "tier": 3,
+      "id": "FULL_PROOF_HMAC",
+      "top_module": "cosmic_hw12_b1_m2_hmacx1",
+      "parameters": {},
+      "source_files": [
+        "rtl/cosmic_hw_06.v",
+        "rtl/cosmic_hw_07_receipt.v",
+        "rtl/cosmic_hw_08_sha256.v",
+        "rtl/cosmic_hw_09_multi_sha.v",
+        "rtl/cosmic_hw_10_merkle.v",
+        "rtl/cosmic_hw_11_merkle_frontier.v",
+        "rtl/cosmic_hw_12_hmac.v",
+        "rtl/cosmic_hw_12_hmac_safe.v",
+        "rtl/cosmic_hw_12_integrated.v"
+      ],
+      "required_evidence": [
+        "SHA256x2 receipt commitments",
+        "Merkle-16 roots",
+        "four-level inclusion paths",
+        "B1_M2 Merkle throughput profile",
+        "HMAC-SHA256 scoped root authentication"
+      ],
+      "redesign_allowed": false
+    }
+  ],
+  "physical_harness": {
+    "external_pins": ["clk", "reset", "status[7:0]"],
+    "dynamic_stimulus_bits": 512,
+    "tick_valid_held_until_ready": true,
+    "dynamic_flush_and_sequence_controls": true,
+    "dynamic_sink_ready": true,
+    "major_outputs_feed_rolling_checksum": true,
+    "checksum_feedback_allowed": false,
+    "expected_answer_rom_allowed": false
+  },
+  "anti_pruning_gate": {
+    "minimum_harness_comb_fraction_of_core": 0.98,
+    "minimum_harness_ff_fraction_of_core": 0.98,
+    "minimum_harness_multiplier_fraction_of_core": 1.0,
+    "zero_over_zero_is_neutral": true,
+    "exact_profile_instance_required": true,
+    "inherited_source_blob_match_required": true
+  },
+  "route_deployable_gate": {
+    "functional_and_anti_pruning_pass": true,
+    "minimum_successful_routes": 3,
+    "minimum_nonempty_bitstreams": 3,
+    "minimum_10mhz_timing_passes": 3,
+    "frozen_seed_count": 5
+  },
+  "board_handoff_headroom": {
+    "maximum_comb_fraction": 0.85,
+    "maximum_multiplier_fraction": 0.85,
+    "maximum_ff_fraction": 0.85
+  },
+  "handoff_tier_order": [
+    "FULL_PROOF_HMAC",
+    "PROOF_EDGE_SHA1",
+    "CORE_LITE_R40"
+  ],
+  "candidate_paths": {
+    "harnesses": "rtl/cosmic_hw_14_profile_harnesses.v",
+    "runner": "benchmarks/cosmic_hw_14_candidate.py"
+  },
+  "candidate_files_must_be_absent_on_prereg_head": true,
+  "synthetic_combined_score_allowed": false,
+  "decision_classes": [
+    "CONTROL_FAILURE",
+    "PROFILE_PRESERVATION_FAILURE",
+    "NO_PROFILE_ROUTE_DEPLOYABLE",
+    "CORE_LITE_BOARD_HANDOFF_SUPPORTED",
+    "PROOF_EDGE_BOARD_HANDOFF_SUPPORTED",
+    "FULL_PROOF_BOARD_HANDOFF_SUPPORTED",
+    "ROUTABLE_BUT_HEADROOM_NOT_SUPPORTED"
+  ],
+  "claim_boundary": "Identifies a routed and packed evidence profile for a later board experiment only; no board execution, measured power, production timing, security certification, ASIC PPA, CPU/GPU superiority, or commercial readiness claim."
+}

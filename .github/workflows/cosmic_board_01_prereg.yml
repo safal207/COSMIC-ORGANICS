@@ -162,9 +162,11 @@ jobs:
           SYSCONFIG CONFIG_IOVOLTAGE=3.3 COMPRESS_CONFIG=ON MCCLK_FREQ=62 SLAVE_SPI_PORT=DISABLE MASTER_SPI_PORT=ENABLE SLAVE_PARALLEL_PORT=DISABLE;
           LPF
 
+          # synth_ecp5 loads the ECP5 primitive library (including EHXPLLL)
+          # before it performs its own hierarchy validation. A pre-synthesis
+          # `hierarchy -check` would incorrectly reject the generated PLL cell.
           yosys -q -p '
             read_verilog -sv /tmp/cosmic_board_01_pll.v /tmp/cosmic_board_01_prereg_top.v;
-            hierarchy -check -top top;
             synth_ecp5 -nodsp -top top;
             write_json /tmp/cosmic_board_01_prereg.json
           '

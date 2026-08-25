@@ -1,0 +1,169 @@
+{
+  "experiment_id": "COSMIC-BOARD-01A/v0.1",
+  "tracking_issue": 110,
+  "parent": {
+    "experiment": "COSMIC-HW-15",
+    "source_head": "0bbc07d85556a861c9595b869b1f8922e419f0a1",
+    "frozen_result_branch": "research/cosmic-hw-15-frozen-result",
+    "hosted_run": 32866033513,
+    "hosted_job": 97861414261,
+    "artifact_id": 9573010882,
+    "artifact_digest": "sha256:4805133b1417b1e1e33b19c2247071aa7416cdb0bc9ee303747d8c050952fb3e",
+    "decision": "PROOF_EDGE_NODSP_BOARD_HANDOFF_SUPPORTED",
+    "selected_profile": "PROOF_EDGE_SHA1_NODSP"
+  },
+  "selected_profile": {
+    "top_module": "cosmic_hw08_sparse_receipt_sha256",
+    "mapping": "synth_ecp5 -nodsp",
+    "processing_elements": 64,
+    "receipt_width_bits": 40,
+    "receipts_per_commitment": 10,
+    "sha_engines": 1,
+    "inherited_source_git_blobs": {
+      "rtl/cosmic_hw_06.v": "7890a1b256b467fe8726e0e7ef7ff84bf8a03bd8",
+      "rtl/cosmic_hw_07_receipt.v": "13a81d6b7576b929ec3167a0d5ad2795cd40ef5a",
+      "rtl/cosmic_hw_08_sha256.v": "19c1165eb48a9a626520a6fe131003dc90a9ded8"
+    },
+    "rtl_edits_allowed": false,
+    "arithmetic_width_changes_allowed": false,
+    "pe_count_changes_allowed": false,
+    "receipt_contract_changes_allowed": false,
+    "sha_contract_changes_allowed": false
+  },
+  "board": {
+    "id": "ULX3S_85F",
+    "fpga": "LFE5U-85F-6BG381C",
+    "architecture": "ECP5",
+    "density_flag": "--85k",
+    "package": "CABGA381",
+    "speed_grade": 6,
+    "input_clock_mhz": 25.0,
+    "core_clock_mhz": 10.0,
+    "idcode": "0x41113043",
+    "programmer": "ujprog",
+    "uart_baud": 115200,
+    "larger_device_fallback_allowed": false,
+    "different_board_fallback_allowed": false
+  },
+  "official_board_reference": {
+    "repository": "emard/ulx3s",
+    "commit": "6a92cec6b177191c5b0f80e260013a1f8ec147dd",
+    "constraints_path": "doc/constraints/ulx3s_v20.lpf",
+    "constraints_blob": "49d246e06c3cdf4b7caae892d2b818786c62de9d",
+    "pins": {
+      "clk_25mhz": "G2",
+      "ftdi_rxd": "L4",
+      "ftdi_txd": "M1",
+      "btn_reset_start": "R1",
+      "led_7": "H3",
+      "led_6": "E1",
+      "led_5": "E2",
+      "led_4": "D1",
+      "led_3": "D2",
+      "led_2": "C1",
+      "led_1": "C2",
+      "led_0": "B2"
+    },
+    "allowed_board_ports": [
+      "clk_25mhz",
+      "ftdi_rxd",
+      "ftdi_txd",
+      "btn_reset_start",
+      "led[7:0]"
+    ]
+  },
+  "official_pll_reference": {
+    "repository": "YosysHQ/prjtrellis",
+    "commit": "3afe7b52b30f4b4417ee98f03016767a502006e3",
+    "example_path": "examples/ulx3s/85k.mk",
+    "example_blob": "0da6080c6c3462717348219a583b1f088b602d1b",
+    "generator": "ecppll",
+    "generator_args": [
+      "-i",
+      "25",
+      "-o",
+      "10",
+      "-n",
+      "cosmic_board_01_pll",
+      "-f",
+      "rtl/cosmic_board_01_pll.v"
+    ],
+    "pll_lock_must_gate_reset": true,
+    "tick_enable_as_clock_substitute_allowed": false
+  },
+  "toolchain_packages": {
+    "ubuntu": "24.04",
+    "yosys": "0.33-5build2",
+    "iverilog": "12.0-2build2",
+    "nextpnr_ecp5": "0.6-3build5",
+    "fpga_trellis": "1.4-2build4"
+  },
+  "placement_seeds": [1601, 1602, 1603, 1604, 1605],
+  "static_workload": {
+    "accepted_ticks": 64,
+    "stimulus_bits": 512,
+    "stimulus_source": "deterministic LFSR",
+    "explicit_final_flush": true,
+    "uart_format": "115200-8N1",
+    "host_timing_may_change_sequence": false
+  },
+  "required_uart_fields": [
+    "protocol_magic",
+    "protocol_version",
+    "profile_id",
+    "accepted_tick_count",
+    "final_phase_bus",
+    "final_active_mask",
+    "final_changed_mask",
+    "final_dirty_mask",
+    "receipt_count",
+    "digest_count",
+    "digest_sequence_and_256bit_digest",
+    "terminal_status"
+  ],
+  "static_phase": {
+    "synthesis": "synth_ecp5 -nodsp",
+    "place_route": "nextpnr-ecp5 --85k --package CABGA381 --speed 6",
+    "packer": "ecppack --idcode 0x41113043",
+    "minimum_successful_routes": 3,
+    "minimum_nonempty_bitstreams": 3,
+    "minimum_10mhz_timing_passes": 3,
+    "maximum_comb_fraction": 0.85,
+    "maximum_ff_fraction": 0.85,
+    "required_mult18x18d": 0,
+    "minimum_harness_comb_fraction_of_profile": 0.98,
+    "minimum_harness_ff_fraction_of_profile": 0.98,
+    "bitstream_sha256_required": true
+  },
+  "physical_phase": {
+    "starts_only_after_static_green": true,
+    "requires_actual_board": true,
+    "minimum_cold_runs": 3,
+    "exact_oracle_equality_required": true,
+    "truncated_uart_fails_closed": true,
+    "power_measurement_required": false
+  },
+  "candidate_paths": {
+    "top": "rtl/cosmic_board_01_ulx3s.v",
+    "pll": "rtl/cosmic_board_01_pll.v",
+    "constraints": "constraints/cosmic_board_01_ulx3s.lpf",
+    "runner": "benchmarks/cosmic_board_01_candidate.py",
+    "workflow": ".github/workflows/cosmic_board_01_candidate.yml",
+    "host_verifier": "tools/cosmic_board_01_verify.py"
+  },
+  "candidate_files_must_be_absent_on_prereg_head": true,
+  "expected_answer_rom_allowed": false,
+  "checksum_feedback_allowed": false,
+  "synthetic_combined_score_allowed": false,
+  "decision_classes": [
+    "BOARD_STATIC_CONTROL_FAILURE",
+    "ULX3S_STATIC_BITSTREAM_NOT_SUPPORTED",
+    "ULX3S_STATIC_BITSTREAM_SUPPORTED",
+    "BOARD_PROGRAMMING_FAILURE",
+    "BOARD_ORACLE_MISMATCH",
+    "BOARD_REPEATABILITY_NOT_SUPPORTED",
+    "COSMIC_PROOF_EDGE_HIL_SUPPORTED"
+  ],
+  "stop_rule": "Do not change the selected profile, RTL semantics, PE count, 10 MHz core clock, board, device, speed grade, seeds, or headroom rules after candidate results. Physical HIL claims require an actual ULX3S-85F and three cold runs.",
+  "claim_boundary": "Phase A establishes only a board-specific routed and packed bitstream. Phase B may establish deterministic physical-board execution and oracle equality. Neither establishes measured power, production timing, security certification, ASIC PPA, CPU/GPU superiority, or commercial readiness."
+}

@@ -5,6 +5,7 @@ on:
     paths:
       - 'rtl/cosmic_hw_13_ecp5_harness.v'
       - 'benchmarks/cosmic_hw_13_candidate.py'
+      - 'tests/test_cosmic_hw_13_cell_counts.py'
       - '.github/workflows/cosmic_hw_13_candidate.yml'
   workflow_dispatch:
 
@@ -34,8 +35,12 @@ jobs:
           nextpnr-ecp5 --version
           dpkg-query -W -f='${Version}\n' fpga-trellis
 
-      - name: Revalidate frozen HW-13 prereg semantics
-        run: PYTHONPATH=. python -m pytest -q tests/test_cosmic_hw_13_prereg.py -k 'not candidate_files_absent_on_prereg_head'
+      - name: Revalidate frozen HW-13 prereg and ECP5 metric parser
+        run: |
+          PYTHONPATH=. python -m pytest -q \
+            tests/test_cosmic_hw_13_prereg.py \
+            tests/test_cosmic_hw_13_cell_counts.py \
+            -k 'not candidate_files_absent_on_prereg_head'
 
       - name: Re-run inherited 446-vector HMAC RTL gate
         run: PYTHONPATH=. python benchmarks/run_cosmic_hw_12_hmac_kat.py
@@ -75,6 +80,8 @@ jobs:
           PY
 
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: cosmic-hw-13-result
           path: /tmp/cosmic_hw_13_result.json
+          if-no-files-found: warn

@@ -88,6 +88,7 @@
       "-f",
       "rtl/cosmic_board_01_pll.v"
     ],
+    "generated_sha256": "f653f1a3b0a9d51fd325b2fb1915ef048ede5515d7fc055da66d2d0d38bbf394",
     "pll_lock_must_gate_reset": true,
     "tick_enable_as_clock_substitute_allowed": false
   },
@@ -126,6 +127,11 @@
     "final_dirty_hex": "ffffffffffffffff"
   },
   "uart_protocol": {
+    "clock_hz": 10000000,
+    "requested_baud": 115200,
+    "clocks_per_bit": 87,
+    "actual_baud": 114942.52873563218,
+    "baud_error_fraction": -0.002234993614304004,
     "sync_hex": "434f",
     "header": "type:u8, payload_length:u8, record_sequence:u16be",
     "crc": {

@@ -4,10 +4,23 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cosmic-organics-morphos"
-version = "0.1.0"
-description = "MORPHOS-0 deterministic state-transition reference simulator"
-requires-python = ">=3.10"
+version = "0.2.0rc1"
+description = "Sparse lattice-computing and verifiable transition research stack"
+readme = "README.md"
+requires-python = ">=3.11"
 license = {text = "Apache-2.0"}
+keywords = ["lattice-computing", "sparse-execution", "rtl", "causal-proof", "fpga"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+]
+
+[project.scripts]
+cosmic-incident-demo = "demos.verified_incident_map:main"
 
 [tool.setuptools]
-packages = ["morphos"]
+packages = ["morphos", "demos"]

@@ -27,6 +27,8 @@ FRAME_END = 0x7F
 TERMINAL_SUCCESS = 0xA5
 
 FROZEN_EXPECTED = {
+    "initial_stimulus_hex": INITIAL_STIMULUS_HEX,
+    "lfsr_taps": list(LFSR_TAPS),
     "stimulus_stream_sha256": "b487eb56926751feeea59b8073c4c980c3ad2daf0f46e2bca84f849e6afb9546",
     "tick_observation_sha256": "a4d890ab7bdff9e1def00580af50d466dadcf3a94ca8833fd4c05517ac1d20d5",
     "receipt_count": 2765,

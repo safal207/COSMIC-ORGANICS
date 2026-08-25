@@ -1,0 +1,91 @@
+{
+  "baseline": {
+    "average_relaxation_transition_cost": 1.732142857143,
+    "capacity_bits": 4.0,
+    "mixed_dead_zone_fraction": 0.0,
+    "one_bit_recovery_rate": 0.375,
+    "stable_states": 16
+  },
+  "grid": {
+    "coupling": [
+      0.25,
+      0.35,
+      0.5
+    ],
+    "memory_decay": [
+      0.4,
+      0.6,
+      0.8
+    ],
+    "mixed_relax_threshold": [
+      0.05,
+      0.1,
+      0.15
+    ],
+    "points": 243,
+    "pulse_amplitude": [
+      0.15,
+      0.2,
+      0.25
+    ],
+    "threshold": [
+      0.25,
+      0.35,
+      0.45
+    ]
+  },
+  "grid_digest": "883334d7deaaeaa05c3cf304bed6b2b681e42aaea5312206b29a63242afaa03a",
+  "result_digest": "e70a5547ca58c0601e796dd233922bbc2580470629c830f5f1d9b2bbe38d370d",
+  "schema_version": "cosmic-organics/t2-repair-result-0.1",
+  "selected_candidates": {
+    "capacity_matched": {
+      "all_gates": true,
+      "average_relaxation_transition_cost": 2.5,
+      "capacity_bits": 4.0,
+      "coupling": 0.25,
+      "memory_decay": 0.4,
+      "mixed_dead_zone_fraction": 0.071428571429,
+      "mixed_relax_threshold": 0.05,
+      "one_bit_recovery_rate": 0.375,
+      "pulse_amplitude": 0.2,
+      "stable_states": 16,
+      "threshold": 0.25
+    },
+    "dead_zone_free": {
+      "all_gates": true,
+      "average_relaxation_transition_cost": 2.571428571429,
+      "capacity_bits": 1.0,
+      "coupling": 0.35,
+      "memory_decay": 0.4,
+      "mixed_dead_zone_fraction": 0.0,
+      "mixed_relax_threshold": 0.05,
+      "one_bit_recovery_rate": 1.0,
+      "pulse_amplitude": 0.2,
+      "stable_states": 2,
+      "threshold": 0.25
+    },
+    "recovery_biased": {
+      "all_gates": true,
+      "average_relaxation_transition_cost": 4.904761904762,
+      "capacity_bits": 3.584962500721,
+      "coupling": 0.5,
+      "memory_decay": 0.4,
+      "mixed_dead_zone_fraction": 0.095238095238,
+      "mixed_relax_threshold": 0.05,
+      "one_bit_recovery_rate": 0.452380952381,
+      "pulse_amplitude": 0.25,
+      "stable_states": 12,
+      "threshold": 0.35
+    }
+  },
+  "suite_id": "p1-t2-repair-v0.1",
+  "summary": {
+    "all_gate_fraction": 0.349794238683,
+    "all_gate_points": 85,
+    "capacity_matched_points": 6,
+    "dead_zone_free_points": 8,
+    "dominates_majority_points": 0,
+    "interpretation": "repair_without_dominance",
+    "recovery_beating_points": 57
+  }
+}

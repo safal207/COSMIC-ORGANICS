@@ -1,0 +1,29 @@
+{
+  "schema": "cosmic-organics/w5-handoff-development-0.1",
+  "source_diagnostic_head": "8cb60dcc3fa950dabacd1a916ef23717973a2c6a",
+  "development_only": true,
+  "retunes_w4": false,
+  "witness_drive": 0.25,
+  "witness_commit_delay": 8,
+  "evaluation_horizon": 8,
+  "retention_horizon": 12,
+  "corpus": {
+    "width": 9,
+    "height": 9,
+    "seed": 202608161023,
+    "samples": 64,
+    "trials_per_target": 6
+  },
+  "max_targets": 8,
+  "target_discovery_steps": 6,
+  "predeclared_gates": {
+    "minimum_collateral_failures_rescued": 6,
+    "maximum_previous_w4_successes_regressed": 0,
+    "minimum_overall_recovery_at_8": 0.875,
+    "maximum_retention_drop_8_to_12": 0.02,
+    "minimum_causal_drop_when_witness_corrupted": 0.2,
+    "minimum_primary_only_delta_vs_w4": 0.0,
+    "zero_drive_must_match_w4": true
+  },
+  "negative_evidence_boundary": "the three previously diagnosed source-threshold-limited anchor failures remain a separate unresolved mechanism and are not a W5 handoff target"
+}

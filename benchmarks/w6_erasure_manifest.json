@@ -1,0 +1,39 @@
+{
+  "schema": "cosmic-organics/w6-erasure-development-0.1",
+  "source_diagnostic_head": "355d599d26b4ea40f1068eedc5fc7a382ed59725",
+  "development_only": true,
+  "retunes_w5": false,
+  "witness_drive": 0.25,
+  "witness_commit_delay": 8,
+  "evaluation_horizon": 8,
+  "retention_horizon": 12,
+  "target_discovery_steps": 6,
+  "max_targets": 8,
+  "trials_per_target": 6,
+  "corpora": [
+    {"width": 5, "height": 5, "seed": 202608163001, "samples": 64},
+    {"width": 5, "height": 5, "seed": 202608163002, "samples": 64},
+    {"width": 5, "height": 5, "seed": 202608163003, "samples": 64},
+    {"width": 7, "height": 7, "seed": 202608163011, "samples": 64},
+    {"width": 7, "height": 7, "seed": 202608163012, "samples": 64},
+    {"width": 7, "height": 7, "seed": 202608163013, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608163021, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608163022, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608163023, "samples": 64}
+  ],
+  "diagnosed_mixed_erasure_cases": 9,
+  "diagnosed_multi_error_ambiguous_cases": 1,
+  "predeclared_gates": {
+    "minimum_erasure_handoff_cases": 9,
+    "minimum_mixed_erasure_cases_rescued_at_8": 8,
+    "maximum_previous_w5_successes_regressed": 0,
+    "minimum_overall_recovery_delta_vs_w5": 0.0,
+    "minimum_primary_only_delta_vs_w5": 0.0,
+    "maximum_retention_drop_8_to_12": 0.02,
+    "minimum_causal_drop_when_witness_corrupted": 0.2,
+    "maximum_false_erasure_decodes_on_diagnosed_multi_error_case": 0,
+    "zero_drive_must_match_w5": true,
+    "adaptation_all_sizes": true
+  },
+  "scope_boundary": "single known M erasure only; multi-error ambiguity, source-threshold-limited anchors, and ping-pong handoff remain separate unresolved mechanisms"
+}

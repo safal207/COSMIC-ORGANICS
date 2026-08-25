@@ -1,0 +1,25 @@
+{
+  "experiment_id": "COSMIC-HW-06/v0.1",
+  "parent_software_head": "8e7e040eb305619c459e0caf66225a4c6a1e3f9c",
+  "software_verdict_required_before_rtl_credit": true,
+  "lattice": {"width": 8, "height": 8, "phases": ["A", "M", "C"], "neighborhood": "von_neumann", "memory_decay": 0.0},
+  "systems": ["DENSE_MESH_64", "SPARSE_MESH_64", "DENSE_MESH_64_PROOF", "SPARSE_MESH_64_PROOF"],
+  "activity_density": [0.01, 0.05, 0.20, 1.00],
+  "seed_families": [202608237001, 202608237002],
+  "minimum_vector_sequences": 256,
+  "functional_gates": {
+    "tick_state_equality": 1.0,
+    "transition_count_equality": 1.0,
+    "dense_sparse_equivalence": 1.0,
+    "proof_execution_semantics_equal": 1.0
+  },
+  "sparse_primary_gate": {"activity_bands": [0.01, 0.05], "minimum_pe_evaluation_reduction": 0.50},
+  "metrics": {
+    "execution": ["pe_evaluations", "active_frontier_entries", "state_writes", "scheduler_insert_attempts", "dedup_hits", "cycles_per_logical_tick"],
+    "synthesis": ["lut", "ff", "bram", "lutram", "core_cells_excluding_io", "logic_depth_proxy", "metadata_bits", "state_bits"],
+    "proof": ["receipt_bits", "proof_memory_reads", "proof_memory_writes", "logical_hash_ops", "additional_lut", "additional_ff", "additional_bram", "additional_cycles", "stalls"]
+  },
+  "timing_decisive": false,
+  "synthetic_combined_score_allowed": false,
+  "physical_claims_deferred": ["post_route_fmax", "board_power", "joules_per_transition", "thermal", "asic_ppa"]
+}

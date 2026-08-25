@@ -1,0 +1,75 @@
+# Verified Incident Map — application demo v0.1
+
+This demo turns the frozen COSMIC-KERNEL-05 mechanisms into one small, reviewable application surface.
+
+## Scenario
+
+A `16 × 16` service map receives two localized incident signals and later two explicit remediation signals.
+
+For this demo only, the abstract MORPHOS phases are labelled:
+
+| Phase | Application label |
+|---|---|
+| `A` | nominal |
+| `M` | elevated / transition |
+| `C` | critical |
+
+These labels are illustrative. The model is not calibrated against real operational-risk data.
+
+## Compared systems
+
+The exact same deterministic 24-tick workload is executed by:
+
+1. **Dense reference** — evaluates every map cell every logical tick.
+2. **Strong sparse control** — reevaluates only changed-stimulus cells and the exact dirty causal frontier.
+3. **Sparse + committed proof** — the same sparse execution plus the frozen observational Merkle-bound causal-proof collector.
+
+The proof path cannot change a transition or future scheduling. It observes only completed transitions.
+
+## Required gates
+
+The demo fails unless all of the following hold:
+
+- dense and sparse states are equal after every tick;
+- final states and transition counts are equal;
+- transition replay reconstructs the final state;
+- dense and sparse proof representations are byte-identical;
+- both proofs verify independently;
+- a mutated transition claim is rejected;
+- every completed transition is audited;
+- sparse node evaluations are at least 50% lower than dense evaluations on this deliberately localized workload.
+
+The final point is an application-demo gate, not a new general benchmark claim. The stronger frozen scientific evidence remains COSMIC-KERNEL-05.
+
+## Run
+
+```bash
+PYTHONPATH=. python demos/verified_incident_map.py
+```
+
+Focused verification:
+
+```bash
+python -m pip install pytest
+PYTHONPATH=. python -m pytest -q tests/test_verified_incident_map.py
+```
+
+The script emits JSON containing semantic equality and replay checks, proof verification and mutation rejection, dense and sparse scheduler work, deterministic proof cost, and a SHA-256 digest of the canonical proof payload.
+
+## Frozen hosted result
+
+On Python 3.11 and 3.12, exact head `39aa1f9b4d16bf33f7ce48be34000cad7ae3494b` produced:
+
+- 40 completed transitions;
+- 40/40 audited transitions;
+- 6,144 dense node evaluations;
+- 164 sparse node evaluations;
+- 97.3307% descriptive reduction for this localized workload;
+- 77,666-byte canonical proof payload;
+- proof digest `d9e93b9827115fd96b9bd16869e4f3d97d59b50298f67804e40949e4faed393b`;
+- valid proof accepted;
+- mutated transition claim rejected.
+
+## Claim boundary
+
+This demo does **not** establish calibrated incident prediction, a Bardo-specific efficiency advantage, measured energy savings, CPU/GPU superiority, FPGA timing, board execution, or a universal processor architecture.

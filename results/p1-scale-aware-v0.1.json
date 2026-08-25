@@ -1,0 +1,416 @@
+{
+  "confirmation": [
+    {
+      "comparison": {
+        "binary_capacity_delta_bits": 0.469485283301,
+        "binary_coverage_delta": -0.020833333333,
+        "recovery_cost_ratio": 0.072362052275,
+        "recovery_delta": -0.04042022792,
+        "seed_cost_ratio": 0.401162790698
+      },
+      "frozen_capacity_delta_bits_vs_majority": 0.469485283301,
+      "height": 5,
+      "majority_ca": {
+        "binary_capacity_bits": 4.700439718141,
+        "binary_fixed_attractors": 26,
+        "binary_fixed_seed_coverage": 0.833333333333,
+        "recovery_1bit": 0.695512820513,
+        "recovery_cost_1bit": 33.108974358974,
+        "recovery_trials_1bit": 312,
+        "seed_transition_cost": 39.416666666667,
+        "unique_final_states": 34
+      },
+      "samples": 48,
+      "scale_aware": {
+        "binary_capacity_bits": 5.169925001442,
+        "binary_fixed_attractors": 36,
+        "binary_fixed_seed_coverage": 0.8125,
+        "recovery_1bit": 0.655092592593,
+        "recovery_cost_1bit": 2.395833333333,
+        "recovery_trials_1bit": 432,
+        "seed_transition_cost": 15.8125,
+        "unique_final_states": 45
+      },
+      "scale_factor": 1.0,
+      "seed": 2026082201,
+      "width": 5
+    },
+    {
+      "comparison": {
+        "binary_capacity_delta_bits": 0.428843298804,
+        "binary_coverage_delta": -0.041666666666,
+        "recovery_cost_ratio": 0.097428762032,
+        "recovery_delta": -0.022252747253,
+        "seed_cost_ratio": 0.431804281346
+      },
+      "frozen_capacity_delta_bits_vs_majority": 0.428843298804,
+      "height": 5,
+      "majority_ca": {
+        "binary_capacity_bits": 4.700439718141,
+        "binary_fixed_attractors": 26,
+        "binary_fixed_seed_coverage": 0.833333333333,
+        "recovery_1bit": 0.669871794872,
+        "recovery_cost_1bit": 24.022435897436,
+        "recovery_trials_1bit": 312,
+        "seed_transition_cost": 34.0625,
+        "unique_final_states": 34
+      },
+      "samples": 48,
+      "scale_aware": {
+        "binary_capacity_bits": 5.129283016945,
+        "binary_fixed_attractors": 35,
+        "binary_fixed_seed_coverage": 0.791666666667,
+        "recovery_1bit": 0.647619047619,
+        "recovery_cost_1bit": 2.340476190476,
+        "recovery_trials_1bit": 420,
+        "seed_transition_cost": 14.708333333333,
+        "unique_final_states": 45
+      },
+      "scale_factor": 1.0,
+      "seed": 2026082202,
+      "width": 5
+    },
+    {
+      "comparison": {
+        "binary_capacity_delta_bits": 0.378511623253,
+        "binary_coverage_delta": 0.0,
+        "recovery_cost_ratio": 0.091937994552,
+        "recovery_delta": -0.081623931624,
+        "seed_cost_ratio": 0.404734411085
+      },
+      "frozen_capacity_delta_bits_vs_majority": 0.378511623253,
+      "height": 5,
+      "majority_ca": {
+        "binary_capacity_bits": 4.906890595609,
+        "binary_fixed_attractors": 30,
+        "binary_fixed_seed_coverage": 0.833333333333,
+        "recovery_1bit": 0.677777777778,
+        "recovery_cost_1bit": 26.355555555556,
+        "recovery_trials_1bit": 360,
+        "seed_transition_cost": 36.083333333333,
+        "unique_final_states": 38
+      },
+      "samples": 48,
+      "scale_aware": {
+        "binary_capacity_bits": 5.285402218862,
+        "binary_fixed_attractors": 39,
+        "binary_fixed_seed_coverage": 0.833333333333,
+        "recovery_1bit": 0.596153846154,
+        "recovery_cost_1bit": 2.423076923077,
+        "recovery_trials_1bit": 468,
+        "seed_transition_cost": 14.604166666667,
+        "unique_final_states": 47
+      },
+      "scale_factor": 1.0,
+      "seed": 2026082203,
+      "width": 5
+    },
+    {
+      "comparison": {
+        "binary_capacity_delta_bits": 0.540568381363,
+        "binary_coverage_delta": 0.3125,
+        "recovery_cost_ratio": 0.054232865324,
+        "recovery_delta": -0.364898989899,
+        "seed_cost_ratio": 0.260141661301
+      },
+      "frozen_capacity_delta_bits_vs_majority": 0.0,
+      "height": 7,
+      "majority_ca": {
+        "binary_capacity_bits": 5.044394119358,
+        "binary_fixed_attractors": 33,
+        "binary_fixed_seed_coverage": 0.6875,
+        "recovery_1bit": 0.739898989899,
+        "recovery_cost_1bit": 27.338383838384,
+        "recovery_trials_1bit": 396,
+        "seed_transition_cost": 64.708333333333,
+        "unique_final_states": 48
+      },
+      "samples": 48,
+      "scale_aware": {
+        "binary_capacity_bits": 5.584962500721,
+        "binary_fixed_attractors": 48,
+        "binary_fixed_seed_coverage": 1.0,
+        "recovery_1bit": 0.375,
+        "recovery_cost_1bit": 1.482638888889,
+        "recovery_trials_1bit": 576,
+        "seed_transition_cost": 16.833333333333,
+        "unique_final_states": 48
+      },
+      "scale_factor": 0.919322715225,
+      "seed": 2026082211,
+      "width": 7
+    },
+    {
+      "comparison": {
+        "binary_capacity_delta_bits": 0.584962500721,
+        "binary_coverage_delta": 0.3125,
+        "recovery_cost_ratio": 0.034176057297,
+        "recovery_delta": -0.321180555555,
+        "seed_cost_ratio": 0.242985247324
+      },
+      "frozen_capacity_delta_bits_vs_majority": -0.093109404391,
+      "height": 7,
+      "majority_ca": {
+        "binary_capacity_bits": 5.0,
+        "binary_fixed_attractors": 32,
+        "binary_fixed_seed_coverage": 0.6875,
+        "recovery_1bit": 0.723958333333,
+        "recovery_cost_1bit": 44.6015625,
+        "recovery_trials_1bit": 384,
+        "seed_transition_cost": 72.020833333333,
+        "unique_final_states": 47
+      },
+      "samples": 48,
+      "scale_aware": {
+        "binary_capacity_bits": 5.584962500721,
+        "binary_fixed_attractors": 48,
+        "binary_fixed_seed_coverage": 1.0,
+        "recovery_1bit": 0.402777777778,
+        "recovery_cost_1bit": 1.524305555556,
+        "recovery_trials_1bit": 576,
+        "seed_transition_cost": 17.5,
+        "unique_final_states": 48
+      },
+      "scale_factor": 0.919322715225,
+      "seed": 2026082212,
+      "width": 7
+    },
+    {
+      "comparison": {
+        "binary_capacity_delta_bits": 0.455679483776,
+        "binary_coverage_delta": 0.25,
+        "recovery_cost_ratio": 0.04494282207,
+        "recovery_delta": -0.34439484127,
+        "seed_cost_ratio": 0.258876153201
+      },
+      "frozen_capacity_delta_bits_vs_majority": -0.175086706558,
+      "height": 7,
+      "majority_ca": {
+        "binary_capacity_bits": 5.129283016945,
+        "binary_fixed_attractors": 35,
+        "binary_fixed_seed_coverage": 0.75,
+        "recovery_1bit": 0.752380952381,
+        "recovery_cost_1bit": 36.852380952381,
+        "recovery_trials_1bit": 420,
+        "seed_transition_cost": 74.520833333333,
+        "unique_final_states": 47
+      },
+      "samples": 48,
+      "scale_aware": {
+        "binary_capacity_bits": 5.584962500721,
+        "binary_fixed_attractors": 48,
+        "binary_fixed_seed_coverage": 1.0,
+        "recovery_1bit": 0.407986111111,
+        "recovery_cost_1bit": 1.65625,
+        "recovery_trials_1bit": 576,
+        "seed_transition_cost": 19.291666666667,
+        "unique_final_states": 48
+      },
+      "scale_factor": 0.919322715225,
+      "seed": 2026082213,
+      "width": 7
+    },
+    {
+      "comparison": {
+        "binary_capacity_delta_bits": 1.415037499279,
+        "binary_coverage_delta": 0.625,
+        "recovery_cost_ratio": 0.025158519125,
+        "recovery_delta": -0.594618055555,
+        "seed_cost_ratio": 0.138200055726
+      },
+      "frozen_capacity_delta_bits_vs_majority": 0.11547721742,
+      "height": 9,
+      "majority_ca": {
+        "binary_capacity_bits": 3.584962500721,
+        "binary_fixed_attractors": 12,
+        "binary_fixed_seed_coverage": 0.375,
+        "recovery_1bit": 0.784722222222,
+        "recovery_cost_1bit": 33.951388888889,
+        "recovery_trials_1bit": 144,
+        "seed_transition_cost": 112.15625,
+        "unique_final_states": 32
+      },
+      "samples": 32,
+      "scale_aware": {
+        "binary_capacity_bits": 5.0,
+        "binary_fixed_attractors": 32,
+        "binary_fixed_seed_coverage": 1.0,
+        "recovery_1bit": 0.190104166667,
+        "recovery_cost_1bit": 0.854166666667,
+        "recovery_trials_1bit": 384,
+        "seed_transition_cost": 15.5,
+        "unique_final_states": 32
+      },
+      "scale_factor": 0.86334002137,
+      "seed": 2026082221,
+      "width": 9
+    },
+    {
+      "comparison": {
+        "binary_capacity_delta_bits": 1.192645077942,
+        "binary_coverage_delta": 0.5625,
+        "recovery_cost_ratio": 0.019129238548,
+        "recovery_delta": -0.605282738095,
+        "seed_cost_ratio": 0.128543362335
+      },
+      "frozen_capacity_delta_bits_vs_majority": -0.106915203917,
+      "height": 9,
+      "majority_ca": {
+        "binary_capacity_bits": 3.807354922058,
+        "binary_fixed_attractors": 14,
+        "binary_fixed_seed_coverage": 0.4375,
+        "recovery_1bit": 0.779761904762,
+        "recovery_cost_1bit": 40.02380952381,
+        "recovery_trials_1bit": 168,
+        "seed_transition_cost": 111.34375,
+        "unique_final_states": 32
+      },
+      "samples": 32,
+      "scale_aware": {
+        "binary_capacity_bits": 5.0,
+        "binary_fixed_attractors": 32,
+        "binary_fixed_seed_coverage": 1.0,
+        "recovery_1bit": 0.174479166667,
+        "recovery_cost_1bit": 0.765625,
+        "recovery_trials_1bit": 384,
+        "seed_transition_cost": 14.3125,
+        "unique_final_states": 32
+      },
+      "scale_factor": 0.86334002137,
+      "seed": 2026082222,
+      "width": 9
+    },
+    {
+      "comparison": {
+        "binary_capacity_delta_bits": 1.093109404391,
+        "binary_coverage_delta": 0.53125,
+        "recovery_cost_ratio": 0.015694874441,
+        "recovery_delta": -0.436631944444,
+        "seed_cost_ratio": 0.149384885764
+      },
+      "frozen_capacity_delta_bits_vs_majority": 0.0,
+      "height": 9,
+      "majority_ca": {
+        "binary_capacity_bits": 3.906890595609,
+        "binary_fixed_attractors": 15,
+        "binary_fixed_seed_coverage": 0.46875,
+        "recovery_1bit": 0.611111111111,
+        "recovery_cost_1bit": 48.45,
+        "recovery_trials_1bit": 180,
+        "seed_transition_cost": 106.6875,
+        "unique_final_states": 32
+      },
+      "samples": 32,
+      "scale_aware": {
+        "binary_capacity_bits": 5.0,
+        "binary_fixed_attractors": 32,
+        "binary_fixed_seed_coverage": 1.0,
+        "recovery_1bit": 0.174479166667,
+        "recovery_cost_1bit": 0.760416666667,
+        "recovery_trials_1bit": 384,
+        "seed_transition_cost": 15.9375,
+        "unique_final_states": 32
+      },
+      "scale_factor": 0.86334002137,
+      "seed": 2026082223,
+      "width": 9
+    }
+  ],
+  "discovery": [
+    {
+      "corpora": 9,
+      "exponent": 0.0,
+      "max_seed_cost_ratio": 0.533310080223,
+      "mean_capacity_delta_bits": -0.01605201865,
+      "min_capacity_delta_bits": -0.736965594167,
+      "passes": false
+    },
+    {
+      "corpora": 9,
+      "exponent": 0.05,
+      "max_seed_cost_ratio": 0.434600627834,
+      "mean_capacity_delta_bits": 0.118896413366,
+      "min_capacity_delta_bits": -0.206450877468,
+      "passes": false
+    },
+    {
+      "corpora": 9,
+      "exponent": 0.1,
+      "max_seed_cost_ratio": 0.434600627834,
+      "mean_capacity_delta_bits": 0.118896413366,
+      "min_capacity_delta_bits": -0.206450877468,
+      "passes": false
+    },
+    {
+      "corpora": 9,
+      "exponent": 0.15,
+      "max_seed_cost_ratio": 0.371428571429,
+      "mean_capacity_delta_bits": 0.442704205141,
+      "min_capacity_delta_bits": -0.103093492965,
+      "passes": false
+    },
+    {
+      "corpora": 9,
+      "exponent": 0.2,
+      "max_seed_cost_ratio": 0.371428571429,
+      "mean_capacity_delta_bits": 0.442704205141,
+      "min_capacity_delta_bits": -0.103093492965,
+      "passes": false
+    },
+    {
+      "corpora": 9,
+      "exponent": 0.25,
+      "max_seed_cost_ratio": 0.36556219446,
+      "mean_capacity_delta_bits": 0.637767489829,
+      "min_capacity_delta_bits": 0.137503523749,
+      "passes": true
+    },
+    {
+      "corpora": 9,
+      "exponent": 0.3,
+      "max_seed_cost_ratio": 0.36556219446,
+      "mean_capacity_delta_bits": 0.637767489829,
+      "min_capacity_delta_bits": 0.137503523749,
+      "passes": true
+    },
+    {
+      "corpora": 9,
+      "exponent": 0.35,
+      "max_seed_cost_ratio": 0.36556219446,
+      "mean_capacity_delta_bits": 0.637767489829,
+      "min_capacity_delta_bits": 0.137503523749,
+      "passes": true
+    },
+    {
+      "corpora": 9,
+      "exponent": 0.4,
+      "max_seed_cost_ratio": 0.36556219446,
+      "mean_capacity_delta_bits": 0.631937776508,
+      "min_capacity_delta_bits": 0.137503523749,
+      "passes": true
+    }
+  ],
+  "result_digest": "87fcf34923727eca1f6129014b53796695b82d05055e708a06fb0d8cdc7c115a",
+  "schema_version": "cosmic-organics/scale-aware-result-0.1",
+  "selection_rule": "minimum exponent with positive binary-capacity delta and seed-transition-cost ratio below one on every discovery corpus",
+  "suite_id": "p1-scale-aware-v0.1",
+  "summary": {
+    "all_confirmation_capacity_deltas_positive": true,
+    "all_confirmation_recovery_cost_ratios_below_one": true,
+    "all_confirmation_recovery_deltas_nonnegative": false,
+    "all_confirmation_seed_cost_ratios_below_one": true,
+    "confirmation_corpora": 9,
+    "frozen_capacity_failure_corpora": 5,
+    "full_scale_generalization_pass": false,
+    "interpretation": "scale_capacity_repaired_recovery_tradeoff_remains",
+    "mean_capacity_delta_bits": 0.728760283648,
+    "mean_recovery_cost_ratio": 0.050562576185,
+    "mean_recovery_delta": -0.312367114624,
+    "mean_seed_cost_ratio": 0.268425872087,
+    "recovery_gate_pass": false,
+    "reference_linear_size": 5.0,
+    "scale_aware_capacity_failure_corpora": 0,
+    "scale_capacity_gate_pass": true,
+    "selected_exponent": 0.25
+  }
+}

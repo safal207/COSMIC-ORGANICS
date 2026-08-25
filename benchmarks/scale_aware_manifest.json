@@ -1,0 +1,35 @@
+{
+  "schema_version": "cosmic-organics/scale-aware-manifest-0.1",
+  "suite_id": "p1-scale-aware-v0.1",
+  "frozen_candidate": {
+    "adaptive_coupling": 0.5,
+    "adaptive_threshold": 0.35,
+    "anchor_coupling": 0.75,
+    "anchor_threshold": 0.5,
+    "mask": "checkerboard",
+    "memory_decay": 0.0,
+    "mixed_relax_threshold": 0.05,
+    "neighborhood": "von_neumann"
+  },
+  "relax_steps": 6,
+  "discovery": {
+    "reference_linear_size": 5.0,
+    "exponents": [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4],
+    "selection_rule": "minimum exponent with positive binary-capacity delta and seed-transition-cost ratio below one on every discovery corpus",
+    "sizes": [
+      {"width": 5, "height": 5, "samples": 40, "seeds": [2026082101, 2026082102, 2026082103]},
+      {"width": 7, "height": 7, "samples": 40, "seeds": [2026082111, 2026082112, 2026082113]},
+      {"width": 9, "height": 9, "samples": 28, "seeds": [2026082121, 2026082122, 2026082123]}
+    ]
+  },
+  "confirmation": {
+    "sizes": [
+      {"width": 5, "height": 5, "samples": 48, "seeds": [2026082201, 2026082202, 2026082203]},
+      {"width": 7, "height": 7, "samples": 48, "seeds": [2026082211, 2026082212, 2026082213]},
+      {"width": 9, "height": 9, "samples": 32, "seeds": [2026082221, 2026082222, 2026082223]}
+    ],
+    "noise_bits": [1],
+    "trial_cap": 1500,
+    "per_target_combo_cap": 12
+  }
+}

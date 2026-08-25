@@ -1,0 +1,8 @@
+.venv/
+artifacts/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*.vcd
+*.bit
+*.config

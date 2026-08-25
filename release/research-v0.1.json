@@ -1,0 +1,32 @@
+{
+  "claim_boundary": [
+    "classical deterministic software",
+    "synthesizable RTL",
+    "Icarus functional simulation",
+    "Yosys structural mapping",
+    "deterministic ECP5-85F capacity failure"
+  ],
+  "default_product_hypothesis": "AUDIT",
+  "frozen_full_stack_branch": "research/cosmic-hw-13-frozen-result",
+  "frozen_full_stack_source_head": "773b68597b9136c12867ecc1a3a1749edcba1627",
+  "full_stack_physical_artifact_digest": "sha256:7de0ca1d54061e02d3f0761d1f713f28b81d83cc31763c3c531faa77eb0e0b52",
+  "full_stack_physical_decision": "DEVICE_CAPACITY_NOT_SUPPORTED",
+  "full_stack_physical_run": 32853523449,
+  "not_claimed": [
+    "measured energy or board power",
+    "successful full-stack place-and-route",
+    "full-stack Fmax",
+    "ASIC PPA",
+    "CPU/GPU superiority",
+    "quantum behavior",
+    "biological equivalence",
+    "lattice-QCD equivalence",
+    "public-key non-repudiation",
+    "security certification"
+  ],
+  "release_id": "COSMIC-RESEARCH-v0.1",
+  "release_type": "research-artifact",
+  "verified_demo_artifact_digest": "sha256:340d69320da5a4daae6c01d354bde99f044960ab7df16cee8c5cc3a6d607cb5c",
+  "verified_demo_head": "39aa1f9b4d16bf33f7ce48be34000cad7ae3494b",
+  "verified_demo_run": 32855291571
+}

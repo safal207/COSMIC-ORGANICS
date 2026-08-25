@@ -1,0 +1,36 @@
+{
+  "schema": "cosmic-organics/w5-confirmation-protocol-0.1",
+  "frozen_from_head": "0f9cdeab5843c8d92ee9a17fed52afddbce0b537",
+  "confirmation_only_no_retuning": true,
+  "witness_drive": 0.25,
+  "witness_commit_delay": 8,
+  "evaluation_horizon": 8,
+  "retention_horizon": 12,
+  "target_discovery_steps": 6,
+  "max_targets": 8,
+  "trials_per_target": 6,
+  "confirmation_corpora": [
+    {"width": 5, "height": 5, "seed": 202608163001, "samples": 64},
+    {"width": 5, "height": 5, "seed": 202608163002, "samples": 64},
+    {"width": 5, "height": 5, "seed": 202608163003, "samples": 64},
+    {"width": 7, "height": 7, "seed": 202608163011, "samples": 64},
+    {"width": 7, "height": 7, "seed": 202608163012, "samples": 64},
+    {"width": 7, "height": 7, "seed": 202608163013, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608163021, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608163022, "samples": 64},
+    {"width": 9, "height": 9, "seed": 202608163023, "samples": 64}
+  ],
+  "predeclared_gates": {
+    "minimum_w5_recovery_at_8_every_corpus": 0.8,
+    "minimum_w5_recovery_at_12_every_corpus": 0.8,
+    "minimum_delta_vs_w4_at_8_every_corpus": 0.0,
+    "maximum_previous_w4_successes_regressed_every_corpus": 0,
+    "maximum_retention_drop_8_to_12_every_corpus": 0.02,
+    "minimum_causal_drop_when_witness_corrupted_every_corpus": 0.2,
+    "minimum_primary_only_delta_vs_w4_every_corpus": 0.0,
+    "minimum_pooled_collateral_rescue_fraction": 0.5,
+    "zero_drive_exact_w4_every_corpus": true,
+    "adaptation_every_size": true
+  },
+  "scope_boundary": "single-bit common-mode recovery only; previously diagnosed threshold-limited anchors remain a separate mechanism and no multi-bit correction claim is made"
+}

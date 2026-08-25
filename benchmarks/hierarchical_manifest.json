@@ -1,0 +1,105 @@
+{
+  "schema_version": "cosmic-organics/hierarchical-manifest-0.1",
+  "suite_id": "p1-hierarchical-v0.1",
+  "frozen_candidate": {
+    "adaptive_coupling": 0.5,
+    "adaptive_threshold": 0.35,
+    "anchor_coupling": 0.75,
+    "anchor_threshold": 0.5,
+    "mask": "checkerboard",
+    "memory_decay": 0.0,
+    "mixed_relax_threshold": 0.05,
+    "neighborhood": "von_neumann"
+  },
+  "s1_scale_law": {
+    "reference_linear_size": 5.0,
+    "exponent": 0.25
+  },
+  "relax_steps": 6,
+  "discovery": {
+    "reference_linear_size": 5.0,
+    "domain_size": 3,
+    "hierarchy_exponents": [
+      0.0,
+      0.01,
+      0.02,
+      0.03,
+      0.04,
+      0.05,
+      0.06,
+      0.07,
+      0.08,
+      0.09,
+      0.1
+    ],
+    "selection_rule": "maximum hierarchy exponent that preserves positive binary-capacity delta and seed-transition-cost ratio below one on every discovery corpus",
+    "sizes": [
+      {
+        "width": 5,
+        "height": 5,
+        "samples": 36,
+        "seeds": [
+          2026082301,
+          2026082302,
+          2026082303
+        ]
+      },
+      {
+        "width": 7,
+        "height": 7,
+        "samples": 36,
+        "seeds": [
+          2026082311,
+          2026082312,
+          2026082313
+        ]
+      },
+      {
+        "width": 9,
+        "height": 9,
+        "samples": 24,
+        "seeds": [
+          2026082321,
+          2026082322,
+          2026082323
+        ]
+      }
+    ]
+  },
+  "confirmation": {
+    "sizes": [
+      {
+        "width": 5,
+        "height": 5,
+        "samples": 48,
+        "seeds": [
+          2026082401,
+          2026082402,
+          2026082403
+        ]
+      },
+      {
+        "width": 7,
+        "height": 7,
+        "samples": 48,
+        "seeds": [
+          2026082411,
+          2026082412,
+          2026082413
+        ]
+      },
+      {
+        "width": 9,
+        "height": 9,
+        "samples": 32,
+        "seeds": [
+          2026082421,
+          2026082422,
+          2026082423
+        ]
+      }
+    ],
+    "trial_cap": 1500,
+    "per_target_combo_cap": 12
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "adaptation": {
+    "drive_steps": 8,
+    "settle_steps": 8,
+    "sizes": [
+      {"height": 5, "width": 5},
+      {"height": 7, "width": 7},
+      {"height": 9, "width": 9}
+    ],
+    "stimulus_amplitude": 0.7
+  },
+  "confirmation": {
+    "corpora": [
+      {"height": 5, "samples": 56, "seed": 202608153101, "width": 5},
+      {"height": 5, "samples": 56, "seed": 202608153102, "width": 5},
+      {"height": 5, "samples": 56, "seed": 202608153103, "width": 5},
+      {"height": 7, "samples": 48, "seed": 202608153111, "width": 7},
+      {"height": 7, "samples": 48, "seed": 202608153112, "width": 7},
+      {"height": 7, "samples": 48, "seed": 202608153113, "width": 7},
+      {"height": 9, "samples": 36, "seed": 202608153121, "width": 9},
+      {"height": 9, "samples": 36, "seed": 202608153122, "width": 9},
+      {"height": 9, "samples": 36, "seed": 202608153123, "width": 9}
+    ],
+    "max_targets": 24,
+    "trials_per_target": 6
+  },
+  "frozen_m1": {
+    "commit_delay": 3,
+    "mirror_coupling": 0.15
+  },
+  "frozen_m2": {
+    "domain_commit_delay": 4,
+    "domain_coupling": 0.08,
+    "local_commit_delay": 3,
+    "local_coupling": 0.15,
+    "parameter_status": "frozen_from_non_evidence_development_probe",
+    "system_commit_delay": 5,
+    "system_coupling": 0.08
+  },
+  "frozen_s2": {
+    "base_candidate": {
+      "adaptive_coupling": 0.5,
+      "adaptive_threshold": 0.35,
+      "anchor_coupling": 0.75,
+      "anchor_threshold": 0.5,
+      "mask": "checkerboard",
+      "memory_decay": 0.0,
+      "mixed_relax_threshold": 0.05,
+      "neighborhood": "von_neumann"
+    },
+    "domain_size": 3,
+    "hierarchy_exponent": 0.06,
+    "reference_linear_size": 5.0,
+    "scale_exponent": 0.25
+  },
+  "gates": {
+    "max_abs_all_corruption_gain_vs_s2": 0.05,
+    "minimum_domain_only_gain_vs_m1_co": 0.05,
+    "minimum_double_gain_vs_m1_co": 0.15,
+    "minimum_primary_gain_vs_m1": 0.05,
+    "minimum_system_only_gain_vs_m1_co": 0.05
+  },
+  "relax_steps": 6,
+  "schema_version": "cosmic-organics/multimirror-manifest-0.1",
+  "suite_id": "p1-multimirror-v0.1"
+}

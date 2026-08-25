@@ -1,0 +1,135 @@
+{
+  "experiment_id": "COSMIC-HW-07/v0.1",
+  "parent_hardware_head": "5b3b4c8c77ffdbe17ad573951cca59a1c15aeb44",
+  "parent_hardware_decision": "SPARSE_RTL_VALUE_SUPPORTED",
+  "parent_software_candidate_head": "8e7e040eb305619c459e0caf66225a4c6a1e3f9c",
+  "full_stack_claim_requires_parent_software_verdict": true,
+  "lattice": {
+    "width": 8,
+    "height": 8,
+    "processing_elements": 64,
+    "phases": ["A", "M", "C"],
+    "neighborhood": "von_neumann",
+    "memory_decay": 0.0,
+    "transition_semantics": "frozen_COSMIC-HW-06"
+  },
+  "systems": [
+    "DENSE_MESH_64",
+    "SPARSE_MESH_64",
+    "DENSE_MESH_64_RECEIPT",
+    "SPARSE_MESH_64_RECEIPT"
+  ],
+  "receipt": {
+    "cryptographic_commitment_generated_in_hw": false,
+    "width_bits": 40,
+    "fields": [
+      {"name": "logical_tick", "bits": 16},
+      {"name": "site_id", "bits": 6},
+      {"name": "phase_before", "bits": 2},
+      {"name": "phase_after", "bits": 2},
+      {"name": "stimulus_s100", "bits": 8},
+      {"name": "ordinal_in_batch", "bits": 6}
+    ],
+    "serialization_order": "ascending_site_id",
+    "output_lanes": 1,
+    "output_handshake": "valid_ready",
+    "batch_fifo_depth": 4,
+    "batch_snapshot_bits_excluding_queue_control": 848,
+    "batch_snapshot_fields": {
+      "logical_tick": 16,
+      "changed_mask": 64,
+      "pre_phase_state": 128,
+      "post_phase_state": 128,
+      "stimulus_bus_s100": 512
+    },
+    "zero_transition_batches_enqueued": false,
+    "overflow_policy": "backpressure_before_tick_accept",
+    "drop_allowed": false,
+    "duplicate_allowed": false,
+    "phantom_allowed": false,
+    "receipt_authority": "post_transition_commit_observer_only"
+  },
+  "tick_interface": {
+    "protocol": "valid_ready",
+    "core_tick_en": "tick_valid_and_tick_ready",
+    "stall_allowed_only_before_authoritative_tick_commit": true,
+    "receipt_path_may_change_transition_decision": false,
+    "receipt_path_may_change_dirty_frontier": false
+  },
+  "workloads": {
+    "reuse_hw06_phase1_vectors": true,
+    "phase1_sequences": 256,
+    "phase1_ticks_per_sequence": 12,
+    "phase1_activity_densities": [0.01, 0.05, 0.20, 1.00],
+    "receipt_stress_minimum_sequences": 64,
+    "receipt_ready_patterns": [
+      "always_ready",
+      "three_ready_one_blocked",
+      "alternating_ready_blocked",
+      "eight_cycle_block_bursts"
+    ],
+    "required_stress_classes": [
+      "all_64_transition_tick",
+      "adjacent_collision_cluster",
+      "alternating_high_low_transition_bursts",
+      "back_to_back_transition_heavy_ticks",
+      "zero_transition_ticks"
+    ]
+  },
+  "functional_gates": {
+    "exact_phase_state": true,
+    "exact_transition_count": true,
+    "exact_changed_mask": true,
+    "exact_sparse_active_mask": true,
+    "exact_sparse_dirty_mask": true,
+    "missing_receipts": 0,
+    "duplicate_receipts": 0,
+    "phantom_receipts": 0,
+    "receipt_fields_match_oracle": 1.0,
+    "deterministic_serialization": true,
+    "execution_semantic_contamination": 0,
+    "sparse_low_activity_minimum_pe_evaluation_reduction": 0.50
+  },
+  "primary_metrics": {
+    "execution": [
+      "pe_evaluations",
+      "state_writes",
+      "logical_ticks",
+      "receipt_backpressure_execution_stalls"
+    ],
+    "receipt": [
+      "receipts_emitted",
+      "receipt_bits_per_transition",
+      "serializer_cycles",
+      "batch_fifo_writes",
+      "batch_fifo_reads",
+      "max_batch_fifo_occupancy",
+      "backpressure_events",
+      "missing_receipts",
+      "duplicate_receipts",
+      "phantom_receipts"
+    ],
+    "structural": [
+      "lut",
+      "ff",
+      "bram",
+      "lutram",
+      "core_cells_excluding_io",
+      "logic_depth_proxy",
+      "architectural_state_bits",
+      "receipt_metadata_buffer_bits"
+    ]
+  },
+  "possible_outcomes": [
+    "CONTROL_FAILURE",
+    "RECEIPT_SEMANTICS_NOT_PRESERVED",
+    "RECEIPT_COST_DOMINATES_REFERENCE_DESIGN",
+    "SPARSE_PLUS_RECEIPT_PARETO_SUPPORTED"
+  ],
+  "synthetic_combined_score_allowed": false,
+  "timing_decisive": false,
+  "physical_sha_merkle_deferred": true,
+  "physical_power_deferred": true,
+  "post_route_fmax_deferred": true,
+  "asic_ppa_deferred": true
+}

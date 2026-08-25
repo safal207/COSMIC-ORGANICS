@@ -1,0 +1,67 @@
+{
+  "result_digest": "c3d59a8408c4c7c434c92450b61dd86438d017c61f1ddd9475e3ca2ff8b42e3b",
+  "results": [
+    {
+      "baseline": {
+        "accuracy": 1.0,
+        "final_state": "CCCCCCC",
+        "kind": "majority_ca",
+        "transition_count": 1
+      },
+      "claim": "MORPHOS local coupling provides a useful repair behavior that should be compared with a simple local cellular rule.",
+      "id": "defect-repair-vs-majority-ca",
+      "morphos": {
+        "accuracy": 1.0,
+        "final_state": "CCCCCCC",
+        "kind": "morphos0",
+        "transition_count": 2
+      },
+      "outcome": "tie",
+      "target": "CCCCCCC"
+    },
+    {
+      "baseline": {
+        "accuracy": 1.0,
+        "final_state": "CCCCC",
+        "kind": "leaky_three_state",
+        "transition_count": 10
+      },
+      "claim": "Persistent phase state after a strong pulse should be compared with a minimal stateful threshold machine.",
+      "id": "pulse-retention-vs-threshold-machine",
+      "morphos": {
+        "accuracy": 1.0,
+        "final_state": "CCCCC",
+        "kind": "morphos0",
+        "transition_count": 10
+      },
+      "outcome": "tie",
+      "target": "CCCCC"
+    },
+    {
+      "baseline": {
+        "accuracy": 1.0,
+        "final_state": "CCCCC",
+        "kind": "leaky_three_state",
+        "transition_count": 10
+      },
+      "claim": "MORPHOS-T1 temporal integration should be compared with a minimal leaky three-state accumulator using the same decay and threshold.",
+      "id": "temporal-accumulation-vs-leaky-accumulator",
+      "morphos": {
+        "accuracy": 1.0,
+        "final_state": "CCCCC",
+        "kind": "morphos_t1",
+        "transition_count": 10
+      },
+      "outcome": "tie",
+      "target": "CCCCC"
+    }
+  ],
+  "schema_version": "cosmic-organics/external-baseline-result-0.1",
+  "suite_id": "p1-external-baselines-v0.1",
+  "summary": {
+    "baseline_wins": 0,
+    "distinct_advantage_observed": false,
+    "morphos_wins": 0,
+    "ties": 3
+  }
+}

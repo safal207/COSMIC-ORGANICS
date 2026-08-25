@@ -4,6 +4,14 @@ import hashlib
 import json
 from pathlib import Path
 
+from benchmarks.cosmic_board_01_oracle import (
+    FROZEN_EXPECTED,
+    INITIAL_STIMULUS_HEX,
+    LFSR_TAPS,
+    TICKS,
+    build_oracle,
+)
+
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT / "benchmarks" / "cosmic_board_01_manifest.json"
@@ -130,15 +138,52 @@ def test_pll_and_physical_flow_are_frozen_before_candidate() -> None:
     assert static["required_mult18x18d"] == 0
 
 
-def test_static_and_physical_claims_are_separated() -> None:
+def test_workload_and_uart_protocol_are_exact_before_candidate() -> None:
     manifest = load_manifest()
     workload = manifest["static_workload"]
-    assert workload["accepted_ticks"] == 64
+    assert workload["accepted_ticks"] == TICKS == 64
     assert workload["stimulus_bits"] == 512
+    assert workload["initial_stimulus_hex"] == INITIAL_STIMULUS_HEX
+    assert workload["feedback_taps"] == list(LFSR_TAPS)
     assert workload["explicit_final_flush"] is True
     assert workload["uart_format"] == "115200-8N1"
     assert workload["host_timing_may_change_sequence"] is False
+    assert workload["oracle_path"] == "benchmarks/cosmic_board_01_oracle.py"
 
+    oracle = build_oracle()
+    summary = oracle["summary"]
+    for key, expected in FROZEN_EXPECTED.items():
+        assert summary[key] == expected, key
+        assert workload.get(key, expected) == expected, key
+
+    protocol = manifest["uart_protocol"]
+    assert protocol["sync_hex"] == "434f"
+    assert protocol["crc"] == {
+        "name": "CRC-16/CCITT-FALSE",
+        "polynomial_hex": "1021",
+        "initial_hex": "ffff",
+        "reflection": False,
+        "xorout_hex": "0000",
+        "coverage": "type || payload_length || record_sequence || payload",
+    }
+    assert protocol["wire_order"] == (
+        "START, DIGEST records in commitment-sequence order, END"
+    )
+    assert protocol["frame_types"]["START"]["payload_length"] == 12
+    assert protocol["frame_types"]["DIGEST"]["expected_count"] == 277
+    assert protocol["frame_types"]["END"]["payload_length"] == 49
+    assert protocol["expected_frame_count"] == summary["uart_frame_count"]
+    assert protocol["expected_transcript_bytes"] == summary[
+        "uart_transcript_bytes"
+    ]
+    assert protocol["expected_transcript_sha256"] == summary[
+        "uart_transcript_sha256"
+    ]
+    assert protocol["truncated_or_malformed_transcript_fails_closed"] is True
+
+
+def test_static_and_physical_claims_are_separated() -> None:
+    manifest = load_manifest()
     physical = manifest["physical_phase"]
     assert physical["starts_only_after_static_green"] is True
     assert physical["requires_actual_board"] is True
@@ -152,6 +197,8 @@ def test_static_and_physical_claims_are_separated() -> None:
     assert manifest["expected_answer_rom_allowed"] is False
     assert manifest["checksum_feedback_allowed"] is False
     assert manifest["synthetic_combined_score_allowed"] is False
+    assert "exact workload" in manifest["stop_rule"]
+    assert "UART protocol" in manifest["stop_rule"]
 
 
 def test_candidate_files_absent_on_prereg_head() -> None:

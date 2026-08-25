@@ -37,6 +37,18 @@
     "fpga_trellis": "1.4-2build4"
   },
   "placement_seeds": [1401, 1402, 1403, 1404, 1405],
+  "inherited_source_git_blobs": {
+    "rtl/cosmic_hw_06.v": "7890a1b256b467fe8726e0e7ef7ff84bf8a03bd8",
+    "rtl/cosmic_hw_07_receipt.v": "13a81d6b7576b929ec3167a0d5ad2795cd40ef5a",
+    "rtl/cosmic_hw_08_sha256.v": "19c1165eb48a9a626520a6fe131003dc90a9ded8",
+    "rtl/cosmic_hw_09_multi_sha.v": "4c6a2f420ce2ddab556f2f5e29a6c4c1fec9403d",
+    "rtl/cosmic_hw_10_merkle.v": "afc01660793fc9e7ad3dbc6f4d0dc0fac40caa43",
+    "rtl/cosmic_hw_11_merkle_frontier.v": "1d2a83f3f612035f3d0830865df70f1d57497a6c",
+    "rtl/cosmic_hw_12_hmac.v": "13d82e9e97aeb0b73b677e10ca6ef411fb9a94aa",
+    "rtl/cosmic_hw_12_hmac_safe.v": "712b5dd3e43e44421b2ff713ffe3de70f39403b7",
+    "rtl/cosmic_hw_12_integrated.v": "b3e72aa4678af7615b0f7530bfd4ebd6f4d98e7a",
+    "rtl/cosmic_hw_13_ecp5_harness.v": "10b77bb5348710a3e3ea0a0eef2d4e2de341b9b4"
+  },
   "profiles": [
     {
       "tier": 1,
@@ -108,6 +120,14 @@
     "major_outputs_feed_rolling_checksum": true,
     "checksum_feedback_allowed": false,
     "expected_answer_rom_allowed": false
+  },
+  "anti_pruning_gate": {
+    "minimum_harness_comb_fraction_of_core": 0.98,
+    "minimum_harness_ff_fraction_of_core": 0.98,
+    "minimum_harness_multiplier_fraction_of_core": 1.0,
+    "zero_over_zero_is_neutral": true,
+    "exact_profile_instance_required": true,
+    "inherited_source_blob_match_required": true
   },
   "route_deployable_gate": {
     "functional_and_anti_pruning_pass": true,

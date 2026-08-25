@@ -12,6 +12,9 @@ import sys
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 DEFAULT_OUTPUT = ROOT / "artifacts" / "release" / "verified-incident-map.json"
 DEFAULT_FPGA_OUTPUT = ROOT / "artifacts" / "release" / "hw13-ecp5.json"
 
@@ -217,10 +220,9 @@ def verify_fpga(output_path: Path) -> None:
             "HW-13 runner did not emit valid JSON. stderr:\n" + completed.stderr[-4000:]
         ) from exc
 
-    decision = result.get("decision")
     require_equal(
         "frozen HW-13 decision",
-        decision,
+        result.get("decision"),
         "DEVICE_CAPACITY_NOT_SUPPORTED",
     )
 

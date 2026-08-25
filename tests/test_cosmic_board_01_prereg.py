@@ -120,6 +120,9 @@ def test_pll_and_physical_flow_are_frozen_before_candidate() -> None:
         "-f",
         "rtl/cosmic_board_01_pll.v",
     ]
+    assert pll["generated_sha256"] == (
+        "f653f1a3b0a9d51fd325b2fb1915ef048ede5515d7fc055da66d2d0d38bbf394"
+    )
     assert pll["pll_lock_must_gate_reset"] is True
     assert pll["tick_enable_as_clock_substitute_allowed"] is False
 
@@ -154,9 +157,18 @@ def test_workload_and_uart_protocol_are_exact_before_candidate() -> None:
     summary = oracle["summary"]
     for key, expected in FROZEN_EXPECTED.items():
         assert summary[key] == expected, key
-        assert workload.get(key, expected) == expected, key
+        if key in workload:
+            assert workload[key] == expected, key
 
     protocol = manifest["uart_protocol"]
+    assert protocol["clock_hz"] == 10_000_000
+    assert protocol["requested_baud"] == 115_200
+    assert protocol["clocks_per_bit"] == 87
+    assert protocol["actual_baud"] == 10_000_000 / 87
+    assert protocol["baud_error_fraction"] == (
+        (10_000_000 / 87 - 115_200) / 115_200
+    )
+    assert abs(protocol["baud_error_fraction"]) < 0.01
     assert protocol["sync_hex"] == "434f"
     assert protocol["crc"] == {
         "name": "CRC-16/CCITT-FALSE",

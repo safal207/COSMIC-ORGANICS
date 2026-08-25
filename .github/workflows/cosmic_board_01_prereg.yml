@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - "benchmarks/cosmic_board_01_manifest.json"
+      - "benchmarks/cosmic_board_01_oracle.py"
       - "tests/test_cosmic_board_01_prereg.py"
       - ".github/workflows/cosmic_board_01_prereg.yml"
   workflow_dispatch:
@@ -51,6 +52,16 @@ jobs:
       - name: Validate frozen manifest, inherited blobs, and candidate absence
         run: |
           PYTHONPATH=. python -m pytest -q tests/test_cosmic_board_01_prereg.py
+
+      - name: Reproduce exact workload and UART transcript oracle
+        run: |
+          PYTHONPATH=. python benchmarks/cosmic_board_01_oracle.py \
+            --json \
+            --write-transcript /tmp/cosmic_board_01_expected_uart.bin \
+            | tee /tmp/cosmic_board_01_oracle.json
+          test "$(stat --printf='%s' /tmp/cosmic_board_01_expected_uart.bin)" = "11711"
+          echo '1304a940c94180db5e6713964cdea9930da8cf2f297afcaf8c2e897e22588d58  /tmp/cosmic_board_01_expected_uart.bin' \
+            | sha256sum --check
 
       - name: Revalidate official ULX3S and PrjTrellis references
         run: |
@@ -164,7 +175,7 @@ jobs:
 
           # synth_ecp5 loads the ECP5 primitive library (including EHXPLLL)
           # before it performs its own hierarchy validation. A pre-synthesis
-          # `hierarchy -check` would incorrectly reject the generated PLL cell.
+          # hierarchy check would incorrectly reject the generated PLL cell.
           yosys -q -p '
             read_verilog -sv /tmp/cosmic_board_01_pll.v /tmp/cosmic_board_01_prereg_top.v;
             synth_ecp5 -nodsp -top top;

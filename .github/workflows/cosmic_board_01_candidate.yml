@@ -1,0 +1,238 @@
+name: COSMIC-BOARD-01A Static Candidate
+
+on:
+  push:
+    branches:
+      - "research/cosmic-board-01-candidate"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: cosmic-board-01a-static-candidate
+  cancel-in-progress: false
+
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install frozen open FPGA toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            yosys=0.33-5build2 \
+            iverilog=12.0-2build2 \
+            nextpnr-ecp5=0.6-3build5 \
+            fpga-trellis=1.4-2build4
+          python -m pip install --quiet pytest
+          yosys -V
+          iverilog -V | head -n 2
+          nextpnr-ecp5 --version
+          command -v ecppll
+          command -v ecppack
+
+      - name: Revalidate frozen BOARD-01A prereg semantics
+        run: |
+          PYTHONPATH=. python -m pytest -q tests/test_cosmic_board_01_prereg.py \
+            -k 'not candidate_files_absent_on_prereg_head'
+          ecppll \
+            -i 25 \
+            -o 10 \
+            -n cosmic_board_01_pll \
+            -f /tmp/cosmic_board_01_pll.v
+          cmp /tmp/cosmic_board_01_pll.v rtl/cosmic_board_01_pll.v
+          sha256sum rtl/cosmic_board_01_pll.v
+
+      - name: Revalidate exact HW-07 receipt semantics
+        run: |
+          python -m pytest \
+            tests/test_cosmic_hw_06_vectors.py \
+            tests/test_cosmic_hw_06_phase1.py \
+            tests/test_cosmic_hw_07_candidate.py -q
+          PYTHONPATH=. python benchmarks/cosmic_hw_07_candidate.py --json \
+            > /tmp/cosmic_hw_07_result.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path('/tmp/cosmic_hw_07_result.json').read_text())
+          assert result['decision']=='SPARSE_PLUS_RECEIPT_PARETO_SUPPORTED'
+          assert result['functional_gate'] is True
+          assert result['simulation']['receipts_emitted']==41144
+          assert result['receipt']['missing_receipts']==0
+          assert result['receipt']['duplicate_receipts']==0
+          assert result['receipt']['phantom_receipts']==0
+          assert result['receipt']['field_match_fraction']==1.0
+          assert result['execution_semantic_contamination']==0
+          print('BOARD-01 inherited HW-07 gate PASS')
+          PY
+
+      - name: Revalidate exact HW-08 SHA commitment semantics
+        run: |
+          PYTHONPATH=. python benchmarks/run_cosmic_hw_08_sha_kat.py
+          PYTHONPATH=. python benchmarks/cosmic_hw_08_candidate.py --json \
+            > /tmp/cosmic_hw_08_result.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path('/tmp/cosmic_hw_08_result.json').read_text())
+          assert result['decision']=='SHA256_COMMITMENT_COST_MEASURED'
+          assert result['commitments']['real_receipts_committed']==41144
+          assert result['commitments']['digest_match_fraction']==1.0
+          assert result['commitments']['digest_sequence_match_fraction']==1.0
+          assert result['commitments']['real_receipt_commit_coverage_fraction']==1.0
+          assert result['merkle_present'] is False
+          print('BOARD-01 inherited HW-08 gate PASS')
+          PY
+
+      - name: Execute frozen BOARD-01A ULX3S static frontier
+        run: |
+          rm -rf /tmp/cosmic-board-01-evidence
+          mkdir -p /tmp/cosmic-board-01-evidence
+          PYTHONPATH=. python benchmarks/cosmic_board_01_candidate.py \
+            --json --output-dir /tmp/cosmic-board-01-evidence \
+            > /tmp/cosmic_board_01_result.json
+          python -m json.tool /tmp/cosmic_board_01_result.json
+
+      - name: Validate frozen BOARD-01A interpretation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path('/tmp/cosmic_board_01_result.json').read_text())
+          assert result['benchmark_id']=='COSMIC-BOARD-01A-CANDIDATE'
+          assert result['protocol']=='COSMIC-BOARD-01A/v0.1'
+          assert result['parent_hw15_source_head']=='0bbc07d85556a861c9595b869b1f8922e419f0a1'
+          assert result['selected_profile']=='PROOF_EDGE_SHA1_NODSP'
+          assert result['placement_seeds']==[1601,1602,1603,1604,1605]
+          assert result['board']['fpga']=='LFE5U-85F-6BG381C'
+          assert result['board']['speed_grade']==6
+          assert result['source_preservation']['passed'] is True
+          assert result['engine_smoke']['passed'] is True
+          assert result['engine_smoke']['verification']['verified'] is True
+          assert result['engine_smoke']['accepted_ticks']==64
+          assert result['engine_smoke']['negative_controls']=={
+              'truncated': True,
+              'mutated': True,
+          }
+          assert result['profile_synthesis']['mult18x18d']==0
+          assert result['board_synthesis']['mult18x18d']==0
+          assert result['anti_pruning']['passed'] is True
+          assert len(result['seeds'])==5
+          assert result['physical_board_executed'] is False
+          assert result['synthetic_combined_score_used'] is False
+          assert result['decision'] in {
+              'ULX3S_STATIC_BITSTREAM_SUPPORTED',
+              'ULX3S_STATIC_BITSTREAM_NOT_SUPPORTED',
+          }
+          for seed in result['seeds']:
+              if seed['packed']:
+                  assert seed['bitstream_bytes']>0
+                  assert len(seed['bitstream_sha256'])==64
+          if result['decision']=='ULX3S_STATIC_BITSTREAM_SUPPORTED':
+              physical=result['physical']
+              assert physical['successful_routes']>=3
+              assert physical['packed_bitstreams']>=3
+              assert physical['timing_10mhz_passes']>=3
+              assert physical['headroom_pass'] is True
+              assert physical['static_board_ready'] is True
+          print('COSMIC-BOARD-01A frozen gates PASS')
+          print('decision=',result['decision'])
+          PY
+
+      - name: Build concise evidence summary
+        if: success()
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          result=json.loads(Path('/tmp/cosmic_board_01_result.json').read_text())
+          physical=result['physical']
+          fmax=physical['core_fmax_mhz']
+          engine=result['engine_smoke']
+          board=result['board_synthesis']
+          fractions=physical['maximum_resource_fractions']
+          lines=[
+              '## COSMIC-BOARD-01A hosted static evidence',
+              '',
+              f"Exact candidate head: `{os.environ['GITHUB_SHA']}`",
+              '',
+              f"decision=`{result['decision']}`",
+              'physical_board_executed=`false`',
+              '',
+              f"- transcript oracle: PASS ({engine['accepted_ticks']} ticks, {engine['receipt_count']} receipts, {engine['digest_count']} digests)",
+              f"- transcript SHA-256: `{engine['verification']['transcript_sha256']}`",
+              f"- board synthesis: COMB {board['trellis_comb']}, FF {board['trellis_ff']}, DSP {board['mult18x18d']}",
+              f"- route / pack / 10 MHz: {physical['successful_routes']}/5 / {physical['packed_bitstreams']}/5 / {physical['timing_10mhz_passes']}/5",
+              f"- maximum COMB / FF: {fractions['comb']*100:.2f}% / {fractions['ff']*100:.2f}%",
+              f"- routed core Fmax min / median / max: {fmax['minimum']} / {fmax['median']} / {fmax['maximum']} MHz",
+              '',
+              '| Seed | Route | Pack | 10 MHz | Core Fmax | Bitstream bytes | Bitstream SHA-256 |',
+              '|---:|---|---|---|---:|---:|---|',
+          ]
+          for seed in result['seeds']:
+              lines.append(
+                  f"| {seed['seed']} | {seed['routed']} | {seed['packed']} | "
+                  f"{seed['timing_10mhz_pass']} | {seed['core_fmax_mhz']} | "
+                  f"{seed['bitstream_bytes']} | `{seed['bitstream_sha256']}` |"
+              )
+          lines += [
+              '',
+              'Boundary: this is a board-specific static bitstream result only. A real ULX3S-85F, programming, UART capture, and three cold-run oracle matches are still required for physical HIL support.',
+          ]
+          Path('/tmp/cosmic_board_01_evidence.md').write_text(
+              '\n'.join(lines), encoding='utf-8'
+          )
+          PY
+
+      - name: Upload complete BOARD-01A evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-board-01a-result
+          path: |
+            /tmp/cosmic_board_01_result.json
+            /tmp/cosmic_board_01_evidence.md
+            /tmp/cosmic_hw_07_result.json
+            /tmp/cosmic_hw_08_result.json
+            /tmp/cosmic-board-01-evidence
+          if-no-files-found: ignore
+
+      - name: Publish hosted evidence to issue 110
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs');
+            const body=fs.readFileSync('/tmp/cosmic_board_01_evidence.md','utf8');
+            await github.rest.issues.createComment({
+              owner:context.repo.owner,
+              repo:context.repo.repo,
+              issue_number:110,
+              body
+            });
+
+      - name: Publish hosted RED to issue 110
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner:context.repo.owner,
+              repo:context.repo.repo,
+              issue_number:110,
+              body:`## COSMIC-BOARD-01A hosted RED\n\nExact head: \`${context.sha}\`\n\nThe static board experiment failed before an interpretable decision. Do not change the selected profile, board, speed grade, PLL clock, pins, seeds, 10 MHz gate, or headroom rules to force a pass.`
+            });

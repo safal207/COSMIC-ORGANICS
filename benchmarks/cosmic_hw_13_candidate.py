@@ -142,6 +142,22 @@ def harness_smoke(tmp: Path) -> dict:
     }
 
 
+def _attribute_enabled(value: object) -> bool:
+    """Decode Yosys JSON attributes, including binary-string encodings."""
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return value != 0
+    text = str(value).strip().lower()
+    if text in {"", "0", "false", "no", "none"}:
+        return False
+    if set(text) <= {"0", "1"}:
+        return "1" in text
+    return True
+
+
 def recursive_cell_counts(netlist: Path, top: str) -> dict[str, int]:
     data = json.loads(netlist.read_text(encoding="utf-8"))
     modules = data.get("modules", {})
@@ -150,6 +166,14 @@ def recursive_cell_counts(netlist: Path, top: str) -> dict[str, int]:
 
     memo: dict[str, dict[str, int]] = {}
     visiting: set[str] = set()
+
+    def is_leaf_module(module: dict) -> bool:
+        attrs = module.get("attributes", {})
+        return (
+            _attribute_enabled(attrs.get("blackbox"))
+            or _attribute_enabled(attrs.get("whitebox"))
+            or not module.get("cells")
+        )
 
     def count_module(name: str) -> dict[str, int]:
         if name in memo:
@@ -160,11 +184,15 @@ def recursive_cell_counts(netlist: Path, top: str) -> dict[str, int]:
         counts: dict[str, int] = {}
         for cell in modules[name].get("cells", {}).values():
             typ = cell["type"]
-            if typ in modules:
+            child_module = modules.get(typ)
+            if child_module is not None and not is_leaf_module(child_module):
                 child = count_module(typ)
                 for k, v in child.items():
                     counts[k] = counts.get(k, 0) + v
             else:
+                # Yosys includes ECP5 technology primitives as empty or
+                # black-box modules in JSON. They are physical leaves, not
+                # hierarchy to recurse through.
                 counts[typ] = counts.get(typ, 0) + 1
         visiting.remove(name)
         memo[name] = dict(counts)
@@ -174,12 +202,37 @@ def recursive_cell_counts(netlist: Path, top: str) -> dict[str, int]:
 
 
 def summarize_ecp5_cells(counts: dict[str, int]) -> dict:
+    # Yosys 0.33 synth_ecp5 emits LUT4/CCU2C/TRELLIS_FF leaves. Some
+    # versions or already-packed netlists may expose TRELLIS_COMB/SLICE.
+    # Keep one stable comparison basis without double-counting both forms.
+    direct_lut4 = counts.get("LUT4", 0) + 2 * counts.get("CCU2C", 0)
+    if direct_lut4:
+        logic_lut_equivalent = direct_lut4
+        lut_basis = "LUT4 + 2*CCU2C"
+    elif counts.get("TRELLIS_COMB", 0):
+        logic_lut_equivalent = counts.get("TRELLIS_COMB", 0)
+        lut_basis = "TRELLIS_COMB"
+    else:
+        logic_lut_equivalent = 2 * counts.get("TRELLIS_SLICE", 0)
+        lut_basis = "2*TRELLIS_SLICE"
+
+    direct_ff = counts.get("TRELLIS_FF", 0)
+    if direct_ff:
+        ff_equivalent = direct_ff
+        ff_basis = "TRELLIS_FF"
+    else:
+        ff_equivalent = 2 * counts.get("TRELLIS_SLICE", 0)
+        ff_basis = "2*TRELLIS_SLICE"
+
     return {
-        "trellis_comb": counts.get("TRELLIS_COMB", 0),
-        "trellis_ff": counts.get("TRELLIS_FF", 0),
+        # Backward-compatible field names used by the frozen anti-pruning
+        # thresholds. Values are ECP5 LUT4/FF-equivalent counts.
+        "trellis_comb": logic_lut_equivalent,
+        "trellis_ff": ff_equivalent,
         "ebr_dp16kd": counts.get("DP16KD", 0),
         "mult18x18d": counts.get("MULT18X18D", 0),
         "total_leaf_cells": sum(counts.values()),
+        "metric_basis": {"trellis_comb": lut_basis, "trellis_ff": ff_basis},
         "cell_types": dict(sorted(counts.items())),
     }
 
@@ -194,19 +247,34 @@ def synth_ecp5(tmp: Path, top: str, include_harness: bool) -> tuple[dict, Path, 
     return summarize_ecp5_cells(counts), netlist, proc.stdout
 
 
+def _preservation_ratio(candidate: int, control: int) -> float:
+    # A resource absent from the exact core has nothing to preserve. Treat
+    # 0/0 as neutral rather than as a false anti-pruning failure.
+    if control == 0:
+        return 1.0
+    return candidate / control
+
+
 def anti_pruning_gate(m: dict, core: dict, harness: dict) -> dict:
     a = m["anti_pruning_gate"]
     ratios = {
-        "trellis_comb": harness["trellis_comb"] / max(core["trellis_comb"], 1),
-        "trellis_ff": harness["trellis_ff"] / max(core["trellis_ff"], 1),
-        "mult18x18d": harness["mult18x18d"] / max(core["mult18x18d"], 1),
+        "trellis_comb": _preservation_ratio(harness["trellis_comb"], core["trellis_comb"]),
+        "trellis_ff": _preservation_ratio(harness["trellis_ff"], core["trellis_ff"]),
+        "mult18x18d": _preservation_ratio(harness["mult18x18d"], core["mult18x18d"]),
     }
+    core_metrics_nonzero = core["trellis_comb"] > 0 and core["trellis_ff"] > 0
     passed = (
-        ratios["trellis_comb"] >= a["min_harness_lut_fraction_of_core_only"]
+        core_metrics_nonzero
+        and ratios["trellis_comb"] >= a["min_harness_lut_fraction_of_core_only"]
         and ratios["trellis_ff"] >= a["min_harness_ff_fraction_of_core_only"]
         and ratios["mult18x18d"] >= a["min_harness_multiplier_fraction_of_core_only"]
     )
-    return {"passed": passed, "ratios": ratios, "thresholds": a}
+    return {
+        "passed": passed,
+        "ratios": ratios,
+        "core_metrics_nonzero": core_metrics_nonzero,
+        "thresholds": a,
+    }
 
 
 def parse_fmax(log: str) -> float | None:
@@ -337,7 +405,7 @@ def run() -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--json", action="store_true")
-    args = parser.parse_args()
+    parser.parse_args()
     result = run()
     print(json.dumps(result, indent=2, sort_keys=True))
 

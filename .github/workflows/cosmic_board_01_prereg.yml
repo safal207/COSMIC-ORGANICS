@@ -1,0 +1,203 @@
+name: COSMIC-BOARD-01A Prereg
+
+on:
+  push:
+    branches:
+      - "research/cosmic-board-01-prereg"
+  pull_request:
+    paths:
+      - "benchmarks/cosmic_board_01_manifest.json"
+      - "tests/test_cosmic_board_01_prereg.py"
+      - ".github/workflows/cosmic_board_01_prereg.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prereg:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install frozen open FPGA toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            yosys=0.33-5build2 \
+            iverilog=12.0-2build2 \
+            nextpnr-ecp5=0.6-3build5 \
+            fpga-trellis=1.4-2build4
+          python -m pip install --quiet pytest
+          yosys -V
+          iverilog -V | head -n 2
+          nextpnr-ecp5 --version
+          command -v ecppll
+          command -v ecppack
+
+      - name: Validate frozen manifest, inherited blobs, and candidate absence
+        run: |
+          PYTHONPATH=. python -m pytest -q tests/test_cosmic_board_01_prereg.py
+
+      - name: Revalidate official ULX3S and PrjTrellis references
+        run: |
+          curl --fail --silent --show-error \
+            https://raw.githubusercontent.com/emard/ulx3s/6a92cec6b177191c5b0f80e260013a1f8ec147dd/doc/constraints/ulx3s_v20.lpf \
+            -o /tmp/ulx3s_v20.lpf
+          curl --fail --silent --show-error \
+            https://raw.githubusercontent.com/YosysHQ/prjtrellis/3afe7b52b30f4b4417ee98f03016767a502006e3/examples/ulx3s/85k.mk \
+            -o /tmp/ulx3s_85k.mk
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+
+          def blob(path: str) -> str:
+              data=Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()
+
+          assert blob('/tmp/ulx3s_v20.lpf') == '49d246e06c3cdf4b7caae892d2b818786c62de9d'
+          assert blob('/tmp/ulx3s_85k.mk') == '0da6080c6c3462717348219a583b1f088b602d1b'
+
+          lpf=Path('/tmp/ulx3s_v20.lpf').read_text()
+          for token in (
+              'LOCATE COMP "clk_25mhz" SITE "G2";',
+              'LOCATE COMP "ftdi_rxd" SITE "L4";',
+              'LOCATE COMP "ftdi_txd" SITE "M1";',
+              'LOCATE COMP "led[7]" SITE "H3";',
+              'LOCATE COMP "led[0]" SITE "B2";',
+              'LOCATE COMP "btn[1]" SITE "R1";',
+          ):
+              assert token in lpf, token
+
+          mk=Path('/tmp/ulx3s_85k.mk').read_text()
+          for token in ('IDCODE ?= 0x41113043', 'ecppll', '-i 25', '--85k', '--package CABGA381'):
+              assert token in mk, token
+          print('official ULX3S/PrjTrellis reference gate PASS')
+          PY
+
+      - name: Generate and inspect frozen 25-to-10 MHz ECP5 PLL
+        run: |
+          ecppll \
+            -i 25 \
+            -o 10 \
+            -n cosmic_board_01_pll \
+            -f /tmp/cosmic_board_01_pll.v
+          test -s /tmp/cosmic_board_01_pll.v
+          grep -q 'module cosmic_board_01_pll' /tmp/cosmic_board_01_pll.v
+          grep -q 'EHXPLLL' /tmp/cosmic_board_01_pll.v
+          grep -q 'locked' /tmp/cosmic_board_01_pll.v
+          sha256sum /tmp/cosmic_board_01_pll.v
+          sed -n '1,160p' /tmp/cosmic_board_01_pll.v
+
+      - name: Prove ULX3S-85F speed-6 PLL route and pack boundary
+        run: |
+          cat > /tmp/cosmic_board_01_prereg_top.v <<'VERILOG'
+          `timescale 1ns/1ps
+          module top(
+              input  wire       clk_25mhz,
+              input  wire       btn_reset_start,
+              input  wire       ftdi_txd,
+              output wire       ftdi_rxd,
+              output wire [7:0] led
+          );
+              wire clk_10mhz;
+              wire pll_locked;
+              cosmic_board_01_pll pll_i(clk_25mhz, clk_10mhz, pll_locked);
+
+              reg [31:0] counter = 32'b0;
+              wire reset = !pll_locked || btn_reset_start;
+              always @(posedge clk_10mhz) begin
+                  if (reset)
+                      counter <= 32'b0;
+                  else
+                      counter <= counter + 32'd1;
+              end
+
+              assign led = counter[31:24] ^ {8{pll_locked}};
+              assign ftdi_rxd = ftdi_txd ^ counter[9];
+          endmodule
+          VERILOG
+
+          cat > /tmp/cosmic_board_01_prereg.lpf <<'LPF'
+          BLOCK RESETPATHS;
+          BLOCK ASYNCPATHS;
+          LOCATE COMP "clk_25mhz" SITE "G2";
+          IOBUF PORT "clk_25mhz" PULLMODE=NONE IO_TYPE=LVCMOS33;
+          FREQUENCY PORT "clk_25mhz" 25 MHZ;
+          LOCATE COMP "ftdi_rxd" SITE "L4";
+          LOCATE COMP "ftdi_txd" SITE "M1";
+          IOBUF PORT "ftdi_rxd" PULLMODE=UP IO_TYPE=LVCMOS33 DRIVE=4;
+          IOBUF PORT "ftdi_txd" PULLMODE=UP IO_TYPE=LVCMOS33;
+          LOCATE COMP "btn_reset_start" SITE "R1";
+          IOBUF PORT "btn_reset_start" PULLMODE=DOWN IO_TYPE=LVCMOS33 DRIVE=4;
+          LOCATE COMP "led[7]" SITE "H3";
+          LOCATE COMP "led[6]" SITE "E1";
+          LOCATE COMP "led[5]" SITE "E2";
+          LOCATE COMP "led[4]" SITE "D1";
+          LOCATE COMP "led[3]" SITE "D2";
+          LOCATE COMP "led[2]" SITE "C1";
+          LOCATE COMP "led[1]" SITE "C2";
+          LOCATE COMP "led[0]" SITE "B2";
+          IOBUF PORT "led[0]" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=4;
+          IOBUF PORT "led[1]" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=4;
+          IOBUF PORT "led[2]" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=4;
+          IOBUF PORT "led[3]" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=4;
+          IOBUF PORT "led[4]" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=4;
+          IOBUF PORT "led[5]" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=4;
+          IOBUF PORT "led[6]" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=4;
+          IOBUF PORT "led[7]" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=4;
+          SYSCONFIG CONFIG_IOVOLTAGE=3.3 COMPRESS_CONFIG=ON MCCLK_FREQ=62 SLAVE_SPI_PORT=DISABLE MASTER_SPI_PORT=ENABLE SLAVE_PARALLEL_PORT=DISABLE;
+          LPF
+
+          yosys -q -p '
+            read_verilog -sv /tmp/cosmic_board_01_pll.v /tmp/cosmic_board_01_prereg_top.v;
+            hierarchy -check -top top;
+            synth_ecp5 -nodsp -top top;
+            write_json /tmp/cosmic_board_01_prereg.json
+          '
+          nextpnr-ecp5 \
+            --85k \
+            --package CABGA381 \
+            --speed 6 \
+            --json /tmp/cosmic_board_01_prereg.json \
+            --lpf /tmp/cosmic_board_01_prereg.lpf \
+            --textcfg /tmp/cosmic_board_01_prereg.config \
+            --freq 10 \
+            --seed 1601 \
+            --timing-allow-fail \
+            2>&1 | tee /tmp/cosmic_board_01_prereg_nextpnr.log
+          test -s /tmp/cosmic_board_01_prereg.config
+          ecppack --idcode 0x41113043 \
+            /tmp/cosmic_board_01_prereg.config \
+            /tmp/cosmic_board_01_prereg.bit
+          test -s /tmp/cosmic_board_01_prereg.bit
+
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          text=Path('/tmp/cosmic_board_01_prereg_nextpnr.log').read_text()
+          matches=re.findall(
+              r"Max frequency for clock ['\"]?([^:'\"]+)['\"]?:\s*([0-9]+(?:\.[0-9]+)?)\s*MHz",
+              text,
+          )
+          assert matches, 'no routed Fmax found'
+          assert any(float(value) >= 10.0 for _, value in matches), matches
+          assert 'ERROR:' not in text.upper(), text[-4000:]
+          print('routed clocks=', matches)
+          print('ULX3S-85F speed-6 PLL route/pack prereg PASS')
+          PY
+          sha256sum /tmp/cosmic_board_01_prereg.bit
+          stat --printf='bitstream_bytes=%s\n' /tmp/cosmic_board_01_prereg.bit

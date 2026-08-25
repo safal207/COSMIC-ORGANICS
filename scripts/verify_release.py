@@ -188,7 +188,7 @@ def verify_demo(output_path: Path) -> dict[str, Any]:
 def verify_rtl_smoke() -> None:
     require_tools(["iverilog", "vvp"], "RTL smoke")
     completed = run_command(
-        [sys.executable, "benchmarks/run_cosmic_hw_12_hmac_kat.py"],
+        [sys.executable, "-m", "benchmarks.run_cosmic_hw_12_hmac_kat"],
         timeout=1200,
         capture=True,
     )
@@ -207,7 +207,8 @@ def verify_fpga(output_path: Path) -> None:
     completed = run_command(
         [
             sys.executable,
-            "benchmarks/cosmic_hw_13_candidate_v2.py",
+            "-m",
+            "benchmarks.cosmic_hw_13_candidate_v2",
             "--json",
         ],
         timeout=10800,

@@ -1,0 +1,157 @@
+{
+  "experiment_id": "COSMIC-HW-15/v0.1",
+  "tracking_issue": 105,
+  "parent": {
+    "experiment": "COSMIC-HW-14",
+    "source_head": "292b94bd3e1c58355439c9212a7af5fa08c08a99",
+    "hosted_run": 32860108267,
+    "hosted_job": 97841692462,
+    "artifact_id": 9569132521,
+    "artifact_digest": "sha256:f8ff293c1d9a056b097c046a227e0097783d7f9247744042b229e53f355dad0f",
+    "decision": "NO_PROFILE_ROUTE_DEPLOYABLE"
+  },
+  "target": {
+    "device": "LFE5U-85F-8BG381C",
+    "architecture": "ECP5",
+    "density_flag": "--85k",
+    "package": "CABGA381",
+    "speed_grade": 8,
+    "requested_clock_mhz": 10.0,
+    "synthesis_control": "synth_ecp5",
+    "synthesis_candidate": "synth_ecp5 -nodsp",
+    "place_route": "nextpnr-ecp5",
+    "packer": "ecppack",
+    "larger_device_fallback_allowed": false
+  },
+  "device_capacity": {
+    "trellis_comb": 83640,
+    "trellis_ff": 83640,
+    "mult18x18d": 156,
+    "dp16kd": 208
+  },
+  "toolchain_packages": {
+    "ubuntu": "24.04",
+    "yosys": "0.33-5build2",
+    "iverilog": "12.0-2build2",
+    "nextpnr_ecp5": "0.6-3build5",
+    "fpga_trellis": "1.4-2build4"
+  },
+  "placement_seeds": [1501, 1502, 1503, 1504, 1505],
+  "inherited_source_git_blobs": {
+    "rtl/cosmic_hw_06.v": "7890a1b256b467fe8726e0e7ef7ff84bf8a03bd8",
+    "rtl/cosmic_hw_07_receipt.v": "13a81d6b7576b929ec3167a0d5ad2795cd40ef5a",
+    "rtl/cosmic_hw_08_sha256.v": "19c1165eb48a9a626520a6fe131003dc90a9ded8",
+    "rtl/cosmic_hw_14_profile_harnesses.v": "fb2494d1573edc3d93e78ca52c16108001f94291"
+  },
+  "profiles": [
+    {
+      "tier": 1,
+      "id": "CORE_LITE_R40_NODSP",
+      "control_id": "CORE_LITE_R40",
+      "top_module": "cosmic_hw07_mesh64_receipt",
+      "harness_top": "cosmic_hw14_core_lite_harness",
+      "parameters": {"SPARSE": 1, "FIFO_DEPTH": 4},
+      "source_files": [
+        "rtl/cosmic_hw_06.v",
+        "rtl/cosmic_hw_07_receipt.v"
+      ],
+      "harness_source": "rtl/cosmic_hw_14_profile_harnesses.v",
+      "auto_dsp_control_yosys": {
+        "trellis_comb": 27017,
+        "trellis_ff": 5027,
+        "mult18x18d": 236
+      },
+      "required_evidence": [
+        "64-PE sparse A/M/C execution",
+        "strong dirty-frontier scheduling",
+        "exact ordered 40-bit transition receipts",
+        "finite F4 receipt queue"
+      ]
+    },
+    {
+      "tier": 2,
+      "id": "PROOF_EDGE_SHA1_NODSP",
+      "control_id": "PROOF_EDGE_SHA1",
+      "top_module": "cosmic_hw08_sparse_receipt_sha256",
+      "harness_top": "cosmic_hw14_proof_edge_harness",
+      "parameters": {},
+      "source_files": [
+        "rtl/cosmic_hw_06.v",
+        "rtl/cosmic_hw_07_receipt.v",
+        "rtl/cosmic_hw_08_sha256.v"
+      ],
+      "harness_source": "rtl/cosmic_hw_14_profile_harnesses.v",
+      "auto_dsp_control_yosys": {
+        "trellis_comb": 38123,
+        "trellis_ff": 8507,
+        "mult18x18d": 165
+      },
+      "required_evidence": [
+        "all CORE_LITE_R40 semantics",
+        "canonical 10-receipt batching",
+        "one iterative standard SHA-256 engine",
+        "exact full and partial commitment domains"
+      ]
+    }
+  ],
+  "mapping_intervention": {
+    "candidate_flag": "-nodsp",
+    "rtl_edits_allowed": false,
+    "manual_primitive_replacement_allowed": false,
+    "changed_arithmetic_widths_allowed": false,
+    "candidate_mult18x18d_required": 0
+  },
+  "toolchain_prereg_gate": {
+    "help_must_expose_nodsp": true,
+    "toy_default_must_infer_dsp": true,
+    "toy_nodsp_must_infer_zero_dsp": true,
+    "toy_nodsp_route_pack_at_10mhz": true
+  },
+  "anti_pruning_gate": {
+    "minimum_harness_comb_fraction_of_core": 0.98,
+    "minimum_harness_ff_fraction_of_core": 0.98,
+    "zero_over_zero_is_neutral": true,
+    "exact_profile_instance_required": true,
+    "inherited_source_blob_match_required": true
+  },
+  "route_deployable_gate": {
+    "minimum_successful_routes": 3,
+    "minimum_nonempty_bitstreams": 3,
+    "minimum_10mhz_timing_passes": 3,
+    "frozen_seed_count": 5
+  },
+  "board_handoff_headroom": {
+    "maximum_comb_fraction": 0.85,
+    "maximum_ff_fraction": 0.85,
+    "required_mult18x18d_fraction": 0.0
+  },
+  "handoff_tier_order": [
+    "PROOF_EDGE_SHA1_NODSP",
+    "CORE_LITE_R40_NODSP"
+  ],
+  "frozen_full_profile_control": {
+    "id": "FULL_PROOF_HMAC",
+    "trellis_comb": 116755,
+    "trellis_ff": 29503,
+    "mult18x18d": 201,
+    "successful_routes": 0,
+    "candidate_in_hw15": false
+  },
+  "candidate_paths": {
+    "runner": "benchmarks/cosmic_hw_15_candidate.py",
+    "workflow": ".github/workflows/cosmic_hw_15_candidate.yml"
+  },
+  "candidate_files_must_be_absent_on_prereg_head": true,
+  "synthetic_combined_score_allowed": false,
+  "decision_classes": [
+    "CONTROL_FAILURE",
+    "NODSP_SEMANTIC_FAILURE",
+    "NODSP_MAPPING_FAILURE",
+    "NO_NODSP_PROFILE_ROUTE_DEPLOYABLE",
+    "CORE_LITE_NODSP_BOARD_HANDOFF_SUPPORTED",
+    "PROOF_EDGE_NODSP_BOARD_HANDOFF_SUPPORTED",
+    "NODSP_ROUTABLE_BUT_HEADROOM_NOT_SUPPORTED"
+  ],
+  "stop_rule": "If no exact profile becomes eligible, do not alter RTL arithmetic, PE count, receipt semantics, device, seeds, clock target, or headroom rules inside HW-15.",
+  "claim_boundary": "Identifies a routed and packed exact existing COSMIC profile under standard DSP-free ECP5 mapping for a later board experiment only; no board execution, measured power, production timing, security certification, ASIC PPA, CPU/GPU superiority, or commercial readiness claim."
+}

@@ -86,6 +86,7 @@
         "rtl/cosmic_hw_10_merkle.v",
         "rtl/cosmic_hw_11_merkle_frontier.v",
         "rtl/cosmic_hw_12_hmac.v",
+        "rtl/cosmic_hw_12_hmac_safe.v",
         "rtl/cosmic_hw_12_integrated.v"
       ],
       "required_evidence": [

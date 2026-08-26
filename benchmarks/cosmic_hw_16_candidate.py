@@ -238,16 +238,10 @@ def synthesize(tmp: Path, *, board: bool) -> tuple[dict, Path]:
     if board:
         sources.extend((PLL_PATH, TOP_PATH))
     source_text = " ".join(str(path) for path in sources)
-    if board:
-        script = (
-            f"read_verilog -sv {source_text}; "
-            f"synth_ecp5 -nodsp -top {top}; write_json {netlist}"
-        )
-    else:
-        script = (
-            f"read_verilog -sv {source_text}; hierarchy -check -top {top}; flatten; "
-            f"synth_ecp5 -nodsp -top {top}; write_json {netlist}"
-        )
+    script = (
+        f"read_verilog -sv {source_text}; "
+        f"synth_ecp5 -nodsp -top {top}; write_json {netlist}"
+    )
     run_cmd([require_tool("yosys"), "-q", "-p", script], timeout=3600)
     counts = recursive_cell_counts(netlist, top)
     summary = summarize_ecp5_cells(counts)
@@ -399,7 +393,7 @@ def run_seed(manifest: dict, output_dir: Path, netlist: Path, seed: int) -> dict
     reports = parse_clock_reports(log)
     input_clock_constraint = input_clock_constraint_gate(log)
     input_clock_pass = routed and input_clock_constraint["passed"]
-    processor_clock_pass = clock_gate(reports, 10.0)
+    processor_clock_pass = routed and clock_gate(reports, 10.0)
     utilization = {
         "comb": parse_utilization(log, "TRELLIS_COMB"),
         "ff": parse_utilization(log, "TRELLIS_FF"),
@@ -449,8 +443,20 @@ def interpret(manifest: dict, board_summary: dict, seeds: list[dict]) -> dict:
     gate = manifest["route_gate"]
     routes = sum(row["routed"] for row in seeds)
     packs = sum(row["packed"] for row in seeds)
-    input_passes = sum(row["input_25mhz_timing_pass"] for row in seeds)
-    processor_passes = sum(row["processor_10mhz_timing_pass"] for row in seeds)
+    usable = [row for row in seeds if row["routed"] and row["packed"]]
+    input_passes = sum(row["input_25mhz_timing_pass"] for row in usable)
+    processor_passes = sum(row["processor_10mhz_timing_pass"] for row in usable)
+    fully_qualified = [
+        row
+        for row in usable
+        if row["input_25mhz_timing_pass"] and row["processor_10mhz_timing_pass"]
+    ]
+    minimum_fully_qualified = max(
+        int(gate["minimum_routes"]),
+        int(gate["minimum_nonempty_bitstreams"]),
+        int(gate["minimum_25mhz_input_timing_passes"]),
+        int(gate["minimum_10mhz_processor_timing_passes"]),
+    )
     comb_fraction = maximum_fraction(board_summary, seeds, "comb")
     ff_fraction = maximum_fraction(board_summary, seeds, "ff")
     zero_dsp = board_summary["mult18x18d"] == int(gate["required_mult18x18d"])
@@ -459,6 +465,7 @@ def interpret(manifest: dict, board_summary: dict, seeds: list[dict]) -> dict:
         and packs >= int(gate["minimum_nonempty_bitstreams"])
         and input_passes >= int(gate["minimum_25mhz_input_timing_passes"])
         and processor_passes >= int(gate["minimum_10mhz_processor_timing_passes"])
+        and len(fully_qualified) >= minimum_fully_qualified
         and comb_fraction <= float(gate["maximum_comb_fraction"])
         and ff_fraction <= float(gate["maximum_ff_fraction"])
         and zero_dsp
@@ -468,11 +475,10 @@ def interpret(manifest: dict, board_summary: dict, seeds: list[dict]) -> dict:
         if ready
         else "ULX3S_ROUTE_OR_TIMING_NOT_SUPPORTED"
     )
-    successful = [row for row in seeds if row["packed"]]
-    canonical = min(successful, key=lambda row: row["seed"]) if successful else None
+    canonical = min(fully_qualified, key=lambda row: row["seed"]) if fully_qualified else None
     all_fmax = [
         row["maximum_mhz"]
-        for seed in seeds
+        for seed in usable
         for row in seed["clock_reports"]
         if abs(row["target_mhz"] - 10.0) < 0.05
     ]
@@ -481,8 +487,13 @@ def interpret(manifest: dict, board_summary: dict, seeds: list[dict]) -> dict:
         "bitstream_ready": ready,
         "routes": routes,
         "packs": packs,
+        "usable_seed_count": len(usable),
+        "usable_seeds": [row["seed"] for row in usable],
         "input_25mhz_timing_passes": input_passes,
         "processor_10mhz_timing_passes": processor_passes,
+        "fully_qualified_seed_count": len(fully_qualified),
+        "fully_qualified_seeds": [row["seed"] for row in fully_qualified],
+        "minimum_fully_qualified_seeds": minimum_fully_qualified,
         "maximum_comb_fraction": comb_fraction,
         "maximum_ff_fraction": ff_fraction,
         "zero_dsp": zero_dsp,
@@ -564,10 +575,11 @@ def main() -> int:
         physical = result["physical"]
         print(f"decision={result['decision']}")
         print(
-            "route/pack/input25/proc10="
+            "route/pack/input25/proc10/qualified="
             f"{physical['routes']}/5 {physical['packs']}/5 "
             f"{physical['input_25mhz_timing_passes']}/5 "
-            f"{physical['processor_10mhz_timing_passes']}/5"
+            f"{physical['processor_10mhz_timing_passes']}/5 "
+            f"{physical['fully_qualified_seed_count']}/5"
         )
         print(f"canonical_bitstream_sha256={physical['canonical_bitstream_sha256']}")
     return 0

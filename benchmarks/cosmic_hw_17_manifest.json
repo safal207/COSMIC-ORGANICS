@@ -1,0 +1,185 @@
+{
+  "benchmark_id": "COSMIC-HW-17-PREREG",
+  "board": {
+    "architecture": "ECP5",
+    "density_flag": "--85k",
+    "fpga": "LFE5U-85F-6BG381C",
+    "input_clock_mhz": 25.0,
+    "larger_device_fallback_allowed": false,
+    "maximum_comb_fraction": 0.85,
+    "maximum_ff_fraction": 0.85,
+    "name": "ULX3S-85F",
+    "package": "CABGA381",
+    "processor_clock_mhz": 10.0,
+    "required_mult18x18d": 0,
+    "speed_grade": 6
+  },
+  "candidate_paths": [
+    "benchmarks/cosmic_hw_17_candidate.py",
+    ".github/workflows/cosmic_hw_17_candidate.yml"
+  ],
+  "claim_boundary": "A GREEN result establishes only static ULX3S bitstream readiness for the exact frozen board wrapper under a preregistered 2400-second offline per-seed route budget. It does not establish physical-board execution, full intermediate-digest observability, power, thermal behavior, production reliability, side-channel resistance, ASIC PPA, CPU/GPU superiority, or commercial readiness.",
+  "decision_classes": [
+    "CONTROL_FAILURE",
+    "EXTENDED_BUDGET_SEMANTIC_FAILURE",
+    "NO_EXTENDED_BUDGET_BOARD_HANDOFF",
+    "ULX3S_EXTENDED_BUDGET_BITSTREAM_READY"
+  ],
+  "diagnosis_classes": [
+    "TIMEOUT_CENSORING_OBSERVED",
+    "ROUTE_RUNTIME_VARIABILITY_OBSERVED",
+    "PARENT_COMPLETION_PATTERN_REPRODUCED"
+  ],
+  "execution_shape": {
+    "aggregator_job_count": 1,
+    "canonical_push_run_only_publishes_evidence": true,
+    "common_netlist_fingerprint_required": true,
+    "exactly_five_unique_seed_records_required": true,
+    "one_attempt_per_seed": true,
+    "parallel_seed_execution_allowed": true,
+    "seed_matrix": [
+      1601,
+      1602,
+      1603,
+      1604,
+      1605
+    ],
+    "semantic_and_synthesis_job_count": 1
+  },
+  "frozen_oracle": {
+    "accepted_tick_count": 2,
+    "digest_count": 13,
+    "error_flags": 0,
+    "final_phase_checksum": 1072257626,
+    "frame_sha256": "16d448b3c5af0a09edc1817c6cf980f12d4806f0b6cfe969b2b524538e7e799b",
+    "last_digest": "c31bff9259318b3309bdb0fdd5282ce58366d6d8d1b9c636080eb6482a230ab2",
+    "last_digest_sequence": 12,
+    "receipt_count": 128
+  },
+  "handoff_gate": {
+    "canonical_bitstream_rule": "lowest-numbered fully qualified seed",
+    "maximum_comb_fraction": 0.85,
+    "maximum_ff_fraction": 0.85,
+    "minimum_fully_qualified_seeds": 3,
+    "required_mult18x18d": 0,
+    "synthetic_combined_score_allowed": false
+  },
+  "inherited_source_blobs": {
+    "benchmarks/cosmic_hw_16_candidate.py": "02b23a8c7eb712e5baa251bb0e7b24d591d94704",
+    "benchmarks/cosmic_hw_16_vectors.json": "8df1f55db8acb76e2bb621d44053e3966cbabb45",
+    "constraints/cosmic_hw_16_ulx3s_v20.lpf": "9047b8a62819e006de298039f2369c1b79076d89",
+    "rtl/cosmic_hw_06.v": "7890a1b256b467fe8726e0e7ef7ff84bf8a03bd8",
+    "rtl/cosmic_hw_07_receipt.v": "13a81d6b7576b929ec3167a0d5ad2795cd40ef5a",
+    "rtl/cosmic_hw_08_sha256.v": "19c1165eb48a9a626520a6fe131003dc90a9ded8",
+    "rtl/cosmic_hw_16_pll_10mhz.v": "8d9b34fdd0cd2d9e0b1159e0e9422fd849de464a",
+    "rtl/cosmic_hw_16_ulx3s_top.v": "c858740f69bad0dc6599050eb5631770989022f2",
+    "tools/cosmic_hw_16_uart_verify.py": "1dc0ee42585cb1df8b74ad71ae11123b216b9372"
+  },
+  "intervention": {
+    "automatic_retry_allowed": false,
+    "candidate_id": "T2400_CANDIDATE",
+    "candidate_timeout_seconds": 2400,
+    "constraint_edits_allowed": false,
+    "control_id": "T1200_FROZEN_CONTROL",
+    "control_timeout_seconds": 1200,
+    "only_admitted_change": "per_seed_nextpnr_timeout_seconds",
+    "replacement_seed_allowed": false,
+    "rtl_edits_allowed": false,
+    "stop_early_after_three_passes_allowed": false,
+    "tool_option_edits_allowed": false
+  },
+  "issue_number": 118,
+  "parent": {
+    "artifact_digest": "sha256:0ede795c94b30f7cf93745ebbd63e8a906c9eb0f4b0cb7703bf1ebe33a55e9bd",
+    "artifact_id": 9592648059,
+    "completed_seed_evidence": {
+      "1603": {
+        "bitstream_bytes": 1046958,
+        "bitstream_sha256": "853f921585714abdbc3b236702224c5eb13767a208370f72c449f092db77267a",
+        "processor_fmax_mhz": 20.51,
+        "runtime_seconds": 794.37
+      },
+      "1605": {
+        "bitstream_bytes": 1052409,
+        "bitstream_sha256": "d9d9ad088b73036487cdb016b891b2259a75ce5bb30f80a7e46ae95d18983c18",
+        "processor_fmax_mhz": 20.62,
+        "runtime_seconds": 1146.286
+      }
+    },
+    "decision": "ULX3S_ROUTE_OR_TIMING_NOT_SUPPORTED",
+    "experiment": "COSMIC-HW-16/v0.1",
+    "frozen_result_branch": "research/cosmic-hw-16-frozen-result",
+    "fully_qualified_seeds": [
+      1603,
+      1605
+    ],
+    "maximum_routed_resource_fractions": {
+      "comb": 0.6956480153036825,
+      "ff": 0.1110234337637494,
+      "mult": 0.0
+    },
+    "minimum_fully_qualified_seeds": 3,
+    "per_seed_timeout_seconds": 1200,
+    "source_head": "1bb067bb7b325405eca703a16536eea79495410e",
+    "synthesis": {
+      "ehxplll": 1,
+      "mult18x18d": 0,
+      "trellis_comb": 56262,
+      "trellis_ff": 9286
+    },
+    "timed_out_seeds": [
+      1601,
+      1602,
+      1604
+    ]
+  },
+  "per_seed_qualification": {
+    "bitstream_sha256_required": true,
+    "ecppack_exit_zero_required": true,
+    "input_25mhz_constraint_evidence_required": true,
+    "nextpnr_exit_zero_required": true,
+    "no_capacity_signal_required": true,
+    "nonempty_bitstream_required": true,
+    "processor_10mhz_timing_required": true,
+    "same_seed_must_route_pack_and_meet_both_clocks": true
+  },
+  "protocol": "COSMIC-HW-17/v0.1",
+  "question": "Does the exact frozen HW-16 ULX3S wrapper clear the unchanged 3-of-5 board-bitstream gate when the only intervention is a preregistered 2400-second per-seed nextpnr budget?",
+  "runtime_buckets_seconds": {
+    "extended_budget": [
+      1200,
+      2400
+    ],
+    "not_completed": "greater_than_2400_or_nonzero_failure",
+    "parent_budget": [
+      0,
+      1200
+    ]
+  },
+  "seeds": [
+    1601,
+    1602,
+    1603,
+    1604,
+    1605
+  ],
+  "stop_rule": {
+    "change_clock_or_device": false,
+    "cherry_pick_two_parent_bitstreams_as_official_handoff": false,
+    "edit_rtl": false,
+    "raise_timeout_again_inside_hw17": false,
+    "reduce_pe_count": false,
+    "replace_seeds": false,
+    "simplify_receipts_or_sha": false
+  },
+  "toolchain": {
+    "iverilog": "12.0-2build2",
+    "nextpnr_ecp5": "0.6-3build5",
+    "packer": "ecppack",
+    "place_route": "nextpnr-ecp5",
+    "project_trellis": "1.4-2build4",
+    "runner": "ubuntu-24.04",
+    "synthesis": "synth_ecp5 -nodsp",
+    "yosys": "0.33-5build2"
+  }
+}

@@ -1,0 +1,206 @@
+{
+  "experiment_id": "COSMIC-HW-16/v0.1",
+  "tracking_issue": 115,
+  "master_issue": 103,
+  "dedicated_issue_title": "COSMIC-HW-16: ULX3S-85F hardware-in-loop bring-up for selected PROOF_EDGE profile",
+  "parent": {
+    "experiment": "COSMIC-HW-15",
+    "source_head": "0bbc07d85556a861c9595b869b1f8922e419f0a1",
+    "frozen_result_branch": "research/cosmic-hw-15-frozen-result",
+    "canonical_run": 32866001307,
+    "canonical_job": 97861306000,
+    "independent_run": 32866033513,
+    "independent_job": 97861414261,
+    "decision": "PROOF_EDGE_NODSP_BOARD_HANDOFF_SUPPORTED",
+    "selected_profile": "PROOF_EDGE_SHA1_NODSP",
+    "selected_profile_evidence": {
+      "routes": 5,
+      "packs": 5,
+      "timing_10mhz_passes": 5,
+      "seed_count": 5,
+      "routed_comb_max_used": 44621,
+      "routed_comb_available": 83640,
+      "ff_used": 8507,
+      "ff_available": 83640,
+      "mult18x18d": 0,
+      "fmax_min_mhz": 18.16,
+      "fmax_median_mhz": 19.55,
+      "fmax_max_mhz": 20.38,
+      "bitstream_bytes_each": 1927725
+    }
+  },
+  "inherited_source_git_blobs": {
+    "rtl/cosmic_hw_06.v": "7890a1b256b467fe8726e0e7ef7ff84bf8a03bd8",
+    "rtl/cosmic_hw_07_receipt.v": "13a81d6b7576b929ec3167a0d5ad2795cd40ef5a",
+    "rtl/cosmic_hw_08_sha256.v": "19c1165eb48a9a626520a6fe131003dc90a9ded8"
+  },
+  "selected_profile": {
+    "top_module": "cosmic_hw08_sparse_receipt_sha256",
+    "synthesis": "synth_ecp5 -nodsp",
+    "processing_elements": 64,
+    "receipt_bits": 40,
+    "receipt_batch_capacity": 10,
+    "sha_engines": 1,
+    "merkle_on_core": false,
+    "hmac_on_core": false,
+    "rtl_edits_allowed": false,
+    "semantic_edits_allowed": false
+  },
+  "board": {
+    "name": "ULX3S-85F",
+    "fpga": "LFE5U-85F-6BG381C",
+    "architecture": "ECP5",
+    "density_flag": "--85k",
+    "package": "CABGA381",
+    "speed_grade": 6,
+    "input_clock_mhz": 25.0,
+    "processor_clock_mhz": 10.0,
+    "primary_usb_connector": "US1",
+    "larger_device_fallback_allowed": false
+  },
+  "upstream_constraints": {
+    "repository": "emard/ulx3s",
+    "commit": "6a92cec6b177191c5b0f80e260013a1f8ec147dd",
+    "path": "doc/constraints/ulx3s_v20.lpf",
+    "pcb_scope": "ULX3S v2.x.x and v3.0.x",
+    "required_tokens": [
+      "LOCATE COMP \"clk_25mhz\" SITE \"G2\";",
+      "FREQUENCY PORT \"clk_25mhz\" 25 MHZ;",
+      "LOCATE COMP \"ftdi_rxd\" SITE \"L4\";",
+      "LOCATE COMP \"ftdi_txd\" SITE \"M1\";",
+      "LOCATE COMP \"led[7]\" SITE \"H3\";",
+      "LOCATE COMP \"led[6]\" SITE \"E1\";",
+      "LOCATE COMP \"led[5]\" SITE \"E2\";",
+      "LOCATE COMP \"led[4]\" SITE \"D1\";",
+      "LOCATE COMP \"led[3]\" SITE \"D2\";",
+      "LOCATE COMP \"led[2]\" SITE \"C1\";",
+      "LOCATE COMP \"led[1]\" SITE \"C2\";",
+      "LOCATE COMP \"led[0]\" SITE \"B2\";"
+    ]
+  },
+  "clocking": {
+    "generator": "ecppll",
+    "generator_command": "ecppll -i 25 -o 10 -n cosmic_hw16_pll_10mhz -f rtl/cosmic_hw_16_pll_10mhz.v",
+    "real_clock_domain_required": true,
+    "clock_enable_substitute_allowed": false,
+    "pll_lock_synchronizer_stages": 2,
+    "pll_lock_stable_cycles": 16,
+    "generated_pll_parameters_must_be_reported": true,
+    "expected_pll_parameters": {
+      "CLKI_DIV": 5,
+      "CLKOP_DIV": 60,
+      "CLKOP_CPHASE": 30,
+      "CLKOP_FPHASE": 0,
+      "CLKFB_DIV": 2,
+      "FEEDBK_PATH": "CLKOP"
+    }
+  },
+  "uart": {
+    "baud": 115200,
+    "format": "8N1",
+    "max_absolute_baud_error_fraction": 0.02,
+    "default_autostart": true,
+    "optional_restart_byte": 82,
+    "frame_magic_ascii": "CO16",
+    "protocol_version": 1,
+    "crc": "CRC32/ISO-HDLC",
+    "required_fields": [
+      "magic",
+      "protocol_version",
+      "profile_id",
+      "run_ordinal",
+      "accepted_tick_count",
+      "receipt_count",
+      "digest_count",
+      "final_phase_checksum",
+      "last_digest_sequence",
+      "last_digest",
+      "error_flags",
+      "crc32"
+    ]
+  },
+  "led_contract": {
+    "0": "pll_locked",
+    "1": "self_test_running",
+    "2": "self_test_complete",
+    "3": "uart_frame_emitted",
+    "4": "overflow_or_error",
+    "5": "receipt_observed",
+    "6": "sha_digest_observed",
+    "7": "processor_clock_heartbeat",
+    "observation_only": true
+  },
+  "self_test": {
+    "finite": true,
+    "deterministic": true,
+    "host_timing_independent": true,
+    "must_emit_receipts": true,
+    "must_emit_full_sha_batch": true,
+    "must_emit_partial_flush_batch": true,
+    "python_oracle_required": true,
+    "expected_answer_feedback_allowed": false
+  },
+  "placement_seeds": [
+    1601,
+    1602,
+    1603,
+    1604,
+    1605
+  ],
+  "route_gate": {
+    "minimum_routes": 3,
+    "minimum_nonempty_bitstreams": 3,
+    "minimum_25mhz_input_timing_passes": 3,
+    "minimum_10mhz_processor_timing_passes": 3,
+    "maximum_comb_fraction": 0.85,
+    "maximum_ff_fraction": 0.85,
+    "required_mult18x18d": 0
+  },
+  "candidate_paths": [
+    "rtl/cosmic_hw_16_ulx3s_top.v",
+    "rtl/cosmic_hw_16_pll_10mhz.v",
+    "constraints/cosmic_hw_16_ulx3s_v20.lpf",
+    "benchmarks/cosmic_hw_16_vectors.json",
+    "tools/cosmic_hw_16_uart_verify.py",
+    "benchmarks/cosmic_hw_16_candidate.py",
+    ".github/workflows/cosmic_hw_16_candidate.yml"
+  ],
+  "candidate_files_must_be_absent_on_prereg_head": true,
+  "programming": {
+    "volatile_sram_first": true,
+    "allowed_commands": [
+      "openFPGALoader -b ulx3s bitstream.bit",
+      "fujprog bitstream.bit"
+    ],
+    "flash_deferred": true
+  },
+  "physical_hil_gate": {
+    "board_model_and_revision_required": true,
+    "fpga_marking_required": true,
+    "bitstream_sha256_required": true,
+    "raw_uart_capture_required": true,
+    "decoded_verifier_json_required": true,
+    "oracle_match_required": true,
+    "cold_repetitions": 10,
+    "photo_or_video_required": true,
+    "no_error_flag_required": true
+  },
+  "decision_classes": {
+    "ci": [
+      "CONTROL_FAILURE",
+      "BOARD_WRAPPER_SEMANTIC_FAILURE",
+      "ULX3S_CLOCKING_FAILURE",
+      "ULX3S_ROUTE_OR_TIMING_NOT_SUPPORTED",
+      "ULX3S_PROOF_EDGE_BITSTREAM_READY"
+    ],
+    "physical": [
+      "BOARD_NOT_AVAILABLE",
+      "PROGRAMMING_FAILURE",
+      "UART_PROTOCOL_FAILURE",
+      "BOARD_ORACLE_MISMATCH",
+      "ULX3S_PROOF_EDGE_HIL_SUPPORTED"
+    ]
+  },
+  "stop_rule": "Do not change the board, clock, PE count, receipt contract, SHA semantics, or workload after observing the result. Any such change requires a separate preregistered experiment.",
+  "claim_boundary": "A GREEN candidate CI result establishes a board-specific routed and packed bitstream plus a simulated/oracle-verified UART protocol. Only separately captured physical evidence establishes execution on a real ULX3S board; neither establishes measured power, production reliability, ASIC PPA, CPU/GPU superiority, or commercial readiness."
+}

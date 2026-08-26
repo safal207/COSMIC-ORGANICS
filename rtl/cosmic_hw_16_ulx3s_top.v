@@ -96,7 +96,16 @@ module cosmic_hw16_selftest_logic (
                       (state == ST_TICK_M_TO_C);
     wire tick_ready;
     wire tick_fire = tick_valid && tick_ready;
-    wire [511:0] stimulus_bus = {64{8'h64}};
+
+    // The two authoritative self-test ticks both observe +100 s100 at every
+    // site. After the second tick, this retained register evolves as a finite
+    // LFSR forever. That does not change the two-tick oracle because tick_valid
+    // is then low, but it prevents synthesis from replacing the exact 512-bit
+    // processor input with a compile-time constant.
+    (* keep = "true" *) reg [511:0] stimulus_state;
+    wire stimulus_lfsr_feedback = stimulus_state[511] ^ stimulus_state[509] ^
+                                  stimulus_state[503] ^ stimulus_state[500];
+    wire [511:0] stimulus_bus = stimulus_state;
     wire flush = (state == ST_FLUSH);
 
     wire [127:0] phase_bus;
@@ -113,6 +122,7 @@ module cosmic_hw16_selftest_logic (
     wire [6:0] sha_round_count;
     wire digest_fire = digest_valid;
 
+    (* keep_hierarchy = "yes" *)
     cosmic_hw08_sparse_receipt_sha256 processor (
         .clk(clk),
         .reset(reset),
@@ -225,6 +235,7 @@ module cosmic_hw16_selftest_logic (
         if (reset) begin
             state <= ST_TICK_A_TO_M;
             heartbeat_counter <= 24'b0;
+            stimulus_state <= {64{8'h64}};
             accepted_d1 <= 1'b0;
             accepted_tick_count <= 16'b0;
             receipt_count <= 32'b0;
@@ -243,6 +254,11 @@ module cosmic_hw16_selftest_logic (
                 frame_mem[b] <= 8'b0;
         end else begin
             heartbeat_counter <= heartbeat_counter + 24'd1;
+
+            // Start dynamic evolution only after the second authoritative tick
+            // has sampled the frozen +100 self-test stimulus.
+            if (state >= ST_DRAIN_FULL)
+                stimulus_state <= {stimulus_state[510:0], stimulus_lfsr_feedback};
 
             if (accepted_d1)
                 receipt_count <= receipt_count + popcount64(changed_mask);
@@ -432,13 +448,19 @@ module cosmic_hw16_ulx3s_top (
     reg [4:0] pll_stable_count = 5'd0;
     reg processor_reset = 1'b1;
 
+    // Preserve the pinned FTDI receive pin without granting it execution
+    // authority in HW-16/v0.1. A later protocol experiment may consume it.
+    (* keep = "true" *) reg [1:0] ftdi_txd_sync = 2'b11;
+
     always @(posedge clk_10mhz or negedge pll_locked) begin
         if (!pll_locked) begin
             pll_lock_sync <= 2'b00;
             pll_stable_count <= 5'd0;
             processor_reset <= 1'b1;
+            ftdi_txd_sync <= 2'b11;
         end else begin
             pll_lock_sync <= {pll_lock_sync[0], 1'b1};
+            ftdi_txd_sync <= {ftdi_txd_sync[0], ftdi_txd};
             if (!pll_lock_sync[1]) begin
                 pll_stable_count <= 5'd0;
                 processor_reset <= 1'b1;
@@ -473,6 +495,4 @@ module cosmic_hw16_ulx3s_top (
     );
 
     assign led = {logic_led[7:1], pll_locked};
-
-    wire ftdi_txd_observed = ftdi_txd;
 endmodule

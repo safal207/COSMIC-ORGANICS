@@ -17,6 +17,10 @@ on:
       - ".github/workflows/cosmic_hw_16_candidate.yml"
   workflow_dispatch:
 
+concurrency:
+  group: cosmic-hw-16-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   issues: write
@@ -54,6 +58,31 @@ jobs:
           PYTHONPATH=. python -m pytest -q tests/test_cosmic_hw_16_prereg.py \
             -k 'not candidate_files_absent_on_prereg_head'
           yosys -p 'help synth_ecp5' | grep -q -- '-nodsp'
+
+      - name: Fast board-wrapper preservation and UART preflight
+        run: |
+          PYTHONPATH=. python - <<'PY'
+          from pathlib import Path
+          import tempfile
+          from benchmarks.cosmic_hw_16_candidate import (
+              load_manifest,
+              preservation_gate,
+              simulate_uart,
+          )
+          manifest=load_manifest()
+          preservation=preservation_gate(manifest)
+          assert preservation['passed'] is True
+          with tempfile.TemporaryDirectory(prefix='cosmic-hw16-preflight-') as temporary:
+              simulation=simulate_uart(Path(temporary))
+          assert simulation['passed'] is True
+          assert simulation['verification']['passed'] is True
+          assert simulation['verification']['observed']['receipt_count']==128
+          assert simulation['verification']['observed']['digest_count']==13
+          assert simulation['verification']['observed']['last_digest_sequence']==12
+          assert simulation['verification']['observed']['error_flags']==0
+          print('HW-16 fast preservation + serial UART oracle preflight PASS')
+          print('frame_sha256=',simulation['frame_sha256'])
+          PY
 
       - name: Revalidate exact HW-07 receipt semantics
         run: |

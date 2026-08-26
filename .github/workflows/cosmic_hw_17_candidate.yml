@@ -1,0 +1,301 @@
+name: COSMIC-HW-17 Extended Route Budget
+
+on:
+  push:
+    branches:
+      - research/cosmic-hw-17-candidate
+    paths:
+      - benchmarks/cosmic_hw_17_manifest.json
+      - benchmarks/cosmic_hw_17_candidate.py
+      - tests/test_cosmic_hw_17_prereg.py
+      - .github/workflows/cosmic_hw_17_candidate.yml
+  pull_request:
+    paths:
+      - benchmarks/cosmic_hw_17_manifest.json
+      - benchmarks/cosmic_hw_17_candidate.py
+      - tests/test_cosmic_hw_17_prereg.py
+      - .github/workflows/cosmic_hw_17_candidate.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: cosmic-hw-17-candidate-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: false
+
+env:
+  COSMIC_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  prepare:
+    name: prepare-exact-netlist
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.COSMIC_SOURCE_HEAD }}
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install frozen open ECP5 toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            yosys=0.33-5build2 \
+            iverilog=12.0-2build2 \
+            nextpnr-ecp5=0.6-3build5 \
+            fpga-trellis=1.4-2build4
+          python -m pip install --quiet pytest
+          yosys -V
+          iverilog -V | head -n 2
+          nextpnr-ecp5 --version
+          command -v ecppack
+
+      - name: Revalidate frozen HW-17 boundary
+        run: |
+          PYTHONPATH=. python -m pytest -q tests/test_cosmic_hw_17_prereg.py \
+            -k 'not candidate_absence'
+
+      - name: Revalidate exact inherited receipt semantics
+        run: |
+          python -m pytest \
+            tests/test_cosmic_hw_06_vectors.py \
+            tests/test_cosmic_hw_06_phase1.py \
+            tests/test_cosmic_hw_07_candidate.py -q
+          PYTHONPATH=. python benchmarks/cosmic_hw_07_candidate.py --json \
+            > /tmp/cosmic_hw_07_result.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path('/tmp/cosmic_hw_07_result.json').read_text())
+          assert r['decision'] == 'SPARSE_PLUS_RECEIPT_PARETO_SUPPORTED'
+          assert r['functional_gate'] is True
+          assert r['simulation']['receipts_emitted'] == 41144
+          assert r['receipt']['missing_receipts'] == 0
+          assert r['receipt']['duplicate_receipts'] == 0
+          assert r['receipt']['phantom_receipts'] == 0
+          assert r['receipt']['field_match_fraction'] == 1.0
+          assert r['execution_semantic_contamination'] == 0
+          print('HW-17 inherited receipt semantic gate PASS')
+          PY
+
+      - name: Revalidate exact inherited SHA commitment semantics
+        run: |
+          PYTHONPATH=. python benchmarks/run_cosmic_hw_08_sha_kat.py
+          PYTHONPATH=. python benchmarks/cosmic_hw_08_candidate.py --json \
+            > /tmp/cosmic_hw_08_result.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path('/tmp/cosmic_hw_08_result.json').read_text())
+          assert r['decision'] == 'SHA256_COMMITMENT_COST_MEASURED'
+          assert r['commitments']['real_receipts_committed'] == 41144
+          assert r['commitments']['digest_match_fraction'] == 1.0
+          assert r['commitments']['digest_sequence_match_fraction'] == 1.0
+          assert r['commitments']['real_receipt_commit_coverage_fraction'] == 1.0
+          assert r['merkle_present'] is False
+          print('HW-17 inherited SHA semantic gate PASS')
+          PY
+
+      - name: Prepare one exact board netlist and control evidence
+        run: |
+          rm -rf /tmp/cosmic-hw-17-prepared
+          PYTHONPATH=. python benchmarks/cosmic_hw_17_candidate.py prepare \
+            --output-dir /tmp/cosmic-hw-17-prepared \
+            > /tmp/cosmic_hw_17_prepare_stdout.json
+          python -m json.tool /tmp/cosmic-hw-17-prepared/cosmic_hw_17_prepare.json
+          sha256sum /tmp/cosmic-hw-17-prepared/cosmic_hw_17_board.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-hw-17-prepared
+          path: |
+            /tmp/cosmic-hw-17-prepared/cosmic_hw_17_prepare.json
+            /tmp/cosmic-hw-17-prepared/cosmic_hw_17_board.json
+            /tmp/cosmic_hw_07_result.json
+            /tmp/cosmic_hw_08_result.json
+          if-no-files-found: error
+          compression-level: 6
+
+  route:
+    name: route-seed-${{ matrix.seed }}
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [1601, 1602, 1603, 1604, 1605]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.COSMIC_SOURCE_HEAD }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install frozen route and pack toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            yosys=0.33-5build2 \
+            iverilog=12.0-2build2 \
+            nextpnr-ecp5=0.6-3build5 \
+            fpga-trellis=1.4-2build4
+          nextpnr-ecp5 --version
+          command -v ecppack
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: cosmic-hw-17-prepared
+          path: /tmp/cosmic-hw-17-prepared
+
+      - name: Execute exact seed once with frozen 2400-second budget
+        run: |
+          rm -rf /tmp/cosmic-hw-17-seed-${{ matrix.seed }}
+          PYTHONPATH=. python benchmarks/cosmic_hw_17_candidate.py seed \
+            --prepared-dir /tmp/cosmic-hw-17-prepared \
+            --output-dir /tmp/cosmic-hw-17-seed-${{ matrix.seed }} \
+            --seed ${{ matrix.seed }} \
+            > /tmp/cosmic_hw_17_seed_${{ matrix.seed }}_stdout.json
+          python -m json.tool \
+            /tmp/cosmic-hw-17-seed-${{ matrix.seed }}/cosmic_hw_17_seed_${{ matrix.seed }}.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-hw-17-seed-${{ matrix.seed }}
+          path: /tmp/cosmic-hw-17-seed-${{ matrix.seed }}
+          if-no-files-found: error
+          compression-level: 6
+
+  aggregate:
+    name: aggregate-frozen-decision
+    needs: [prepare, route]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.COSMIC_SOURCE_HEAD }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: cosmic-hw-17-prepared
+          path: /tmp/cosmic-hw-17-prepared
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cosmic-hw-17-seed-*
+          path: /tmp/cosmic-hw-17-seeds
+          merge-multiple: false
+
+      - name: Aggregate exactly five unique seed records
+        run: |
+          rm -rf /tmp/cosmic-hw-17-result
+          PYTHONPATH=. python benchmarks/cosmic_hw_17_candidate.py aggregate \
+            --prepared-dir /tmp/cosmic-hw-17-prepared \
+            --seeds-dir /tmp/cosmic-hw-17-seeds \
+            --output-dir /tmp/cosmic-hw-17-result \
+            > /tmp/cosmic_hw_17_result_stdout.json
+          python -m json.tool /tmp/cosmic-hw-17-result/cosmic_hw_17_result.json
+
+      - name: Validate frozen interpretation and build evidence summary
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path('/tmp/cosmic-hw-17-result/cosmic_hw_17_result.json')
+          r = json.loads(path.read_text())
+          assert r['benchmark_id'] == 'COSMIC-HW-17-CANDIDATE'
+          assert r['protocol'] == 'COSMIC-HW-17/v0.1'
+          assert r['parent_source_head'] == '1bb067bb7b325405eca703a16536eea79495410e'
+          assert r['intervention']['candidate_timeout_seconds'] == 2400
+          assert [row['seed'] for row in r['seeds']] == [1601,1602,1603,1604,1605]
+          assert len({row['board_netlist_sha256'] for row in r['seeds']}) == 1
+          assert all(row['attempt'] == 1 for row in r['seeds'])
+          assert r['synthetic_combined_score_used'] is False
+          assert r['decision'] in {
+              'NO_EXTENDED_BUDGET_BOARD_HANDOFF',
+              'ULX3S_EXTENDED_BUDGET_BITSTREAM_READY',
+          }
+          if r['decision'] == 'ULX3S_EXTENDED_BUDGET_BITSTREAM_READY':
+              assert r['physical']['fully_qualified_seed_count'] >= 3
+              assert r['physical']['canonical_seed'] == min(r['physical']['fully_qualified_seeds'])
+              assert r['physical']['canonical_bitstream_sha256']
+          else:
+              assert r['physical']['fully_qualified_seed_count'] < 3 or not r['board_bitstream_ready']
+
+          p = r['physical']
+          lines = [
+              '## COSMIC-HW-17 hosted evidence',
+              '',
+              f"Exact candidate checkout: `{os.environ['COSMIC_SOURCE_HEAD']}`",
+              '',
+              f"decision=`{r['decision']}`",
+              f"diagnosis=`{r['diagnosis']['class']}`",
+              f"fully_qualified_seeds=`{p['fully_qualified_seeds']}`",
+              f"canonical_seed=`{p['canonical_seed']}`",
+              '',
+              '| Seed | Runtime s | Bucket | Route | Pack | 25 MHz | 10 MHz | Qualified | Bitstream SHA-256 |',
+              '|---:|---:|---|---|---|---|---|---|---|',
+          ]
+          for row in r['seeds']:
+              lines.append(
+                  f"| {row['seed']} | {row['runtime_seconds']} | {row['runtime_bucket']} | "
+                  f"{'PASS' if row['routed'] else 'NO'} | {'PASS' if row['packed'] else 'NO'} | "
+                  f"{'PASS' if row['input_25mhz_timing_pass'] else 'NO'} | "
+                  f"{'PASS' if row['processor_10mhz_timing_pass'] else 'NO'} | "
+                  f"{'YES' if row['fully_qualified'] else 'NO'} | `{row['bitstream_sha256'] or '-'}` |"
+              )
+          lines.extend([
+              '',
+              f"Maximum COMB/FF: {p['maximum_comb_fraction']*100:.2f}% / {p['maximum_ff_fraction']*100:.2f}%.",
+              f"Canonical bitstream SHA-256: `{p['canonical_bitstream_sha256']}`.",
+              '',
+              'Boundary: offline route-budget result only; no physical-board execution or hardware-in-loop claim.',
+          ])
+          Path('/tmp/cosmic_hw_17_evidence.md').write_text('\n'.join(lines), encoding='utf-8')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-hw-17-result
+          path: |
+            /tmp/cosmic-hw-17-result
+            /tmp/cosmic_hw_17_evidence.md
+          if-no-files-found: error
+          compression-level: 6
+
+      - name: Publish canonical hosted evidence to issue 118
+        if: github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('/tmp/cosmic_hw_17_evidence.md', 'utf8');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: 118,
+              body,
+            });

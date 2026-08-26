@@ -86,7 +86,7 @@ module cosmic_hw16_selftest_logic (
     localparam [7:0] PROFILE_ID = 8'd2;
     localparam [15:0] EXPECTED_TICKS = 16'd2;
     localparam [31:0] EXPECTED_RECEIPTS = 32'd128;
-    localparam [15:0] EXPECTED_DIGESTS = 16'd13;
+    localparam [15:0] REQUIRED_DIGEST_COUNT = 16'd13;
     localparam [15:0] EXPECTED_LAST_SEQUENCE = 16'd12;
 
     reg [3:0] state;
@@ -299,14 +299,14 @@ module cosmic_hw16_selftest_logic (
                 end
 
                 ST_WAIT_FINAL: begin
-                    if (digest_count == EXPECTED_DIGESTS &&
+                    if (digest_count == REQUIRED_DIGEST_COUNT &&
                         fill_count == 4'd0 &&
                         !waiting_block_valid && !sha_busy) begin
                         if (accepted_tick_count != EXPECTED_TICKS)
                             error_flags[0] <= 1'b1;
                         if (receipt_count != EXPECTED_RECEIPTS)
                             error_flags[1] <= 1'b1;
-                        if (digest_count != EXPECTED_DIGESTS)
+                        if (digest_count != REQUIRED_DIGEST_COUNT)
                             error_flags[2] <= 1'b1;
                         if (last_digest_sequence != EXPECTED_LAST_SEQUENCE)
                             error_flags[3] <= 1'b1;

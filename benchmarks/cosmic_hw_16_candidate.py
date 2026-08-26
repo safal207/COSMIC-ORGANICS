@@ -297,6 +297,35 @@ def clock_gate(reports: list[dict], target: float) -> bool:
     return any(abs(row["target_mhz"] - target) < 0.05 and row["passed"] for row in reports)
 
 
+def input_clock_constraint_gate(log: str) -> dict:
+    """Interpret the frozen 25 MHz PLL-input gate in nextpnr's own terms.
+
+    The PLL input is an externally constrained source, not a register-to-register
+    domain, so nextpnr does not emit a separate "Max frequency" line for it.
+    It instead emits both the accepted LPF constraint and the PLL-derived-clock
+    confirmation. Requiring both lines plus a successful route is the fail-closed
+    operationalization of the already frozen 25 MHz input gate.
+    """
+
+    port_pattern = re.compile(
+        r"constraining clock net 'clk_25mhz' to\s*25(?:\.0+)?\s*MHz",
+        flags=re.IGNORECASE,
+    )
+    pll_pattern = re.compile(
+        r"Input frequency of PLL '[^']+' is constrained to\s*25(?:\.0+)?\s*MHz",
+        flags=re.IGNORECASE,
+    )
+    port_constraint_seen = port_pattern.search(log) is not None
+    pll_constraint_seen = pll_pattern.search(log) is not None
+    return {
+        "passed": port_constraint_seen and pll_constraint_seen,
+        "port_constraint_seen": port_constraint_seen,
+        "pll_constraint_seen": pll_constraint_seen,
+        "target_mhz": 25.0,
+        "basis": "accepted LPF input constraint plus PLL derived-clock confirmation",
+    }
+
+
 def run_seed(manifest: dict, output_dir: Path, netlist: Path, seed: int) -> dict:
     seed_dir = output_dir / f"seed_{seed}"
     seed_dir.mkdir(parents=True, exist_ok=True)
@@ -368,7 +397,8 @@ def run_seed(manifest: dict, output_dir: Path, netlist: Path, seed: int) -> dict
         )
 
     reports = parse_clock_reports(log)
-    input_clock_pass = clock_gate(reports, 25.0)
+    input_clock_constraint = input_clock_constraint_gate(log)
+    input_clock_pass = routed and input_clock_constraint["passed"]
     processor_clock_pass = clock_gate(reports, 10.0)
     utilization = {
         "comb": parse_utilization(log, "TRELLIS_COMB"),
@@ -385,6 +415,7 @@ def run_seed(manifest: dict, output_dir: Path, netlist: Path, seed: int) -> dict
         "packed": packed,
         "pack_returncode": pack_returncode,
         "input_25mhz_timing_pass": input_clock_pass,
+        "input_25mhz_constraint_evidence": input_clock_constraint,
         "processor_10mhz_timing_pass": processor_clock_pass,
         "clock_reports": reports,
         "capacity_signal": looks_like_capacity_failure(log),

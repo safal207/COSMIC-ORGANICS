@@ -139,7 +139,7 @@ jobs:
           print(Path('/tmp/cosmic_hw16_prereg.lpf').read_text())
           PY
 
-          yosys -p 'read_verilog -sv /tmp/cosmic_hw16_pll_10mhz.v /tmp/cosmic_hw16_prereg_top.v; hierarchy -check -top cosmic_hw16_prereg_top; synth_ecp5 -nodsp -top cosmic_hw16_prereg_top; write_json /tmp/cosmic_hw16_prereg.json'
+          yosys -p 'read_verilog -sv /tmp/cosmic_hw16_pll_10mhz.v /tmp/cosmic_hw16_prereg_top.v; synth_ecp5 -nodsp -top cosmic_hw16_prereg_top; write_json /tmp/cosmic_hw16_prereg.json'
           python - <<'PY'
           import json
           from pathlib import Path

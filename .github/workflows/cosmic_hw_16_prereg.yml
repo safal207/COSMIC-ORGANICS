@@ -1,0 +1,178 @@
+name: COSMIC-HW-16 Prereg
+
+on:
+  push:
+    branches:
+      - "research/cosmic-hw-16-prereg"
+  pull_request:
+    paths:
+      - "benchmarks/cosmic_hw_16_manifest.json"
+      - "tests/test_cosmic_hw_16_prereg.py"
+      - ".github/workflows/cosmic_hw_16_prereg.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prereg:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install frozen open ECP5 toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            yosys=0.33-5build2 \
+            iverilog=12.0-2build2 \
+            nextpnr-ecp5=0.6-3build5 \
+            fpga-trellis=1.4-2build4 \
+            curl
+          python -m pip install --quiet pytest
+          yosys -V
+          nextpnr-ecp5 --version
+          command -v ecppll
+          ecppll --help 2>&1 | head -n 20 || true
+
+      - name: Revalidate frozen HW-16 prereg semantics
+        run: |
+          PYTHONPATH=. python -m pytest -q tests/test_cosmic_hw_16_prereg.py
+
+      - name: Fetch and verify pinned official ULX3S constraints
+        run: |
+          curl --fail --location --silent --show-error \
+            https://raw.githubusercontent.com/emard/ulx3s/6a92cec6b177191c5b0f80e260013a1f8ec147dd/doc/constraints/ulx3s_v20.lpf \
+            --output /tmp/ulx3s_v20.lpf
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m=json.loads(Path('benchmarks/cosmic_hw_16_manifest.json').read_text())
+          text=Path('/tmp/ulx3s_v20.lpf').read_text()
+          missing=[token for token in m['upstream_constraints']['required_tokens'] if token not in text]
+          assert not missing, missing
+          assert '## ULX3S v2.x.x and v3.0.x' in text
+          print('HW-16 pinned ULX3S constraint tokens PASS')
+          PY
+
+      - name: Generate exact 25 MHz to 10 MHz ECP5 PLL
+        run: |
+          ecppll -i 25 -o 10 -n cosmic_hw16_pll_10mhz -f /tmp/cosmic_hw16_pll_10mhz.v
+          python - <<'PY'
+          from pathlib import Path
+          text=Path('/tmp/cosmic_hw16_pll_10mhz.v').read_text()
+          required=[
+              'module cosmic_hw16_pll_10mhz',
+              'EHXPLLL',
+              'FREQUENCY_PIN_CLKI="25"',
+              'FREQUENCY_PIN_CLKOP="10"',
+              '.CLKI_DIV(5)',
+              '.CLKOP_DIV(60)',
+              '.CLKOP_CPHASE(30)',
+              '.CLKOP_FPHASE(0)',
+              '.CLKFB_DIV(2)',
+              '.FEEDBK_PATH("CLKOP")',
+          ]
+          missing=[token for token in required if token not in text]
+          assert not missing, missing
+          print('HW-16 exact 25 MHz -> 10 MHz PLL parameters PASS')
+          print(text)
+          PY
+
+      - name: Route and pack ULX3S-85F PLL/pinout prereg toy
+        run: |
+          cat > /tmp/cosmic_hw16_prereg_top.v <<'VERILOG'
+          module cosmic_hw16_prereg_top(
+              input  wire       clk_25mhz,
+              input  wire       ftdi_txd,
+              output wire       ftdi_rxd,
+              output wire [7:0] led
+          );
+              wire clk_10mhz;
+              wire pll_locked;
+              reg [1:0] lock_sync = 2'b00;
+              reg [31:0] counter = 32'b0;
+
+              cosmic_hw16_pll_10mhz pll (
+                  .clkin(clk_25mhz),
+                  .clkout0(clk_10mhz),
+                  .locked(pll_locked)
+              );
+
+              always @(posedge clk_10mhz) begin
+                  lock_sync <= {lock_sync[0], pll_locked};
+                  if (!lock_sync[1])
+                      counter <= 32'b0;
+                  else
+                      counter <= counter + 32'd1;
+              end
+
+              assign ftdi_rxd = counter[5] ^ ftdi_txd;
+              assign led = {counter[27:21], lock_sync[1]};
+          endmodule
+          VERILOG
+
+          python - <<'PY'
+          from pathlib import Path
+          source=Path('/tmp/ulx3s_v20.lpf').read_text().splitlines()
+          wanted=(
+              'BLOCK RESETPATHS;', 'BLOCK ASYNCPATHS;',
+              'LOCATE COMP "clk_25mhz"', 'IOBUF  PORT "clk_25mhz"', 'FREQUENCY PORT "clk_25mhz"',
+              'LOCATE COMP "ftdi_rxd"', 'IOBUF  PORT "ftdi_rxd"',
+              'LOCATE COMP "ftdi_txd"', 'IOBUF  PORT "ftdi_txd"',
+              'LOCATE COMP "led[', 'IOBUF  PORT "led['
+          )
+          lines=[line for line in source if any(line.startswith(prefix) for prefix in wanted)]
+          Path('/tmp/cosmic_hw16_prereg.lpf').write_text('\n'.join(lines)+'\n')
+          print(Path('/tmp/cosmic_hw16_prereg.lpf').read_text())
+          PY
+
+          yosys -p 'read_verilog -sv /tmp/cosmic_hw16_pll_10mhz.v /tmp/cosmic_hw16_prereg_top.v; hierarchy -check -top cosmic_hw16_prereg_top; synth_ecp5 -nodsp -top cosmic_hw16_prereg_top; write_json /tmp/cosmic_hw16_prereg.json'
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('/tmp/cosmic_hw16_prereg.json').read_text())
+          cells=data['modules']['cosmic_hw16_prereg_top']['cells']
+          types=[row['type'] for row in cells.values()]
+          assert 'MULT18X18D' not in types
+          assert any(t == 'EHXPLLL' for t in types), sorted(set(types))
+          print('HW-16 toy contains EHXPLLL and zero DSP')
+          PY
+
+          set -o pipefail
+          nextpnr-ecp5 \
+            --85k --package CABGA381 --speed 6 \
+            --json /tmp/cosmic_hw16_prereg.json \
+            --lpf /tmp/cosmic_hw16_prereg.lpf \
+            --textcfg /tmp/cosmic_hw16_prereg.config \
+            --freq 10 --seed 1601 2>&1 | tee /tmp/cosmic_hw16_prereg_nextpnr.log
+          ecppack --idcode 0x41113043 /tmp/cosmic_hw16_prereg.config /tmp/cosmic_hw16_prereg.bit
+          test -s /tmp/cosmic_hw16_prereg.config
+          test -s /tmp/cosmic_hw16_prereg.bit
+          grep -q 'Max frequency for clock' /tmp/cosmic_hw16_prereg_nextpnr.log
+
+      - name: Upload prereg toy evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-hw-16-prereg-${{ matrix.python-version }}
+          path: |
+            /tmp/cosmic_hw16_pll_10mhz.v
+            /tmp/cosmic_hw16_prereg_top.v
+            /tmp/cosmic_hw16_prereg.lpf
+            /tmp/cosmic_hw16_prereg.json
+            /tmp/cosmic_hw16_prereg.config
+            /tmp/cosmic_hw16_prereg.bit
+            /tmp/cosmic_hw16_prereg_nextpnr.log
+          if-no-files-found: error

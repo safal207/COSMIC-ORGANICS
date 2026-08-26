@@ -51,7 +51,8 @@ jobs:
           yosys -V
           iverilog -V | head -n 2
           nextpnr-ecp5 --version
-          ecppack --help 2>&1 | head -n 2 || true
+          command -v ecppack
+          test -x "$(command -v ecppack)"
 
       - name: Revalidate frozen HW-16 prereg boundary
         run: |
@@ -173,18 +174,23 @@ jobs:
               'ULX3S_ROUTE_OR_TIMING_NOT_SUPPORTED',
           }
           p=r['physical']
+          assert p['usable_seed_count']==len(p['usable_seeds'])
+          assert p['fully_qualified_seed_count']==len(p['fully_qualified_seeds'])
           if r['decision']=='ULX3S_PROOF_EDGE_BITSTREAM_READY':
               assert p['bitstream_ready'] is True
               assert p['routes']>=3 and p['packs']>=3
               assert p['input_25mhz_timing_passes']>=3
               assert p['processor_10mhz_timing_passes']>=3
+              assert p['fully_qualified_seed_count']>=p['minimum_fully_qualified_seeds']>=3
               assert p['maximum_comb_fraction']<=0.85
               assert p['maximum_ff_fraction']<=0.85
               assert p['zero_dsp'] is True
+              assert p['canonical_seed'] in p['fully_qualified_seeds']
               assert p['canonical_bitstream_sha256']
               assert p['canonical_bitstream_bytes']>0
           print('COSMIC-HW-16 frozen interpretation PASS')
           print('decision=',r['decision'])
+          print('fully_qualified_seeds=',p['fully_qualified_seeds'])
           print('canonical_bitstream_sha256=',p['canonical_bitstream_sha256'])
           PY
 
@@ -209,8 +215,8 @@ jobs:
               f"- UART simulation/oracle: {'PASS' if r['simulation']['passed'] else 'FAIL'};",
               f"- board synthesis: COMB `{b['trellis_comb']}`, FF `{b['trellis_ff']}`, DSP `{b['mult18x18d']}`;",
               f"- routes/packs: `{p['routes']}/5` / `{p['packs']}/5`;",
-              f"- 25 MHz input timing: `{p['input_25mhz_timing_passes']}/5`;",
-              f"- 10 MHz processor timing: `{p['processor_10mhz_timing_passes']}/5`;",
+              f"- usable routed+packed seeds: `{p['usable_seed_count']}/5` — `{p['usable_seeds']}`;",
+              f"- fully qualified same-seed route+pack+25MHz+10MHz: `{p['fully_qualified_seed_count']}/5` — `{p['fully_qualified_seeds']}`;",
               f"- maximum COMB fraction: `{p['maximum_comb_fraction']:.4f}`;",
               f"- maximum FF fraction: `{p['maximum_ff_fraction']:.4f}`;",
               f"- canonical seed: `{p['canonical_seed']}`;",

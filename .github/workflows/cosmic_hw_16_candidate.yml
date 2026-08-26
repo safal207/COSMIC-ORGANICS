@@ -1,0 +1,268 @@
+name: COSMIC-HW-16 ULX3S Candidate
+
+on:
+  push:
+    branches:
+      - "research/cosmic-hw-16-candidate"
+  pull_request:
+    paths:
+      - "rtl/cosmic_hw_16_ulx3s_top.v"
+      - "rtl/cosmic_hw_16_pll_10mhz.v"
+      - "constraints/cosmic_hw_16_ulx3s_v20.lpf"
+      - "benchmarks/cosmic_hw_16_vectors.json"
+      - "tools/cosmic_hw_16_uart_verify.py"
+      - "benchmarks/cosmic_hw_16_candidate.py"
+      - "benchmarks/cosmic_hw_16_manifest.json"
+      - "tests/test_cosmic_hw_16_prereg.py"
+      - ".github/workflows/cosmic_hw_16_candidate.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: cosmic-hw-16-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install frozen open ECP5 toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            yosys=0.33-5build2 \
+            iverilog=12.0-2build2 \
+            nextpnr-ecp5=0.6-3build5 \
+            fpga-trellis=1.4-2build4
+          python -m pip install --quiet pytest
+          yosys -V
+          iverilog -V | head -n 2
+          nextpnr-ecp5 --version
+          command -v ecppack
+          test -x "$(command -v ecppack)"
+
+      - name: Revalidate frozen HW-16 prereg boundary
+        run: |
+          PYTHONPATH=. python -m pytest -q tests/test_cosmic_hw_16_prereg.py \
+            -k 'not candidate_files_absent_on_prereg_head'
+          yosys -p 'help synth_ecp5' | grep -q -- '-nodsp'
+
+      - name: Fast board-wrapper preservation and UART preflight
+        run: |
+          PYTHONPATH=. python - <<'PY'
+          from pathlib import Path
+          import tempfile
+          from benchmarks.cosmic_hw_16_candidate import (
+              load_manifest,
+              preservation_gate,
+              simulate_uart,
+          )
+          manifest=load_manifest()
+          preservation=preservation_gate(manifest)
+          assert preservation['passed'] is True
+          with tempfile.TemporaryDirectory(prefix='cosmic-hw16-preflight-') as temporary:
+              simulation=simulate_uart(Path(temporary))
+          assert simulation['passed'] is True
+          assert simulation['verification']['passed'] is True
+          assert simulation['verification']['observed']['receipt_count']==128
+          assert simulation['verification']['observed']['digest_count']==13
+          assert simulation['verification']['observed']['last_digest_sequence']==12
+          assert simulation['verification']['observed']['error_flags']==0
+          print('HW-16 fast preservation + serial UART oracle preflight PASS')
+          print('frame_sha256=',simulation['frame_sha256'])
+          PY
+
+      - name: Revalidate exact HW-07 receipt semantics
+        run: |
+          python -m pytest \
+            tests/test_cosmic_hw_06_vectors.py \
+            tests/test_cosmic_hw_06_phase1.py \
+            tests/test_cosmic_hw_07_candidate.py -q
+          PYTHONPATH=. python benchmarks/cosmic_hw_07_candidate.py --json \
+            > /tmp/cosmic_hw_07_result.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/cosmic_hw_07_result.json').read_text())
+          assert r['decision']=='SPARSE_PLUS_RECEIPT_PARETO_SUPPORTED'
+          assert r['functional_gate'] is True
+          assert r['simulation']['receipts_emitted']==41144
+          assert r['receipt']['missing_receipts']==0
+          assert r['receipt']['duplicate_receipts']==0
+          assert r['receipt']['phantom_receipts']==0
+          assert r['receipt']['field_match_fraction']==1.0
+          assert r['execution_semantic_contamination']==0
+          print('HW-16 inherited receipt semantic gate PASS')
+          PY
+
+      - name: Revalidate exact HW-08 SHA commitment semantics
+        run: |
+          PYTHONPATH=. python benchmarks/run_cosmic_hw_08_sha_kat.py
+          PYTHONPATH=. python benchmarks/cosmic_hw_08_candidate.py --json \
+            > /tmp/cosmic_hw_08_result.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/cosmic_hw_08_result.json').read_text())
+          assert r['decision']=='SHA256_COMMITMENT_COST_MEASURED'
+          assert r['commitments']['real_receipts_committed']==41144
+          assert r['commitments']['digest_match_fraction']==1.0
+          assert r['commitments']['digest_sequence_match_fraction']==1.0
+          assert r['commitments']['real_receipt_commit_coverage_fraction']==1.0
+          assert r['merkle_present'] is False
+          print('HW-16 inherited SHA semantic gate PASS')
+          PY
+
+      - name: Verify frozen CO16 oracle independently
+        run: |
+          PYTHONPATH=. python tools/cosmic_hw_16_uart_verify.py --json \
+            --write-json /tmp/cosmic_hw_16_oracle_selfcheck.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/cosmic_hw_16_oracle_selfcheck.json').read_text())
+          assert r['passed'] is True
+          assert r['expected']['receipt_count']==128
+          assert r['expected']['digest_count']==13
+          assert r['expected']['last_digest_sequence']==12
+          assert r['expected']['error_flags']==0
+          print('HW-16 CO16 oracle self-check PASS')
+          PY
+
+      - name: Execute frozen ULX3S board-specific candidate
+        run: |
+          rm -rf /tmp/cosmic-hw-16-evidence
+          mkdir -p /tmp/cosmic-hw-16-evidence
+          PYTHONPATH=. python benchmarks/cosmic_hw_16_candidate.py \
+            --json --output-dir /tmp/cosmic-hw-16-evidence \
+            > /tmp/cosmic_hw_16_result.json
+          python -m json.tool /tmp/cosmic_hw_16_result.json
+
+      - name: Validate frozen HW-16 interpretation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/cosmic_hw_16_result.json').read_text())
+          assert r['benchmark_id']=='COSMIC-HW-16-CANDIDATE'
+          assert r['protocol']=='COSMIC-HW-16/v0.1'
+          assert r['parent_hw15_source_head']=='0bbc07d85556a861c9595b869b1f8922e419f0a1'
+          assert r['board']['density_flag']=='--85k'
+          assert r['board']['package']=='CABGA381'
+          assert r['board']['speed_grade']==6
+          assert r['preservation']['passed'] is True
+          assert r['simulation']['passed'] is True
+          assert r['anti_pruning']['passed'] is True
+          assert r['synthesis']['board']['mult18x18d']==0
+          assert len(r['seeds'])==5
+          assert r['physical_board_executed'] is False
+          assert r['decision'] in {
+              'ULX3S_PROOF_EDGE_BITSTREAM_READY',
+              'ULX3S_ROUTE_OR_TIMING_NOT_SUPPORTED',
+          }
+          p=r['physical']
+          assert p['usable_seed_count']==len(p['usable_seeds'])
+          assert p['fully_qualified_seed_count']==len(p['fully_qualified_seeds'])
+          if r['decision']=='ULX3S_PROOF_EDGE_BITSTREAM_READY':
+              assert p['bitstream_ready'] is True
+              assert p['routes']>=3 and p['packs']>=3
+              assert p['input_25mhz_timing_passes']>=3
+              assert p['processor_10mhz_timing_passes']>=3
+              assert p['fully_qualified_seed_count']>=p['minimum_fully_qualified_seeds']>=3
+              assert p['maximum_comb_fraction']<=0.85
+              assert p['maximum_ff_fraction']<=0.85
+              assert p['zero_dsp'] is True
+              assert p['canonical_seed'] in p['fully_qualified_seeds']
+              assert p['canonical_bitstream_sha256']
+              assert p['canonical_bitstream_bytes']>0
+          print('COSMIC-HW-16 frozen interpretation PASS')
+          print('decision=',r['decision'])
+          print('fully_qualified_seeds=',p['fully_qualified_seeds'])
+          print('canonical_bitstream_sha256=',p['canonical_bitstream_sha256'])
+          PY
+
+      - name: Build concise evidence summary
+        if: success()
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          r=json.loads(Path('/tmp/cosmic_hw_16_result.json').read_text())
+          p=r['physical']
+          b=r['synthesis']['board']
+          lines=[
+              '## COSMIC-HW-16 hosted candidate evidence',
+              '',
+              f"Exact candidate checkout: `{os.environ['GITHUB_SHA']}`",
+              '',
+              f"decision=`{r['decision']}`",
+              f"physical_board_executed=`{str(r['physical_board_executed']).lower()}`",
+              '',
+              f"- UART simulation/oracle: {'PASS' if r['simulation']['passed'] else 'FAIL'};",
+              f"- board synthesis: COMB `{b['trellis_comb']}`, FF `{b['trellis_ff']}`, DSP `{b['mult18x18d']}`;",
+              f"- routes/packs: `{p['routes']}/5` / `{p['packs']}/5`;",
+              f"- usable routed+packed seeds: `{p['usable_seed_count']}/5` — `{p['usable_seeds']}`;",
+              f"- fully qualified same-seed route+pack+25MHz+10MHz: `{p['fully_qualified_seed_count']}/5` — `{p['fully_qualified_seeds']}`;",
+              f"- maximum COMB fraction: `{p['maximum_comb_fraction']:.4f}`;",
+              f"- maximum FF fraction: `{p['maximum_ff_fraction']:.4f}`;",
+              f"- canonical seed: `{p['canonical_seed']}`;",
+              f"- canonical bitstream SHA-256: `{p['canonical_bitstream_sha256']}`;",
+              '',
+              'Boundary: CI bitstream readiness only. No physical ULX3S execution, UART capture from a board, power measurement or HIL claim.',
+          ]
+          Path('/tmp/cosmic_hw_16_evidence.md').write_text('\n'.join(lines)+'\n', encoding='utf-8')
+          PY
+
+      - name: Upload complete HW-16 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-hw-16-result
+          path: |
+            /tmp/cosmic_hw_16_result.json
+            /tmp/cosmic_hw_16_evidence.md
+            /tmp/cosmic_hw_16_oracle_selfcheck.json
+            /tmp/cosmic_hw_07_result.json
+            /tmp/cosmic_hw_08_result.json
+            /tmp/cosmic-hw-16-evidence
+          if-no-files-found: ignore
+
+      - name: Publish hosted evidence to issue 115
+        if: success() && github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs');
+            const body=fs.readFileSync('/tmp/cosmic_hw_16_evidence.md','utf8');
+            await github.rest.issues.createComment({
+              owner:context.repo.owner,
+              repo:context.repo.repo,
+              issue_number:115,
+              body
+            });
+
+      - name: Publish hosted RED to issue 115
+        if: failure() && github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner:context.repo.owner,
+              repo:context.repo.repo,
+              issue_number:115,
+              body:`## COSMIC-HW-16 hosted RED\n\nExact checkout: \`${context.sha}\`\n\nThe frozen ULX3S candidate failed before an interpretable board-specific decision. Do not change the inherited processor RTL, board, PLL, UART contract, seeds or thresholds to force a pass.`
+            });

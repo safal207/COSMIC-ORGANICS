@@ -1,0 +1,62 @@
+{
+  "accepted_ticks": 2,
+  "commitment_digests": [
+    "8eda98229313e3da969eac99aac517ffc152a60e46796257d20323cbe4f00a48",
+    "05887b0a53de599fd4f8764991b4ac9751dc683fca92968c39bcd7b8f0c6eea7",
+    "84e243a460eb5d9581efc25640a38d391bad3a8a35f96131553f46de65eb452c",
+    "87014c94d2b197a1f3c922f09be9b4a8ed2f666e22b6d7ab161c2d5883068dc8",
+    "3048ca0a38a4f2b38656891e7ea4dbc07c62c0562d408e53822d67b1b3a9f96b",
+    "e5060a106d149aee102341b576d424ca63f55bdbaa359ee81e25db32bae82e33",
+    "529bf235b06d96395d4dc79dae3375f5307ba2d5f112a8380cb7eaade1e309b3",
+    "09ce30352831ca848e70e5ef336f140e49f08a62df32c6eaf085f268c559a031",
+    "9b33dbc86a0a1c8f1ebeab453cd891f0fdb61a512df3912ec4bd6f04f8653f13",
+    "524b8899b587a346bf1f7c145e3381b6b79853bf6d207aed914f6ec480aa57e3",
+    "b863f687ede4134bc9ed57391efc5873c0778e8002e6676f9afe88612fca79aa",
+    "c1b5dedb6a977d554ec03853b4da29fda3d920161d438f74334919d2819839f3",
+    "c31bff9259318b3309bdb0fdd5282ce58366d6d8d1b9c636080eb6482a230ab2"
+  ],
+  "description": "Two accepted +100 s100 ticks drive all 64 sites A->M->C, producing 128 ordered receipts, twelve full SHA batches and one 8-receipt partial flush batch.",
+  "digest_count": 13,
+  "experiment_id": "COSMIC-HW-16/v0.1",
+  "final_phase": "C",
+  "final_phase_checksum": "3fe95a5a",
+  "final_phase_checksum_algorithm": "h=ROL32(h,5)^((site_id<<2)|phase), seed=0xC016A5A5, ascending site_id",
+  "full_commitment_batches": 12,
+  "last_digest_sequence": 12,
+  "oracle_fingerprint_sha256": "f1ebc080b57cdbd519882ead877f536d27b9f43492250883fdf05bdfd8d7c09a",
+  "partial_commitment_receipts": 8,
+  "receipt_count": 128,
+  "self_test_id": "ULX3S_PROOF_EDGE_A_M_C_2TICK",
+  "stimulus_s100": 100,
+  "transition_batches": [
+    {
+      "logical_tick": 1,
+      "ordinals": "0..63",
+      "phase_after": 1,
+      "phase_before": 0,
+      "sites": "0..63"
+    },
+    {
+      "logical_tick": 2,
+      "ordinals": "0..63",
+      "phase_after": 2,
+      "phase_before": 1,
+      "sites": "0..63"
+    }
+  ],
+  "uart": {
+    "absolute_baud_error_fraction": 0.002234993614304004,
+    "baud": 115200,
+    "clock_hz": 10000000,
+    "crc": "CRC32/ISO-HDLC",
+    "crc32_little_endian": "adcb3f6d",
+    "frame_bytes": 60,
+    "frame_hex": "434f3136010200000200800000000d005a5ae93f0c00c31bff9259318b3309bdb0fdd5282ce58366d6d8d1b9c636080eb6482a230ab20000adcb3f6d",
+    "frame_sha256": "16d448b3c5af0a09edc1817c6cf980f12d4806f0b6cfe969b2b524538e7e799b",
+    "integer_divisor": 87,
+    "magic": "CO16",
+    "payload_bytes": 56,
+    "profile_id": 2,
+    "protocol_version": 1
+  }
+}

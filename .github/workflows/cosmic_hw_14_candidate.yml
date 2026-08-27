@@ -1,0 +1,196 @@
+name: COSMIC-HW-14 Candidate Profile Fit
+
+on:
+  push:
+    branches:
+      - "research/cosmic-hw-14-candidate"
+  pull_request:
+    paths:
+      - "rtl/cosmic_hw_14_profile_harnesses.v"
+      - "benchmarks/cosmic_hw_14_candidate.py"
+      - "benchmarks/cosmic_hw_14_manifest.json"
+      - "tests/test_cosmic_hw_14_prereg.py"
+      - "tests/test_cosmic_hw_14_candidate.py"
+      - ".github/workflows/cosmic_hw_14_candidate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install frozen open FPGA toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            yosys=0.33-5build2 \
+            iverilog=12.0-2build2 \
+            nextpnr-ecp5=0.6-3build5 \
+            fpga-trellis=1.4-2build4
+          python -m pip install --quiet pytest
+          yosys -V
+          iverilog -V | head -n 2
+          nextpnr-ecp5 --version
+          ecppack --help 2>&1 | head -n 2 || true
+
+      - name: Revalidate frozen HW-14 prereg semantics
+        run: |
+          PYTHONPATH=. python -m pytest -q \
+            tests/test_cosmic_hw_14_prereg.py \
+            tests/test_cosmic_hw_14_candidate.py \
+            -k 'not candidate_files_absent_on_prereg_head'
+
+      - name: Revalidate exact CORE_LITE_R40 receipt semantics
+        run: |
+          python -m pytest \
+            tests/test_cosmic_hw_06_vectors.py \
+            tests/test_cosmic_hw_06_phase1.py \
+            tests/test_cosmic_hw_07_candidate.py -q
+          PYTHONPATH=. python benchmarks/cosmic_hw_07_candidate.py --json > /tmp/cosmic_hw_07_result.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/cosmic_hw_07_result.json').read_text())
+          assert r['decision']=='SPARSE_PLUS_RECEIPT_PARETO_SUPPORTED'
+          assert r['functional_gate'] is True
+          assert r['simulation']['receipts_emitted']==41144
+          assert r['receipt']['missing_receipts']==0
+          assert r['receipt']['duplicate_receipts']==0
+          assert r['receipt']['phantom_receipts']==0
+          assert r['receipt']['field_match_fraction']==1.0
+          assert r['execution_semantic_contamination']==0
+          print('HW-14 inherited CORE_LITE_R40 semantic gate PASS')
+          PY
+
+      - name: Revalidate exact PROOF_EDGE_SHA1 commitment semantics
+        run: |
+          PYTHONPATH=. python benchmarks/run_cosmic_hw_08_sha_kat.py
+          PYTHONPATH=. python benchmarks/cosmic_hw_08_candidate.py --json > /tmp/cosmic_hw_08_result.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/cosmic_hw_08_result.json').read_text())
+          assert r['decision']=='SHA256_COMMITMENT_COST_MEASURED'
+          assert r['commitments']['real_receipts_committed']==41144
+          assert r['commitments']['digest_match_fraction']==1.0
+          assert r['commitments']['digest_sequence_match_fraction']==1.0
+          assert r['commitments']['real_receipt_commit_coverage_fraction']==1.0
+          assert r['merkle_present'] is False
+          print('HW-14 inherited PROOF_EDGE_SHA1 semantic gate PASS')
+          PY
+
+      - name: Revalidate FULL_PROOF_HMAC crypto control
+        run: |
+          PYTHONPATH=. python benchmarks/run_cosmic_hw_12_hmac_kat.py
+
+      - name: Execute frozen HW-14 physical profile frontier
+        run: |
+          rm -rf /tmp/cosmic-hw-14-evidence
+          mkdir -p /tmp/cosmic-hw-14-evidence
+          PYTHONPATH=. python benchmarks/cosmic_hw_14_candidate.py \
+            --json --output-dir /tmp/cosmic-hw-14-evidence \
+            > /tmp/cosmic_hw_14_result.json
+          python -m json.tool /tmp/cosmic_hw_14_result.json
+
+      - name: Validate frozen HW-14 interpretation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/cosmic_hw_14_result.json').read_text())
+          assert r['benchmark_id']=='COSMIC-HW-14-CANDIDATE'
+          assert r['protocol']=='COSMIC-HW-14/v0.1'
+          assert r['parent_hw13_source_head']=='773b68597b9136c12867ecc1a3a1749edcba1627'
+          assert r['placement_seeds']==[1401,1402,1403,1404,1405]
+          assert r['source_preservation']['passed'] is True
+          assert r['full_profile_capacity_control_reproduced'] is True
+          assert r['synthetic_combined_score_used'] is False
+          allowed={
+            'NO_PROFILE_ROUTE_DEPLOYABLE',
+            'CORE_LITE_BOARD_HANDOFF_SUPPORTED',
+            'PROOF_EDGE_BOARD_HANDOFF_SUPPORTED',
+            'FULL_PROOF_BOARD_HANDOFF_SUPPORTED',
+            'ROUTABLE_BUT_HEADROOM_NOT_SUPPORTED',
+          }
+          assert r['decision'] in allowed
+          assert set(r['profiles'])=={'CORE_LITE_R40','PROOF_EDGE_SHA1','FULL_PROOF_HMAC'}
+          for name,row in r['profiles'].items():
+              assert row['smoke']['passed'] is True, name
+              assert row['anti_pruning']['passed'] is True, name
+              assert len(row['seeds'])==5, name
+              assert row['core_synthesis']['trellis_comb']>0, name
+              assert row['harness_synthesis']['trellis_comb']>0, name
+          full=r['profiles']['FULL_PROOF_HMAC']
+          assert full['physical']['successful_routes']==0
+          assert full['physical']['capacity_signal_count']==5
+          print('COSMIC-HW-14 frozen gates PASS')
+          print('decision=',r['decision'])
+          print('selected=',r['selected_board_handoff_profile'])
+          PY
+
+      - name: Build concise evidence summary
+        if: success()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from benchmarks.cosmic_hw_14_candidate import render_evidence_summary
+
+          r=json.loads(Path('/tmp/cosmic_hw_14_result.json').read_text())
+          summary = render_evidence_summary(r)
+          exact_head = f"Exact candidate head: `{__import__('os').environ['GITHUB_SHA']}`\n\n"
+          summary = summary.replace("\n\ndecision=", f"\n\n{exact_head}decision=", 1)
+          Path('/tmp/cosmic_hw_14_evidence.md').write_text(summary, encoding='utf-8')
+          PY
+
+      - name: Upload complete HW-14 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-hw-14-result
+          path: |
+            /tmp/cosmic_hw_14_result.json
+            /tmp/cosmic_hw_14_evidence.md
+            /tmp/cosmic_hw_07_result.json
+            /tmp/cosmic_hw_08_result.json
+            /tmp/cosmic-hw-14-evidence
+          if-no-files-found: ignore
+
+      - name: Publish hosted evidence to issue 101
+        if: success() && github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs');
+            const body=fs.readFileSync('/tmp/cosmic_hw_14_evidence.md','utf8');
+            await github.rest.issues.createComment({
+              owner:context.repo.owner,
+              repo:context.repo.repo,
+              issue_number:101,
+              body
+            });
+
+      - name: Publish hosted RED to issue 101
+        if: failure() && github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner:context.repo.owner,
+              repo:context.repo.repo,
+              issue_number:101,
+              body:`## COSMIC-HW-14 hosted RED\n\nExact head: \`${context.sha}\`\n\nThe frozen profile experiment failed before an interpretable decision. Do not change the target, profiles, seeds, 10 MHz gate, 85% headroom rule, or selection order to force a pass.`
+            });

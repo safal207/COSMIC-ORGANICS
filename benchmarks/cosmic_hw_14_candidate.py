@@ -34,6 +34,7 @@ DEVICE_CAPACITY = {
     "ff": 83640,
     "mult": 156,
 }
+DEVICE_CAPACITY_DENSITY_FLAG = "--85k"
 
 
 def load_manifest() -> dict:
@@ -44,6 +45,12 @@ def load_manifest() -> dict:
         raise RuntimeError("HW-14 frozen parent moved")
     if manifest["placement_seeds"] != [1401, 1402, 1403, 1404, 1405]:
         raise RuntimeError("HW-14 seed set moved")
+    density_flag = manifest.get("target", {}).get("density_flag")
+    if density_flag != DEVICE_CAPACITY_DENSITY_FLAG:
+        raise RuntimeError(
+            "HW-14 DEVICE_CAPACITY supports only density_flag "
+            f"{DEVICE_CAPACITY_DENSITY_FLAG!r}; got {density_flag!r}"
+        )
     return manifest
 
 
@@ -402,6 +409,50 @@ def choose_decision(manifest: dict, profiles: dict[str, dict]) -> tuple[str, str
     if any(row["physical"]["route_deployable"] for row in profiles.values()):
         return "ROUTABLE_BUT_HEADROOM_NOT_SUPPORTED", None
     return "NO_PROFILE_ROUTE_DEPLOYABLE", None
+
+
+def render_evidence_summary(result: dict) -> str:
+    """Render the hosted result without interrupting its Markdown table."""
+
+    lines = [
+        "## COSMIC-HW-14 hosted evidence",
+        "",
+        f"decision=`{result['decision']}`",
+        f"selected_board_handoff_profile=`{result['selected_board_handoff_profile']}`",
+        "",
+        "| Profile | Routes | Packs | 10 MHz | Comb | FF | Mult | Headroom | Board handoff |",
+        "|---|---:|---:|---:|---:|---:|---:|---|---|",
+    ]
+    fmax_lines: list[str] = []
+    for name in ("CORE_LITE_R40", "PROOF_EDGE_SHA1", "FULL_PROOF_HMAC"):
+        row = result["profiles"][name]
+        physical = row["physical"]
+        synthesis = row["harness_synthesis"]
+        fractions = physical["maximum_resource_fractions"]
+        lines.append(
+            f"| {name} | {physical['successful_routes']}/5 | "
+            f"{physical['packed_bitstreams']}/5 | {physical['timing_10mhz_passes']}/5 | "
+            f"{synthesis['trellis_comb']} ({fractions['comb'] * 100:.1f}%) | "
+            f"{synthesis['trellis_ff']} ({fractions['ff'] * 100:.1f}%) | "
+            f"{synthesis['mult18x18d']} ({fractions['mult'] * 100:.1f}%) | "
+            f"{'PASS' if physical['headroom_pass'] else 'NO'} | "
+            f"{'YES' if physical['board_handoff_eligible'] else 'NO'} |"
+        )
+        fmax = physical["fmax_mhz"]
+        fmax_lines.append(
+            f"{name} routed Fmax min/median/max: {fmax['minimum']} / "
+            f"{fmax['median']} / {fmax['maximum']} MHz"
+        )
+    lines.extend(
+        [
+            "",
+            *fmax_lines,
+            "",
+            "Boundary: identifies a route/pack/timing/headroom profile for a later "
+            "board experiment only. No board execution or measured energy claim.",
+        ]
+    )
+    return "\n".join(lines) + "\n"
 
 
 def run(output_dir: Path) -> dict:

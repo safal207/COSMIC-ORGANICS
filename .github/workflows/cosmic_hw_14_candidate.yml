@@ -10,6 +10,7 @@ on:
       - "benchmarks/cosmic_hw_14_candidate.py"
       - "benchmarks/cosmic_hw_14_manifest.json"
       - "tests/test_cosmic_hw_14_prereg.py"
+      - "tests/test_cosmic_hw_14_candidate.py"
       - ".github/workflows/cosmic_hw_14_candidate.yml"
   workflow_dispatch:
 
@@ -47,7 +48,9 @@ jobs:
 
       - name: Revalidate frozen HW-14 prereg semantics
         run: |
-          PYTHONPATH=. python -m pytest -q tests/test_cosmic_hw_14_prereg.py \
+          PYTHONPATH=. python -m pytest -q \
+            tests/test_cosmic_hw_14_prereg.py \
+            tests/test_cosmic_hw_14_candidate.py \
             -k 'not candidate_files_absent_on_prereg_head'
 
       - name: Revalidate exact CORE_LITE_R40 receipt semantics
@@ -144,31 +147,13 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
+          from benchmarks.cosmic_hw_14_candidate import render_evidence_summary
+
           r=json.loads(Path('/tmp/cosmic_hw_14_result.json').read_text())
-          lines=[
-            '## COSMIC-HW-14 hosted evidence','',
-            f"Exact candidate head: `{__import__('os').environ['GITHUB_SHA']}`",'',
-            f"decision=`{r['decision']}`",
-            f"selected_board_handoff_profile=`{r['selected_board_handoff_profile']}`",'',
-            '| Profile | Routes | Packs | 10 MHz | Comb | FF | Mult | Headroom | Board handoff |',
-            '|---|---:|---:|---:|---:|---:|---:|---|---|',
-          ]
-          for name in ('CORE_LITE_R40','PROOF_EDGE_SHA1','FULL_PROOF_HMAC'):
-              row=r['profiles'][name]
-              p=row['physical']; s=row['harness_synthesis']; f=p['maximum_resource_fractions']
-              lines.append(
-                f"| {name} | {p['successful_routes']}/5 | {p['packed_bitstreams']}/5 | {p['timing_10mhz_passes']}/5 | "
-                f"{s['trellis_comb']} ({f['comb']*100:.1f}%) | {s['trellis_ff']} ({f['ff']*100:.1f}%) | "
-                f"{s['mult18x18d']} ({f['mult']*100:.1f}%) | {'PASS' if p['headroom_pass'] else 'NO'} | "
-                f"{'YES' if p['board_handoff_eligible'] else 'NO'} |"
-              )
-              fm=p['fmax_mhz']
-              lines.append(f"\n{name} routed Fmax min/median/max: {fm['minimum']} / {fm['median']} / {fm['maximum']} MHz")
-          lines += [
-            '',
-            'Boundary: identifies a route/pack/timing/headroom profile for a later board experiment only. No board execution or measured energy claim.'
-          ]
-          Path('/tmp/cosmic_hw_14_evidence.md').write_text('\n'.join(lines))
+          summary = render_evidence_summary(r)
+          exact_head = f"Exact candidate head: `{__import__('os').environ['GITHUB_SHA']}`\n\n"
+          summary = summary.replace("\n\ndecision=", f"\n\n{exact_head}decision=", 1)
+          Path('/tmp/cosmic_hw_14_evidence.md').write_text(summary, encoding='utf-8')
           PY
 
       - name: Upload complete HW-14 evidence

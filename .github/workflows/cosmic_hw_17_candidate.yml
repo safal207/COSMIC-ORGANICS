@@ -112,15 +112,17 @@ jobs:
             > /tmp/cosmic_hw_17_prepare_stdout.json
           python -m json.tool /tmp/cosmic-hw-17-prepared/cosmic_hw_17_prepare.json
           sha256sum /tmp/cosmic-hw-17-prepared/cosmic_hw_17_board.json
+          cp /tmp/cosmic_hw_07_result.json /tmp/cosmic-hw-17-prepared/
+          cp /tmp/cosmic_hw_08_result.json /tmp/cosmic-hw-17-prepared/
 
       - uses: actions/upload-artifact@v4
         with:
           name: cosmic-hw-17-prepared
-          path: |
-            /tmp/cosmic-hw-17-prepared/cosmic_hw_17_prepare.json
-            /tmp/cosmic-hw-17-prepared/cosmic_hw_17_board.json
-            /tmp/cosmic_hw_07_result.json
-            /tmp/cosmic_hw_08_result.json
+          # Keep one artifact root. Multiple absolute roots make upload-artifact
+          # preserve the tmp/cosmic-hw-17-prepared directory, so downloading to
+          # that same path nests the files one level deeper and every seed job
+          # fails before place-and-route starts.
+          path: /tmp/cosmic-hw-17-prepared
           if-no-files-found: error
           compression-level: 6
 

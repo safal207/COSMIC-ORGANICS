@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT / "benchmarks" / "cosmic_hw_17_manifest.json"
+WORKFLOW_PATH = ROOT / ".github" / "workflows" / "cosmic_hw_17_candidate.yml"
 
 
 def load_manifest() -> dict:
@@ -141,6 +142,15 @@ def test_matrix_and_same_seed_qualification_are_fail_closed() -> None:
     q = m["per_seed_qualification"]
     assert q["same_seed_must_route_pack_and_meet_both_clocks"] is True
     assert all(q.values())
+
+
+def test_prepared_artifact_has_one_stable_download_root() -> None:
+    workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
+    upload = workflow.split("name: cosmic-hw-17-prepared", maxsplit=1)[1]
+    upload = upload.split("if-no-files-found: error", maxsplit=1)[0]
+    assert "path: /tmp/cosmic-hw-17-prepared" in upload
+    assert "path: |" not in upload
+    assert "--prepared-dir /tmp/cosmic-hw-17-prepared" in workflow
 
 
 def test_decisions_stop_rule_and_candidate_absence_are_frozen() -> None:

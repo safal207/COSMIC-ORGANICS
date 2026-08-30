@@ -1,0 +1,110 @@
+{
+  "experiment_id": "COSMIC-HW-18/v0.1",
+  "protocol": "COSMIC-HW-18-HIL/v0.1",
+  "question": "Does the exact canonical COSMIC-HW-17 bitstream execute the frozen self-test correctly on one identified physical ULX3S-85F board across ten externally power-cycled cold repetitions?",
+  "parent": {
+    "repository": "safal207/COSMIC-ORGANICS",
+    "pull_request": 120,
+    "source_head": "9d17ba05f3bb4ff4bac9c0e28d9b5842bcfbfafe",
+    "source_tree": "3f0ea3940ed87ba4fa671915a64ad4f8e8f142b3",
+    "workflow_run": 33313877706,
+    "run_attempt": 1,
+    "decision": "ULX3S_EXTENDED_BUDGET_BITSTREAM_READY",
+    "artifact_id": 9733436976,
+    "artifact_digest": "sha256:73b829eb86eaf6872cdba532d7c31816010cf50b56490d47ef9a0927e7501e60",
+    "canonical_seed": 1601,
+    "canonical_bitstream_bytes": 1048738,
+    "canonical_bitstream_sha256": "eebd73700bacdb0a29e5b5542834f150810196492218cab9b1f5c4e9158b80b3",
+    "board_netlist_sha256": "50fc484a52d890ad959e72969d656d207f6c8f9ecd1e504d4e4f0281c2803215"
+  },
+  "board": {
+    "name": "ULX3S-85F",
+    "fpga": "LFE5U-85F-6BG381C",
+    "architecture": "ECP5",
+    "package": "CABGA381",
+    "speed_grade": 6,
+    "input_clock_mhz": 25.0,
+    "processor_clock_mhz": 10.0,
+    "primary_usb_connector": "US1"
+  },
+  "frozen_uart": {
+    "baud": 115200,
+    "format": "8N1",
+    "frame_bytes": 60,
+    "magic_ascii": "CO16",
+    "protocol_version": 1,
+    "profile_id": 2,
+    "frame_sha256": "16d448b3c5af0a09edc1817c6cf980f12d4806f0b6cfe969b2b524538e7e799b",
+    "accepted_tick_count": 2,
+    "receipt_count": 128,
+    "digest_count": 13,
+    "final_phase_checksum": 1072257626,
+    "last_digest_sequence": 12,
+    "last_digest": "c31bff9259318b3309bdb0fdd5282ce58366d6d8d1b9c636080eb6482a230ab2",
+    "error_flags": 0
+  },
+  "programming": {
+    "volatile_sram_only": true,
+    "persistent_flash_allowed": false,
+    "program_timeout_seconds": 180,
+    "serial_enumeration_timeout_seconds": 30,
+    "uart_capture_timeout_seconds": 20,
+    "power_cycle_timeout_seconds": 120,
+    "allowed_programmers": {
+      "openFPGALoader": [
+        "openFPGALoader",
+        "-b",
+        "ulx3s",
+        "{bitstream}"
+      ],
+      "fujprog": [
+        "fujprog",
+        "{bitstream}"
+      ]
+    },
+    "power_cycle_hook_required": true,
+    "power_cycle_hook_argv": [
+      "HOOK",
+      "REPETITION_NUMBER",
+      "REPETITION_EVIDENCE_DIRECTORY"
+    ]
+  },
+  "physical_hil_gate": {
+    "board_model_and_revision_required": true,
+    "board_identifier_required": true,
+    "fpga_marking_required": true,
+    "canonical_bitstream_sha256_required": true,
+    "canonical_bitstream_size_required": true,
+    "clean_harness_worktree_required": true,
+    "external_power_cycle_hook_required": true,
+    "cold_repetitions": 10,
+    "all_repetitions_required": true,
+    "volatile_programming_exit_zero_required": true,
+    "raw_uart_capture_required_per_repetition": true,
+    "decoded_verifier_json_required_per_repetition": true,
+    "oracle_match_required_per_repetition": true,
+    "no_error_flag_required_per_repetition": true,
+    "photo_or_video_required": true,
+    "evidence_inventory_sha256_required": true
+  },
+  "decision_classes": [
+    "BOARD_NOT_AVAILABLE",
+    "POWER_CYCLE_FAILURE",
+    "PROGRAMMING_FAILURE",
+    "UART_PROTOCOL_FAILURE",
+    "BOARD_ORACLE_MISMATCH",
+    "EVIDENCE_INCOMPLETE",
+    "ULX3S_PROOF_EDGE_HIL_SUPPORTED"
+  ],
+  "inherited_source_blobs": {
+    "tools/cosmic_hw_16_uart_verify.py": "1dc0ee42585cb1df8b74ad71ae11123b216b9372"
+  },
+  "candidate_paths": [
+    "benchmarks/cosmic_hw_18_manifest.json",
+    "tools/cosmic_hw_18_hil.py",
+    "tests/test_cosmic_hw_18_hil.py",
+    "docs/cosmic-hw-18-physical-hil.md"
+  ],
+  "stop_rule": "Do not edit RTL, constraints, clocking, workload, UART oracle, bitstream bytes, repetition count, board target, or programming mode after observing a physical result. A changed subject requires a new preregistered experiment.",
+  "claim_boundary": "A GREEN result establishes only ten-of-ten oracle-matching executions of the exact canonical HW-17 bitstream on the one identified physical ULX3S-85F board under the recorded operator rig and power-cycle hook. It does not establish independent board identity, production reliability, measured power or energy, thermal limits, side-channel resistance, ASIC PPA, CPU/GPU superiority, or commercial readiness."
+}

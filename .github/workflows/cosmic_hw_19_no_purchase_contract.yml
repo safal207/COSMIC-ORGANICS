@@ -31,11 +31,14 @@ jobs:
   contract:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    env:
+      COSMIC_HW19_EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - name: Check out exact candidate
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ env.COSMIC_HW19_EXPECTED_HEAD }}
 
       - name: Install simulator and CPU dependencies
         run: |
@@ -67,12 +70,14 @@ jobs:
           assert result["competitive_claim_allowed"] is False
           assert result["cpu_measurement"]["oracle_match"] is True
           assert result["fpga_model"]["oracle_match"] is True
+          assert result["source_identity"]["initial"]["head"] == __import__("os").environ["COSMIC_HW19_EXPECTED_HEAD"]
+          assert result["source_identity"]["final"]["head"] == __import__("os").environ["COSMIC_HW19_EXPECTED_HEAD"]
           PY
 
       - name: Upload exact-head HW-19 result
         uses: actions/upload-artifact@v4
         with:
-          name: cosmic-hw-19-${{ github.sha }}
+          name: cosmic-hw-19-${{ env.COSMIC_HW19_EXPECTED_HEAD }}
           path: build/cosmic_hw_19_result.json
           if-no-files-found: error
           retention-days: 30

@@ -1,0 +1,102 @@
+{
+  "experiment_id": "COSMIC-HW-20/v0.1",
+  "protocol": "COSMIC-HW-20-STRETCHER/v0.1",
+  "question": "Can two physical SHA-256 engines plus one finite complete-block waiting slot reduce the exact HW-19 proof-edge latency, fit and route on ECP5-85F, without representing buffering as a third compute engine?",
+  "parent": {
+    "repository": "safal207/COSMIC-ORGANICS",
+    "pull_request": 122,
+    "source_head": "b70abe70614a0d98cadb2887eb6ee1b5e6d27838",
+    "source_tree": "183f145516bfb2d969d6db1ebf38e1d03b41c878",
+    "experiment_id": "COSMIC-HW-19/v0.1",
+    "single_sha_compute_cycles": 862,
+    "physical_hil_state": "NOT_RUN"
+  },
+  "workload": {
+    "operation_name": "ULX3S_PROOF_EDGE_A_M_C_2TICK",
+    "sites": 64,
+    "accepted_ticks": 2,
+    "stimulus_s100": 100,
+    "initial_phase": "A",
+    "final_phase": "C",
+    "ordered_receipts": 128,
+    "full_commitment_batches": 12,
+    "partial_commitment_receipts": 8,
+    "sha256_digests": 13,
+    "last_digest": "c31bff9259318b3309bdb0fdd5282ce58366d6d8d1b9c636080eb6482a230ab2"
+  },
+  "stretcher_architecture": {
+    "physical_sha256_engines": 2,
+    "rounds_per_engine_cycle": 1,
+    "rounds_per_digest": 64,
+    "currently_filling_messages": 1,
+    "complete_waiting_blocks": 1,
+    "virtual_third_slot_is_compute_engine": false,
+    "dispatch_rule": "lowest_index_ready_engine",
+    "digest_retirement": "strictly_increasing_commitment_sequence",
+    "drop_allowed": false,
+    "unbounded_queue_allowed": false,
+    "work_conservation_note": "The waiting block can hide producer/dispatcher bubbles but cannot exceed the service rate of two physical SHA engines."
+  },
+  "cycle_gates": {
+    "single_sha_control_cycles": 862,
+    "candidate_must_be_less_than_control": true,
+    "maximum_honest_speedup": 2.0,
+    "two_engine_sha_round_lower_bound_cycles": 448,
+    "lower_bound_basis": "ceil(13 digests / 2 engines) * 64 iterative rounds",
+    "both_engines_must_accept_blocks": true,
+    "both_engines_busy_with_waiting_block_must_be_observed": true
+  },
+  "cpu_reference": {
+    "source": "exact-head HW-19 GitHub Actions artifact 9734570875",
+    "artifact_sha256": "70a9c8d61e8a4f0f4d63cdc896daeff87ba7b04e38c0225409164f58f07ef205",
+    "cpu_model": "AMD EPYC 9V74 96-Core Processor",
+    "threads": 1,
+    "mean_ns_per_operation": 5585.777,
+    "p99_single_operation_ns": 5929.0,
+    "mean_operations_per_second": 179026.128,
+    "oracle_match": true,
+    "clock_points_mhz": [10.0, 20.25],
+    "cpu_mean_parity_max_cycles_at_20_25mhz": 113
+  },
+  "board": {
+    "name": "ULX3S-85F",
+    "device": "LFE5U-85F",
+    "density_flag": "--85k",
+    "package": "CABGA381",
+    "speed_grade": "6",
+    "trellis_comb_capacity": 83640,
+    "processor_clock_mhz": 10.0,
+    "placement_seed": 2001,
+    "route_timeout_seconds": 1200,
+    "persistent_flash_allowed": false
+  },
+  "inherited_source_blobs": {
+    "rtl/cosmic_hw_06.v": "7890a1b256b467fe8726e0e7ef7ff84bf8a03bd8",
+    "rtl/cosmic_hw_07_receipt.v": "13a81d6b7576b929ec3167a0d5ad2795cd40ef5a",
+    "rtl/cosmic_hw_08_sha256.v": "19c1165eb48a9a626520a6fe131003dc90a9ded8",
+    "rtl/cosmic_hw_09_multi_sha.v": "4c6a2f420ce2ddab556f2f5e29a6c4c1fec9403d",
+    "rtl/cosmic_hw_16_pll_10mhz.v": "8d9b34fdd0cd2d9e0b1159e0e9422fd849de464a",
+    "constraints/cosmic_hw_16_ulx3s_v20.lpf": "9047b8a62819e006de298039f2369c1b79076d89",
+    "benchmarks/cosmic_hw_19_manifest.json": "6849d9628de3c4590c302d6540ae82e7854f1c1f",
+    "tools/cosmic_hw_19_compare.py": "58c7f5736cd7bbc4607030e9a1c7323799fa4789"
+  },
+  "candidate_paths": [
+    ".github/workflows/cosmic_hw_20_stretcher_contract.yml",
+    "benchmarks/cosmic_hw_20_manifest.json",
+    "docs/cosmic-hw-20-stretcher.md",
+    "rtl/cosmic_hw_20_stretcher_top.v",
+    "tests/test_cosmic_hw_20.py",
+    "tools/cosmic_hw_20_stretcher.py"
+  ],
+  "decision_classes": [
+    "CONTROL_FAILURE",
+    "SEMANTIC_FAILURE",
+    "NO_CYCLE_VALUE",
+    "ECP5_CAPACITY_FAILURE",
+    "ECP5_ROUTE_OR_TIMING_NOT_SUPPORTED",
+    "STRETCHER_VALUE_SUPPORTED_CPU_PARITY_NOT_REACHED",
+    "STRETCHER_CPU_PARITY_MODELED_PHYSICAL_NOT_RUN"
+  ],
+  "stop_rule": "Reject any claim that the waiting slot performs SHA work, that modeled latency is a physical board measurement, or that CPU parity exists unless exact candidate cycles at the stated clock are no slower than the frozen CPU reference.",
+  "claim_boundary": "HW-20 measures cycle-accurate RTL behavior and toolchain synthesis/route evidence for a two-engine candidate. The third slot is buffering only. Physical board latency, power, energy, reliability, CPU superiority, and production readiness remain NOT_RUN or unestablished."
+}

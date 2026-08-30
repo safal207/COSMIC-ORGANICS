@@ -1,0 +1,109 @@
+name: COSMIC-HW-20 Stretcher Contract
+
+on:
+  push:
+    branches:
+      - feat/cosmic-hw-20-stretcher
+  pull_request:
+    paths:
+      - ".github/workflows/cosmic_hw_20_stretcher_contract.yml"
+      - "benchmarks/cosmic_hw_20_manifest.json"
+      - "docs/cosmic-hw-20-stretcher.md"
+      - "rtl/cosmic_hw_06.v"
+      - "rtl/cosmic_hw_07_receipt.v"
+      - "rtl/cosmic_hw_08_sha256.v"
+      - "rtl/cosmic_hw_09_multi_sha.v"
+      - "rtl/cosmic_hw_16_pll_10mhz.v"
+      - "rtl/cosmic_hw_16_ulx3s_top.v"
+      - "rtl/cosmic_hw_20_stretcher_top.v"
+      - "constraints/cosmic_hw_16_ulx3s_v20.lpf"
+      - "tools/cosmic_hw_19_compare.py"
+      - "tools/cosmic_hw_20_stretcher.py"
+      - "tests/test_cosmic_hw_20.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cosmic-hw-20-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      COSMIC_HW20_EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Check out exact candidate head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ env.COSMIC_HW20_EXPECTED_HEAD }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install frozen open ECP5 toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            yosys=0.33-5build2 \
+            iverilog=12.0-2build2 \
+            nextpnr-ecp5=0.6-3build5 \
+            fpga-trellis=1.4-2build4
+          python -m pip install --quiet pytest
+          yosys -V
+          iverilog -V | head -n 2
+          nextpnr-ecp5 --version
+          test -x "$(command -v ecppack)"
+
+      - name: Run bounded HW-20 contracts
+        run: python -m pytest -q tests/test_cosmic_hw_20.py
+
+      - name: Simulate, synthesize, route, and pack candidate
+        run: |
+          python tools/cosmic_hw_20_stretcher.py \
+            --route \
+            --output-dir build/cosmic-hw-20
+
+      - name: Enforce exact-head evidence and honest claim boundary
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          result = json.loads(
+              Path("build/cosmic-hw-20/cosmic_hw_20_result.json").read_text()
+          )
+          expected = os.environ["COSMIC_HW20_EXPECTED_HEAD"]
+          assert result["passed"] is True
+          assert result["source_identity"]["initial"]["head"] == expected
+          assert result["source_identity"]["final"]["head"] == expected
+          assert result["simulation"]["oracle_match"] is True
+          assert 448 <= result["simulation"]["compute_cycles"] < 862
+          assert 1.0 < result["simulation"]["cycle_speedup"] <= 2.0
+          assert result["simulation"]["both_engines_busy_with_waiting_block_cycles"] > 0
+          assert result["virtual_third_slot_is_compute_engine"] is False
+          assert result["physical_board_executed"] is False
+          assert result["physical_execution_state"] == "NOT_RUN"
+          assert result["competitive_claim_allowed"] is False
+          assert result["decision"] in {
+              "ECP5_CAPACITY_FAILURE",
+              "ECP5_ROUTE_OR_TIMING_NOT_SUPPORTED",
+              "STRETCHER_VALUE_SUPPORTED_CPU_PARITY_NOT_REACHED",
+              "STRETCHER_CPU_PARITY_MODELED_PHYSICAL_NOT_RUN",
+          }
+          PY
+
+      - name: Upload exact-head HW-20 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-hw-20-${{ env.COSMIC_HW20_EXPECTED_HEAD }}
+          path: build/cosmic-hw-20/
+          if-no-files-found: error
+          retention-days: 30

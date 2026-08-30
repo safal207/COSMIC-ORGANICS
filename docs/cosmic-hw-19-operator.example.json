@@ -1,0 +1,15 @@
+{
+  "bitstream": "/absolute/path/cosmic_hw_17_canonical.bit",
+  "serial_port": "/dev/serial/by-id/usb-ULX3S_SERIAL_DEVICE",
+  "programmer": "openFPGALoader",
+  "power_cycle_hook": "/absolute/path/power-cycle-ulx3s",
+  "output_dir": "/absolute/path/cosmic-hw19-evidence",
+  "media": [
+    "/absolute/path/rig-photo.jpg"
+  ],
+  "operator": "Operator Name",
+  "board_id": "OPERATOR-BOARD-001",
+  "board_revision": "3.0.8",
+  "fpga_marking": "LFE5U-85F-6BG381C",
+  "confirm_volatile_sram_programming": true
+}

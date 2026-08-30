@@ -1,0 +1,84 @@
+name: COSMIC-HW-19 No-Purchase Contract
+
+on:
+  push:
+    branches:
+      - feat/cosmic-hw-19-remote-cpu
+  pull_request:
+    paths:
+      - ".gitignore"
+      - ".github/workflows/ci.yml"
+      - ".github/workflows/cosmic_hw_19_no_purchase_contract.yml"
+      - "benchmarks/cosmic_hw_19_cpu.cpp"
+      - "benchmarks/cosmic_hw_19_manifest.json"
+      - "benchmarks/cosmic_hw_16_vectors.json"
+      - "tools/cosmic_hw_16_uart_verify.py"
+      - "tools/cosmic_hw_18_hil.py"
+      - "tools/cosmic_hw_19_compare.py"
+      - "tools/cosmic_hw_19_remote_run.py"
+      - "tests/test_cosmic_hw_19.py"
+      - "docs/cosmic-hw-19-no-purchase.md"
+      - "docs/cosmic-hw-19-operator.example.json"
+      - "rtl/cosmic_hw_06.v"
+      - "rtl/cosmic_hw_07_receipt.v"
+      - "rtl/cosmic_hw_08_sha256.v"
+      - "rtl/cosmic_hw_16_ulx3s_top.v"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      COSMIC_HW19_EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ env.COSMIC_HW19_EXPECTED_HEAD }}
+
+      - name: Install simulator and CPU dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog g++ libssl-dev
+
+      - name: Install Python contract dependencies
+        run: python -m pip install --disable-pip-version-check pytest
+
+      - name: Run HW-19 contracts
+        run: python -m pytest -q tests/test_cosmic_hw_19.py
+
+      - name: Run inherited HW-18 contracts
+        run: python -m pytest -q tests/test_cosmic_hw_18_hil.py
+
+      - name: Measure CPU and derive non-physical FPGA model
+        run: python tools/cosmic_hw_19_compare.py --output build/cosmic_hw_19_result.json
+
+      - name: Enforce physical NOT_RUN and claim boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path("build/cosmic_hw_19_result.json").read_text())
+          assert result["passed"] is True
+          assert result["decision"] == "CPU_BASELINE_MEASURED_FPGA_MODELED_PHYSICAL_NOT_RUN"
+          assert result["physical_board_executed"] is False
+          assert result["physical_execution_state"] == "NOT_RUN"
+          assert result["competitive_claim_allowed"] is False
+          assert result["cpu_measurement"]["oracle_match"] is True
+          assert result["fpga_model"]["oracle_match"] is True
+          assert result["source_identity"]["initial"]["head"] == __import__("os").environ["COSMIC_HW19_EXPECTED_HEAD"]
+          assert result["source_identity"]["final"]["head"] == __import__("os").environ["COSMIC_HW19_EXPECTED_HEAD"]
+          PY
+
+      - name: Upload exact-head HW-19 result
+        uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-hw-19-${{ env.COSMIC_HW19_EXPECTED_HEAD }}
+          path: build/cosmic_hw_19_result.json
+          if-no-files-found: error
+          retention-days: 30

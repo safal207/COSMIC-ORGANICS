@@ -1,0 +1,101 @@
+{
+  "experiment_id": "COSMIC-HW-19/v0.1",
+  "protocol": "COSMIC-HW-19-NO-PURCHASE/v0.1",
+  "question": "What is the measured single-thread CPU cost of the exact frozen ULX3S proof-edge self-test, what latency does the cycle-accurate RTL model imply, and can a third-party operator collect physical HW-18 evidence without the project owner purchasing a board?",
+  "parent": {
+    "repository": "safal207/COSMIC-ORGANICS",
+    "pull_request": 121,
+    "source_head": "eca0160cf87e988c9b2f7fe54dfa629fc4fea898",
+    "source_tree": "efc84d08493467b55d881f873e83af5ca0adc02d",
+    "physical_hil_experiment": "COSMIC-HW-18/v0.1",
+    "physical_hil_state": "NOT_RUN",
+    "canonical_bitstream_sha256": "eebd73700bacdb0a29e5b5542834f150810196492218cab9b1f5c4e9158b80b3",
+    "canonical_bitstream_bytes": 1048738
+  },
+  "workload": {
+    "operation_name": "ULX3S_PROOF_EDGE_A_M_C_2TICK",
+    "sites": 64,
+    "accepted_ticks": 2,
+    "stimulus_s100": 100,
+    "initial_phase": "A",
+    "final_phase": "C",
+    "ordered_receipts": 128,
+    "full_commitment_batches": 12,
+    "partial_commitment_receipts": 8,
+    "sha256_digests": 13,
+    "last_digest": "c31bff9259318b3309bdb0fdd5282ce58366d6d8d1b9c636080eb6482a230ab2",
+    "frame_sha256": "16d448b3c5af0a09edc1817c6cf980f12d4806f0b6cfe969b2b524538e7e799b"
+  },
+  "cpu_baseline": {
+    "language": "C++20",
+    "sha256_provider": "system OpenSSL libcrypto",
+    "threads": 1,
+    "compiler_flags": [
+      "-O3",
+      "-DNDEBUG",
+      "-std=c++20",
+      "-march=native",
+      "-Wno-deprecated-declarations"
+    ],
+    "warmup_iterations": 2000,
+    "timed_iterations_per_sample": 20000,
+    "samples": 31,
+    "single_operation_latency_samples": 10000,
+    "reported_statistics": [
+      "mean_ns_per_operation",
+      "median_ns_per_operation",
+      "sample_mean_p99_ns_per_operation",
+      "p99_single_operation_ns",
+      "mean_operations_per_second"
+    ]
+  },
+  "hardware_model": {
+    "cycle_source": "cycle-accurate Icarus Verilog execution of the exact inherited HW-16 proof stack",
+    "compute_boundary": "first non-reset processor cycle through entry into ST_CHECKSUM after all thirteen digests retire",
+    "configured_clock_mhz": 10.0,
+    "canonical_seed_routed_fmax_mhz": 20.25,
+    "routed_fmax_is_measured_board_clock": false,
+    "uart_and_evidence_transport_excluded": true
+  },
+  "remote_operator": {
+    "board": "ULX3S-85F",
+    "purchase_by_project_owner_required": false,
+    "operator_supplies_board_and_usb_host": true,
+    "volatile_sram_only": true,
+    "persistent_flash_allowed": false,
+    "cold_repetitions": 10,
+    "entrypoint": "python tools/cosmic_hw_19_remote_run.py --config /absolute/path/operator.json",
+    "evidence_archive_sha256_required": true
+  },
+  "decision_classes": [
+    "CONTROL_FAILURE",
+    "CPU_ORACLE_MISMATCH",
+    "CPU_BASELINE_MEASURED_FPGA_MODELED_PHYSICAL_NOT_RUN",
+    "REMOTE_HIL_FAILED",
+    "REMOTE_HIL_EVIDENCE_READY"
+  ],
+  "inherited_source_blobs": {
+    "benchmarks/cosmic_hw_18_manifest.json": "a45bff3be970b297029e6061efbf2611ab9100b9",
+    "benchmarks/cosmic_hw_16_vectors.json": "8df1f55db8acb76e2bb621d44053e3966cbabb45",
+    "tools/cosmic_hw_18_hil.py": "90ac172133600da495ce61ab9ee34a1289b2067b",
+    "tools/cosmic_hw_16_uart_verify.py": "1dc0ee42585cb1df8b74ad71ae11123b216b9372",
+    "rtl/cosmic_hw_06.v": "7890a1b256b467fe8726e0e7ef7ff84bf8a03bd8",
+    "rtl/cosmic_hw_07_receipt.v": "13a81d6b7576b929ec3167a0d5ad2795cd40ef5a",
+    "rtl/cosmic_hw_08_sha256.v": "19c1165eb48a9a626520a6fe131003dc90a9ded8",
+    "rtl/cosmic_hw_16_ulx3s_top.v": "c858740f69bad0dc6599050eb5631770989022f2"
+  },
+  "candidate_paths": [
+    ".gitignore",
+    ".github/workflows/ci.yml",
+    ".github/workflows/cosmic_hw_19_no_purchase_contract.yml",
+    "benchmarks/cosmic_hw_19_cpu.cpp",
+    "benchmarks/cosmic_hw_19_manifest.json",
+    "tools/cosmic_hw_19_compare.py",
+    "tools/cosmic_hw_19_remote_run.py",
+    "tests/test_cosmic_hw_19.py",
+    "docs/cosmic-hw-19-no-purchase.md",
+    "docs/cosmic-hw-19-operator.example.json"
+  ],
+  "stop_rule": "Do not promote modeled FPGA latency, routed Fmax, simulation, or a remote operator claim into physical performance evidence. A physical comparison requires exact-head HW-18 evidence from an identified board and a separately preregistered on-board timing protocol.",
+  "claim_boundary": "HW-19 measures a host-specific single-thread CPU baseline and derives a non-physical FPGA latency model from exact RTL cycles and frozen timing evidence. It provides a fail-closed route for a third party to collect HW-18 board evidence. It does not establish measured FPGA latency, throughput, power, energy, CPU superiority, FPGA superiority, production reliability, or commercial readiness."
+}

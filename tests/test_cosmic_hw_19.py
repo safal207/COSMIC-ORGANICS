@@ -67,6 +67,7 @@ def test_inherited_blobs_and_candidate_paths_are_exact() -> None:
         assert git_blob_sha(ROOT / relative) == expected
     assert set(manifest["candidate_paths"]) == {
         ".gitignore",
+        ".github/workflows/ci.yml",
         ".github/workflows/cosmic_hw_19_no_purchase_contract.yml",
         "benchmarks/cosmic_hw_19_cpu.cpp",
         "benchmarks/cosmic_hw_19_manifest.json",

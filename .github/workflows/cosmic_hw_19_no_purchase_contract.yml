@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - ".gitignore"
+      - ".github/workflows/ci.yml"
       - ".github/workflows/cosmic_hw_19_no_purchase_contract.yml"
       - "benchmarks/cosmic_hw_19_cpu.cpp"
       - "benchmarks/cosmic_hw_19_manifest.json"

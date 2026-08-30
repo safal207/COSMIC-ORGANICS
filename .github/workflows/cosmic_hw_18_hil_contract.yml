@@ -1,0 +1,65 @@
+name: COSMIC-HW-18 HIL Contract
+
+on:
+  pull_request:
+    paths:
+      - benchmarks/cosmic_hw_18_manifest.json
+      - docs/cosmic-hw-18-physical-hil.md
+      - tests/test_cosmic_hw_18_hil.py
+      - tools/cosmic_hw_16_uart_verify.py
+      - tools/cosmic_hw_18_hil.py
+      - .github/workflows/cosmic_hw_18_hil_contract.yml
+  push:
+    branches:
+      - feat/cosmic-hw-18-physical-hil
+    paths:
+      - benchmarks/cosmic_hw_18_manifest.json
+      - docs/cosmic-hw-18-physical-hil.md
+      - tests/test_cosmic_hw_18_hil.py
+      - tools/cosmic_hw_16_uart_verify.py
+      - tools/cosmic_hw_18_hil.py
+      - .github/workflows/cosmic_hw_18_hil_contract.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cosmic-hw-18-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  harness-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependency
+        run: python -m pip install --quiet pytest
+
+      - name: Validate direct operator entrypoint
+        run: PYTHONDONTWRITEBYTECODE=1 python tools/cosmic_hw_18_hil.py --help
+
+      - name: Run fail-closed HW-18 harness tests
+        run: |
+          PYTHONDONTWRITEBYTECODE=1 python -m pytest -p no:cacheprovider -q \
+            tests/test_cosmic_hw_18_hil.py
+
+      - name: Recheck inherited HW-16 and HW-17 contracts
+        run: |
+          PYTHONDONTWRITEBYTECODE=1 python -m pytest -p no:cacheprovider -q \
+            tests/test_cosmic_hw_17_prereg.py \
+            tests/test_cosmic_hw_16_prereg.py \
+            -k 'not candidate_absence and not candidate_files_absent'
+
+      - name: State physical execution boundary
+        run: |
+          echo 'HW-18 harness contract PASS does not execute or program a physical board.'
+          echo 'Physical verdict remains NOT_RUN until a separate 10/10 ULX3S evidence bundle exists.'

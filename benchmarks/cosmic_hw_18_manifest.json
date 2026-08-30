@@ -101,6 +101,7 @@
   },
   "candidate_paths": [
     "benchmarks/cosmic_hw_18_manifest.json",
+    ".github/workflows/cosmic_hw_18_hil_contract.yml",
     "tools/cosmic_hw_18_hil.py",
     "tests/test_cosmic_hw_18_hil.py",
     "docs/cosmic-hw-18-physical-hil.md"

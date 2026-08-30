@@ -91,3 +91,7 @@ A green result supports execution of this exact self-test and bitstream on the
 one recorded physical board and rig. It is not a CPU comparison. Power, energy,
 thermal behavior, throughput under live ingress, p99 latency and an optimized
 native CPU baseline require separate measured experiments.
+
+The `COSMIC-HW-18 HIL Contract` GitHub workflow checks only the harness and its
+frozen contracts. A green hosted workflow never programs a board and must not
+be reported as physical execution.

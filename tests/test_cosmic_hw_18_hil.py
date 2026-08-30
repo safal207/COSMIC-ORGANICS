@@ -187,6 +187,7 @@ def test_inherited_verifier_blob_and_candidate_paths() -> None:
     for relative, expected in manifest["inherited_source_blobs"].items():
         assert git_blob_sha(ROOT / relative) == expected
     assert set(manifest["candidate_paths"]) == {
+        ".github/workflows/cosmic_hw_18_hil_contract.yml",
         "benchmarks/cosmic_hw_18_manifest.json",
         "tools/cosmic_hw_18_hil.py",
         "tests/test_cosmic_hw_18_hil.py",

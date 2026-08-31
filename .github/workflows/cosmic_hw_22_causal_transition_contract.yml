@@ -1,0 +1,226 @@
+name: COSMIC-HW-22 Causal Transition Contract
+
+on:
+  push:
+    branches:
+      - feat/cosmic-hw-22-causal-transition
+  pull_request:
+    paths:
+      - ".github/workflows/cosmic_hw_22_causal_transition_contract.yml"
+      - "benchmarks/cosmic_hw_22_causal_manifest.json"
+      - "docs/cosmic-hw-22-causal-transition.md"
+      - "tools/cosmic_hw_22_causal_transition.py"
+      - "tests/test_cosmic_hw_22_causal_transition.py"
+      - "benchmarks/cosmic_hw_16_vectors.json"
+      - "tools/cosmic_hw_16_uart_verify.py"
+      - "rtl/cosmic_hw_06.v"
+      - "rtl/cosmic_hw_07_receipt.v"
+      - "rtl/cosmic_hw_08_sha256.v"
+      - "rtl/cosmic_hw_21_network_pyramid.v"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cosmic-hw-22-causal-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      COSMIC_HW22_EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Check out exact candidate head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ env.COSMIC_HW22_EXPECTED_HEAD }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install frozen simulator
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y iverilog=12.0-2build2
+          python -m pip install --quiet pytest
+          python --version
+          iverilog -V | head -n 2
+          vvp -V 2>&1 | head -n 2
+
+      - name: Run bounded HW-22 contracts
+        run: python -m pytest -q tests/test_cosmic_hw_22_causal_transition.py
+
+      - name: Run all sixteen exact causal simulations
+        id: experiment
+        continue-on-error: true
+        run: |
+          python tools/cosmic_hw_22_causal_transition.py \
+            --output-dir build/cosmic-hw-22-causal-transition
+
+      - name: Upload exact-head HW-22 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-hw-22-causal-${{ env.COSMIC_HW22_EXPECTED_HEAD }}
+          path: build/cosmic-hw-22-causal-transition/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Enforce exact-head causal result and claim boundary
+        if: always()
+        env:
+          EXPERIMENT_OUTCOME: ${{ steps.experiment.outcome }}
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+
+          root = Path.cwd()
+          output = root / "build/cosmic-hw-22-causal-transition"
+          result_path = output / "cosmic_hw_22_causal_transition_result.json"
+          assert os.environ["EXPERIMENT_OUTCOME"] == "success"
+          assert result_path.is_file()
+          result = json.loads(result_path.read_text())
+          expected_head = os.environ["COSMIC_HW22_EXPECTED_HEAD"]
+          assert result["experiment_id"] == "COSMIC-HW-22/v0.1"
+          assert result["protocol"] == "COSMIC-HW-22-CAUSAL-FLUSH/v0.1"
+          assert result["passed"] is True
+          assert result["decision"] == "EARLY_HELD_FLUSH_CAUSAL_REDUCTION_SUPPORTED_SIMULATION_ONLY"
+          assert result["source_identity"]["expected_head"] == expected_head
+          assert result["source_identity"]["initial"]["head"] == expected_head
+          assert result["source_identity"]["final"]["head"] == expected_head
+          assert result["source_identity"]["initial"]["tree"] == result["source_identity"]["final"]["tree"]
+          assert result["source_identity"]["initial"]["clean"] is True
+          assert result["source_identity"]["final"]["clean"] is True
+          assert subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip() == expected_head
+          assert subprocess.check_output(["git", "status", "--porcelain=v1"], text=True).strip() == ""
+          parent_head = "a4446fc93cc4ab4fdf4dc56021e76f1c8e85b30b"
+          subprocess.run(
+              ["git", "merge-base", "--is-ancestor", parent_head, expected_head],
+              check=True,
+          )
+          expected_paths = {
+              ".github/workflows/cosmic_hw_22_causal_transition_contract.yml",
+              "benchmarks/cosmic_hw_22_causal_manifest.json",
+              "docs/cosmic-hw-22-causal-transition.md",
+              "tests/test_cosmic_hw_22_causal_transition.py",
+              "tools/cosmic_hw_22_causal_transition.py",
+          }
+          diff_rows = subprocess.check_output(
+              ["git", "diff", "--name-status", "--no-renames", f"{parent_head}..{expected_head}"],
+              text=True,
+          ).splitlines()
+          observed_diff = [line.split("\t") for line in diff_rows]
+          assert {fields[1] for fields in observed_diff} == expected_paths
+          assert all(fields[0] == "A" for fields in observed_diff)
+          assert result["candidate_scope"]["parent_is_ancestor"] is True
+          assert result["candidate_scope"]["exact_candidate_scope_match"] is True
+          assert set(result["candidate_scope"]["expected_candidate_paths"]) == expected_paths
+          assert result["candidate_scope"]["observed_name_status"] == [
+              {"status": fields[0], "path": fields[1]} for fields in observed_diff
+          ]
+
+          workflow = result["workflow_identity"]
+          assert workflow["execution_context"] == "GITHUB_ACTIONS"
+          assert workflow["repository"] == os.environ["GITHUB_REPOSITORY"]
+          assert workflow["event_name"] == os.environ["GITHUB_EVENT_NAME"]
+          assert workflow["run_id"] == os.environ["GITHUB_RUN_ID"]
+          assert workflow["run_attempt"] == os.environ["GITHUB_RUN_ATTEMPT"]
+          assert workflow["workflow_ref"] == os.environ["GITHUB_WORKFLOW_REF"]
+          assert workflow["workflow_sha"] == os.environ["GITHUB_WORKFLOW_SHA"]
+
+          expected = {
+              "CONTROL_DELAYED_FLUSH": [862, 482, 362, 307, 287, 262, 257, 257],
+              "EAGER_HELD_FLUSH": [859, 469, 339, 274, 229, 209, 198, 198],
+          }
+          vector = json.loads(Path("benchmarks/cosmic_hw_16_vectors.json").read_text())["commitment_digests"]
+          runs = result["runs"]
+          assert len(runs) == 16
+          assert {(row["engines"], row["policy"]) for row in runs} == {
+              (engines, policy)
+              for engines in range(1, 9)
+              for policy in expected
+          }
+          for row in runs:
+              engines = row["engines"]
+              assert row["compute_cycles"] == expected[row["policy"]][engines - 1]
+              assert row["predicted_compute_cycles"] == row["compute_cycles"]
+              assert row["prediction_error_cycles"] == 0
+              assert row["receipt_count"] == 128
+              assert row["digest_count"] == 13
+              assert row["matched_digest_count"] == 13
+              assert row["all_digest_oracle_match"] is True
+              assert row["aggregate_sha_busy_cycles"] == 832
+              assert row["accept_count"] == 13
+              assert row["accept_sequence_vector"] == list(range(13))
+              assert row["digest_sequence_vector"] == list(range(13))
+              assert [event["digest"] for event in row["event_trace"]["digests"]] == vector
+              assert row["flush"]["build_count"] == 1
+              assert row["flush"]["producer_quiescent_at_first_sample"] is True
+              assert row["quiet_guard"] == {"cycles": 16, "violations": 0}
+              if row["policy"] == "EAGER_HELD_FLUSH":
+                  assert row["flush"]["retired_digests_at_first_sample"] < 12
+                  if engines in (3, 5):
+                      assert row["flush"]["waiting_valid_at_first_sample"] is True
+
+          assert len(result["comparisons"]) == 8
+          for comparison in result["comparisons"]:
+              engines = comparison["engines"]
+              assert comparison["only_changed_variable"] == "end-of-stream flush policy"
+              assert comparison["control_compute_cycles"] == expected["CONTROL_DELAYED_FLUSH"][engines - 1]
+              assert comparison["eager_compute_cycles"] == expected["EAGER_HELD_FLUSH"][engines - 1]
+              assert comparison["cycles_removed"] >= 0
+              assert comparison["same_full_digest_oracle"] is True
+              assert comparison["same_aggregate_work"] is True
+
+          assert result["best_simulated_point"]["engines"] == 7
+          assert result["best_simulated_point"]["compute_cycles"] == 198
+          assert result["best_simulated_point"]["physical_measurement"] is False
+          assert result["competitive_claim_allowed"] is False
+          assert result["execution_states"] == {
+              "rtl_simulation": "PASS",
+              "synthesis": "NOT_RUN",
+              "place_and_route": "NOT_RUN",
+              "physical_board": "NOT_RUN",
+              "power": "NOT_RUN",
+          }
+          assert result["required_checks"]
+          assert all(value == "PASS" for value in result["required_checks"].values())
+
+          evidence_path = output / "evidence_manifest.json"
+          evidence = json.loads(evidence_path.read_text())
+          assert evidence["self_hash_excluded"] is True
+          assert evidence["repository"] == "safal207/COSMIC-ORGANICS"
+          assert evidence["completed_at"] == result["completed_at"]
+          assert evidence["parent"]["head"] == parent_head
+          assert evidence["parent"]["tree"] == "21e5a9470a6b4a532a75a754b71b56c31f7b2b23"
+          assert evidence["source_identity"]["expected_head"] == expected_head
+          assert evidence["source_identity"]["initial"] == result["source_identity"]["initial"]
+          assert evidence["source_identity"]["final_after_result_write"] == result["source_identity"]["final"]
+          assert evidence["candidate_scope"] == result["candidate_scope"]
+          assert evidence["workflow_identity"] == workflow
+          files = evidence["files"]
+          assert len(files) == 17
+          names = [entry["path"] for entry in files]
+          assert len(names) == len(set(names))
+          actual = {
+              path.relative_to(output).as_posix()
+              for path in output.rglob("*")
+              if path.is_file() and path != evidence_path
+          }
+          assert set(names) == actual
+          for entry in files:
+              path = output / entry["path"]
+              assert path.is_file()
+              assert path.stat().st_size == entry["bytes"]
+              assert hashlib.sha256(path.read_bytes()).hexdigest() == entry["sha256"]
+          PY

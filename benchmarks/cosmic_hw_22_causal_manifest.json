@@ -1,0 +1,176 @@
+{
+  "experiment_id": "COSMIC-HW-22/v0.1",
+  "protocol": "COSMIC-HW-22-CAUSAL-FLUSH/v0.1",
+  "question": "How many exact proof-edge cycles are causally removed when end-of-stream flush is asserted as soon as the receipt producer is provably quiescent and held safely, instead of pulsed only after all twelve full digests drain?",
+  "parent": {
+    "repository": "safal207/COSMIC-ORGANICS",
+    "pull_request": 124,
+    "source_head": "a4446fc93cc4ab4fdf4dc56021e76f1c8e85b30b",
+    "source_tree": "21e5a9470a6b4a532a75a754b71b56c31f7b2b23",
+    "experiment_id": "COSMIC-HW-21/v0.1",
+    "workflow_run_id": 33363461183,
+    "artifact_id": 9747638157,
+    "artifact_sha256": "b06eaa90d1539af80aefebe0e5ed7dd30effaecc7ca0a5543ae9b6d658fb8c8e",
+    "physical_execution_state": "NOT_RUN"
+  },
+  "workload": {
+    "operation_name": "ULX3S_PROOF_EDGE_A_M_C_2TICK",
+    "sites": 64,
+    "accepted_ticks": 2,
+    "stimulus_s100": 100,
+    "ordered_receipts": 128,
+    "receipt_output_lanes": 1,
+    "receipts_per_full_commitment": 10,
+    "full_commitments": 12,
+    "partial_commitment_receipts": 8,
+    "sha256_digests": 13,
+    "sha_rounds_per_digest": 64,
+    "aggregate_sha_busy_cycles": 832,
+    "digest_ready": "always asserted",
+    "final_phase": "C"
+  },
+  "causal_experiment": {
+    "engine_counts": [1, 2, 3, 4, 5, 6, 7, 8],
+    "policies": [
+      "CONTROL_DELAYED_FLUSH",
+      "EAGER_HELD_FLUSH"
+    ],
+    "control": "After receipt_count=128 and fill_count=8, wait for digest_count=12, waiting_valid=0, all engine busy bits=0, and all digest-valid bits=0; then sample flush for exactly one cycle.",
+    "intervention": "After receipt_count=128, fill_count=8, batch_occupancy=0, pending_observation=0, and receipt_valid=0, assert flush on that Mealy-qualified cycle without waiting for digest retirement and hold it until the sequence-12 block-accept handshake.",
+    "only_changed_variable": "end-of-stream flush policy",
+    "controlled_variables": [
+      "exact inherited RTL blobs",
+      "reset and first-post-reset cycle origin",
+      "two accepted ticks",
+      "stimulus_s100=100",
+      "128 ordered receipt handshakes",
+      "twelve full blocks plus one eight-receipt partial block",
+      "digest_ready continuously asserted",
+      "same engine count within each A/B pair",
+      "lowest-index ready-engine dispatch",
+      "strict in-sequence digest retirement"
+    ],
+    "lost_pulse_hazard": "A one-cycle flush sampled while waiting_valid=1 is rejected even when that waiting block dispatches on the same edge; the eager request must remain asserted until the partial block is built and accepted.",
+    "post_completion_quiet_guard_cycles": 16
+  },
+  "oracle": {
+    "path": "benchmarks/cosmic_hw_16_vectors.json",
+    "generator_path": "tools/cosmic_hw_16_uart_verify.py",
+    "vector_blob_sha1": "8df1f55db8acb76e2bb621d44053e3966cbabb45",
+    "generator_blob_sha1": "1dc0ee42585cb1df8b74ad71ae11123b216b9372",
+    "vector_file_sha256": "da4d98738969c4d1d1c93e3fcfb33efbe9603d35042aada422668482fd25a5a8",
+    "vector_fingerprint_algorithm": "sha256(concat(uint16_be(sequence), digest32) for sequence=0..12)",
+    "vector_fingerprint_sha256": "ab85d716d0e384b3a7d5194656a63509786e17eba4954527727687413c1735a7",
+    "expected_digest_count": 13,
+    "all_policies_and_layers_must_match_all_13_digests": true,
+    "oracle_may_appear_in_synthesizable_rtl": false
+  },
+  "model": {
+    "name": "bounded max-plus state-time causal graph",
+    "cycle_origin": "cycle 1 is the first post-reset edge; completion is one edge after the sequence-12 digest handshake",
+    "constants": {
+      "full_block_arrival_interval_without_backpressure": 10,
+      "sha_accept_to_reuse_cycles": 65,
+      "full_block_count": 12,
+      "completion_observation_cycles": 1
+    },
+    "recurrence": [
+      "B_0=12; v_i=0; R_-1=0",
+      "A_j=max(B_j+1,min_i(v_i)); choose the lowest ready engine",
+      "R_j=max(A_j+65,R_(j-1)+1); v_selected=R_j",
+      "B_(j+1)=max(B_j+10,A_j), j=0..10",
+      "P=B_11+8",
+      "CONTROL: B_12=R_11+2",
+      "EAGER: F=P+1; B_12=max(F,A_11+1)",
+      "A_12=max(B_12+1,min_i(v_i)); R_12=max(A_12+65,R_11+1); C=R_12+1"
+    ],
+    "closed_form": {
+      "reuse_deficit": "D(E)=max(0,65-10E)",
+      "control": "C_control(E)=257+floor(11/E)*D(E)",
+      "eager": "C_eager(E)=198+floor(12/E)*D(E)+indicator(E<=6)",
+      "causal_speed_ratio": "G(E)=C_control(E)/C_eager(E)"
+    },
+    "preregistered_compute_cycles": {
+      "CONTROL_DELAYED_FLUSH": {
+        "1": 862,
+        "2": 482,
+        "3": 362,
+        "4": 307,
+        "5": 287,
+        "6": 262,
+        "7": 257,
+        "8": 257
+      },
+      "EAGER_HELD_FLUSH": {
+        "1": 859,
+        "2": 469,
+        "3": 339,
+        "4": 274,
+        "5": 229,
+        "6": 209,
+        "7": 198,
+        "8": 198
+      }
+    }
+  },
+  "gates": {
+    "expected_head_must_be_supplied_externally": true,
+    "parent_must_be_ancestor_of_candidate": true,
+    "actual_parent_to_candidate_diff_must_exactly_equal_candidate_paths": true,
+    "all_candidate_path_statuses_must_equal": "A",
+    "prediction_error_cycles_must_equal": 0,
+    "receipt_handshakes_must_equal": 128,
+    "block_accepts_must_equal": 13,
+    "digest_handshakes_must_equal": 13,
+    "matched_digest_count_must_equal": 13,
+    "aggregate_sha_busy_cycles_must_equal": 832,
+    "accept_and_retire_sequences_must_equal": "0..12 exactly once and in order",
+    "eager_first_flush_must_precede_twelve_retirements": true,
+    "eager_e3_e5_must_collide_with_waiting_valid": true,
+    "partial_flush_build_count_must_equal": 1,
+    "post_completion_quiet_guard_violations_must_equal": 0,
+    "eager_cycles_must_not_exceed_control": true
+  },
+  "cpu_context": {
+    "cpu_model": "AMD EPYC 9V74 96-Core Processor",
+    "threads": 1,
+    "mean_ns_per_operation": 5585.777,
+    "modeled_fpga_clock_mhz": 20.25,
+    "cpu_mean_parity_max_cycles_at_modeled_clock": 113,
+    "comparison_is_physical_fpga_evidence": false
+  },
+  "inherited_source_blobs": {
+    "rtl/cosmic_hw_06.v": "7890a1b256b467fe8726e0e7ef7ff84bf8a03bd8",
+    "rtl/cosmic_hw_07_receipt.v": "13a81d6b7576b929ec3167a0d5ad2795cd40ef5a",
+    "rtl/cosmic_hw_08_sha256.v": "19c1165eb48a9a626520a6fe131003dc90a9ded8",
+    "rtl/cosmic_hw_21_network_pyramid.v": "7f07bad439affc75181d46ea8bf9f6875638f9de",
+    "tools/cosmic_hw_16_uart_verify.py": "1dc0ee42585cb1df8b74ad71ae11123b216b9372",
+    "tools/cosmic_hw_21_network.py": "ebff7c6004f5189afeba59707b9c5d5ac065890c",
+    "benchmarks/cosmic_hw_16_vectors.json": "8df1f55db8acb76e2bb621d44053e3966cbabb45",
+    "benchmarks/cosmic_hw_21_network_manifest.json": "e3ba13e6931cbe94a4214650072c03b59a04a35e",
+    ".github/workflows/cosmic_hw_21_network_contract.yml": "53957f03aca9c2b77879313a31d4fed09bc5f666"
+  },
+  "candidate_paths": [
+    ".github/workflows/cosmic_hw_22_causal_transition_contract.yml",
+    "benchmarks/cosmic_hw_22_causal_manifest.json",
+    "docs/cosmic-hw-22-causal-transition.md",
+    "tests/test_cosmic_hw_22_causal_transition.py",
+    "tools/cosmic_hw_22_causal_transition.py"
+  ],
+  "decision_classes": [
+    "CONTROL_FAILURE",
+    "SEMANTIC_FAILURE",
+    "ORACLE_FAILURE",
+    "WORK_CONSERVATION_FAILURE",
+    "MODEL_MISMATCH",
+    "EARLY_HELD_FLUSH_CAUSAL_REDUCTION_SUPPORTED_SIMULATION_ONLY"
+  ],
+  "stop_rule": "Reject on any source-identity drift, oracle mismatch, missing or duplicate sequence, nonzero prediction error, work other than 832 busy-engine cycles, unsafe or duplicate partial flush, quiet-guard event, eager regression, or promotion of simulation into physical evidence.",
+  "claim_boundary": {
+    "competitive_claim_allowed": false,
+    "physical_execution_state": "NOT_RUN",
+    "synthesis_state": "NOT_RUN",
+    "place_and_route_state": "NOT_RUN",
+    "statement": "HW-22 identifies the bounded causal contribution of end-of-stream flush timing in exact RTL simulation for this frozen workload. It does not establish a general root cause, synthesized or routed hardware, attainable Fmax, power, energy, physical board performance, distributed-network scaling, CPU parity, CPU superiority, or production readiness."
+  }
+}

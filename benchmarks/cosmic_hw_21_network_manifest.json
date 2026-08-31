@@ -1,0 +1,86 @@
+{
+  "experiment_id": "COSMIC-HW-21/v0.1",
+  "protocol": "COSMIC-HW-21-NETWORK-PYRAMID/v0.1",
+  "question": "How much exact proof-edge latency is removed by binary expansion from two to four, eight, and sixteen SHA-256 engines, and where does the single receipt lane stop 1+1=N scaling?",
+  "parent": {
+    "repository": "safal207/COSMIC-ORGANICS",
+    "pull_request": 123,
+    "source_head": "70a3b2177737a37ce0a64f7a75310432ad286044",
+    "source_tree": "1bb030ce6cb0e2e47218b929d18d4af308c20b45",
+    "experiment_id": "COSMIC-HW-20/v0.1",
+    "artifact_id": 9735549367,
+    "artifact_sha256": "0b476d9871471356aa52a019880470423e895d2ab86516b83198e4da06c09a4b",
+    "x1_compute_cycles": 862,
+    "x2_compute_cycles": 482,
+    "x2_board_trellis_comb": 63726,
+    "x2_route_state": "TIMED_OUT_1200_SECONDS",
+    "physical_hil_state": "NOT_RUN"
+  },
+  "workload": {
+    "operation_name": "ULX3S_PROOF_EDGE_A_M_C_2TICK",
+    "sites": 64,
+    "accepted_ticks": 2,
+    "stimulus_s100": 100,
+    "ordered_receipts": 128,
+    "receipt_output_lanes": 1,
+    "receipts_per_full_commitment": 10,
+    "sha256_digests": 13,
+    "sha_rounds_per_digest": 64,
+    "aggregate_sha_busy_cycles": 832,
+    "last_digest": "c31bff9259318b3309bdb0fdd5282ce58366d6d8d1b9c636080eb6482a230ab2"
+  },
+  "network_pyramid": {
+    "layers": [2, 4, 8, 16],
+    "expansion_rule": "each layer doubles physical iterative SHA consumers",
+    "dispatcher": "lowest-index ready consumer",
+    "digest_retirement": "strictly increasing commitment sequence",
+    "complete_waiting_blocks": 1,
+    "currently_filling_messages": 1,
+    "superlinear_speedup_claim_allowed": false,
+    "network_effect_definition": "more ready consumers overlap independent commitment hashes until the single receipt and block-assembly producer becomes the bottleneck",
+    "drop_allowed": false,
+    "unbounded_queue_allowed": false
+  },
+  "gates": {
+    "x2_must_reproduce_cycles": 482,
+    "all_layers_must_match_digest": true,
+    "all_layers_aggregate_busy_cycles_must_equal": 832,
+    "cycles_must_be_monotonic_nonincreasing": true,
+    "speedup_must_not_exceed_engine_count": true,
+    "x4_synthesis_required": true,
+    "trellis_comb_capacity": 83640
+  },
+  "cpu_reference": {
+    "cpu_model": "AMD EPYC 9V74 96-Core Processor",
+    "threads": 1,
+    "mean_ns_per_operation": 5585.777,
+    "clock_points_mhz": [10.0, 20.25],
+    "cpu_mean_parity_max_cycles_at_20_25mhz": 113
+  },
+  "inherited_source_blobs": {
+    "rtl/cosmic_hw_06.v": "7890a1b256b467fe8726e0e7ef7ff84bf8a03bd8",
+    "rtl/cosmic_hw_07_receipt.v": "13a81d6b7576b929ec3167a0d5ad2795cd40ef5a",
+    "rtl/cosmic_hw_08_sha256.v": "19c1165eb48a9a626520a6fe131003dc90a9ded8",
+    "benchmarks/cosmic_hw_20_manifest.json": "d2e11628df22a71a24c72f22b59f3a4b0c1ebdc1",
+    "rtl/cosmic_hw_20_stretcher_top.v": "0004cc07e268bb03f1beee8cc5cad94bdfa925b7",
+    "tools/cosmic_hw_20_stretcher.py": "5897c5a893f4b885667f17257b7df41f96a7d834"
+  },
+  "candidate_paths": [
+    ".github/workflows/cosmic_hw_21_network_contract.yml",
+    "benchmarks/cosmic_hw_21_network_manifest.json",
+    "docs/cosmic-hw-21-network-pyramid.md",
+    "rtl/cosmic_hw_21_network_pyramid.v",
+    "tests/test_cosmic_hw_21_network.py",
+    "tools/cosmic_hw_21_network.py"
+  ],
+  "decision_classes": [
+    "CONTROL_FAILURE",
+    "SEMANTIC_FAILURE",
+    "WORK_CONSERVATION_FAILURE",
+    "NON_MONOTONIC_SCALING",
+    "NETWORK_PYRAMID_SPEEDUP_SUPPORTED_SINGLE_BOARD_CAPACITY_LIMIT",
+    "NETWORK_PYRAMID_CPU_PARITY_MODELED_PHYSICAL_NOT_RUN"
+  ],
+  "stop_rule": "Reject any layer on digest mismatch, aggregate work other than 832 busy-engine cycles, non-monotonic latency, superlinear representation, or promotion of simulation into physical evidence.",
+  "claim_boundary": "HW-21 measures exact RTL scaling across simulated physical engine counts and synthesizes x2/x4 resource frontiers. It does not establish a routable x4/x8/x16 board, distributed-network latency, physical performance, power, energy, CPU superiority, or production readiness."
+}

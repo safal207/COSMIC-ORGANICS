@@ -1,161 +1,59 @@
 # COSMIC ORGANICS / MORPHOS
 
-**An experimental sparse lattice-computing architecture in which local state transitions perform the computation and can emit independently verifiable causal evidence.**
+**Sparse transition-state execution with separately checkable evidence — a research processor stack.**
 
-COSMIC ORGANICS is currently a **research processor stack**, not a production CPU or finished chip. The repository contains a deterministic software model, an integrated sparse-plus-proof kernel, synthesizable 64-processing-element RTL, cryptographic receipt/Merkle/HMAC pipelines, a reproducible application demo, and a frozen FPGA capacity result.
+The software model computes the active frontier and records transitions. Execution owns state evolution; proof and authentication logic observe that evolution rather than decide the next state.
 
-> Core idea: compute only the active causal frontier, commit the resulting transitions, and make the audit trail independently checkable.
+## Start here
 
-## Architecture
+| Your goal | Entry point |
+|---|---|
+| Start in Russian / начать по-русски | [START_HERE.md](START_HERE.md) |
+| Run the existing software model and demo | Commands below |
+| Find exact research sources and limits | [RESEARCH_INDEX.md](RESEARCH_INDEX.md) |
+| Inspect readiness | [PROJECT_STATUS.json](PROJECT_STATUS.json) |
+| Preserve experiments and manage branches | [REPOSITORY_GUIDE.md](REPOSITORY_GUIDE.md) |
+| Read the complete previous technical introduction | [README.previous.md](README.previous.md) |
 
-```text
-localized stimulus / event
-          |
-          v
-+-----------------------------+
-| 64-PE A / M / C lattice     |
-| local transition law        |
-+-----------------------------+
-          |
-          v
-strong dirty-frontier scheduler
-          |
-          v
-authoritative state commit
-          |
-          +--> deterministic transition receipts
-                    |
-                    +--> SHA-256 receipt commitments
-                              |
-                              +--> Merkle-16 roots + inclusion paths
-                                           |
-                                           +--> HMAC-SHA256 root tags
-```
+## What can be used today
 
-The execution path owns state evolution. Receipt, proof, Merkle, and authentication logic are observers; their values do not decide the next A/M/C state.
+| Track | Use | Boundary |
+|---|---|---|
+| Main software research kernel | Reproduce deterministic sparse/dense comparisons and proofs | Local workload evidence, not universal CPU superiority |
+| Verified incident-map demo | Inspect one complete software use case | Deliberately localized service-map workload |
+| RTL and frozen FPGA research profiles | Reproduce the named profile with its prescribed toolchain | Simulation, fit and physical-board evidence are separate |
+| HW-22 held-flush experiment | Inspect a pinned latency intervention in a separate draft | Simulation-only; not on main, not a board or CPU-parity result |
 
-## What is supported by the frozen evidence
+## Run the software reference
 
-### Software kernel
+Declared requirements: Python 3.11 or 3.12. From a repository checkout:
 
-COSMIC-KERNEL-05 integrated the strong sparse scheduler with Merkle-bound causal proofs over 288 fresh instances. Dense and sparse systems produced identical states, transition counts, proof representations, and deterministic replay. Proof observation caused zero node-evaluation regression on the frozen workload.
-
-Sparse node-evaluation reduction versus the matching dense system:
-
-| Activity | Reduction |
-|---:|---:|
-| 1% | **99.1744%** |
-| 5% | **96.1569%** |
-| 20% | **86.6136%** |
-| 100% | **61.3509%** |
-
-Proof payload and hash cost are substantial and are reported separately; they are not hidden inside a synthetic score.
-
-### Synthesizable 64-PE RTL
-
-COSMIC-HW-06 reproduced the same dense/sparse semantics across 256 frozen sequences and 3,072 logical ticks. Sparse RTL reduced enabled PE evaluations by **95.54% at 1% activity**, **86.69% at 5%**, and **54.99% at 20%**, while paying explicit scheduler area/state overhead.
-
-The downstream RTL stack adds, in separate frozen experiments:
-
-- exact 40-bit transition receipts;
-- standard SHA-256 receipt commitments;
-- SHA-engine throughput controls;
-- Merkle-16 roots and four-level inclusion paths;
-- two-engine Merkle throughput handoff (`B1_M2`);
-- standard HMAC-SHA256 authentication for every frozen Merkle root.
-
-### Application demo
-
-The verified incident-map demo runs a localized 16×16 service-map scenario:
-
-- 256 cells;
-- 24 logical ticks;
-- 40 completed and audited transitions;
-- dense/sparse equality after every tick;
-- deterministic replay;
-- valid proof acceptance and mutated-claim rejection;
-- **97.3307% fewer node evaluations** for the sparse system on this deliberately localized workload.
-
-That percentage describes this demo workload; it is not a universal performance claim.
-
-### Physical FPGA boundary
-
-The complete proof-heavy HW-12 profile was synthesized for the preregistered Lattice ECP5-85F target. Functional, HMAC, harness-preservation, and anti-pruning gates passed, but the exact full stack did **not fit**:
-
-- combinational use: `116,535 / 83,640` (**139%**);
-- multipliers: `201 / 156` (**128%**);
-- successful routes/bitstreams: `0 / 5` frozen seeds;
-- Fmax was therefore not measured.
-
-This is a valid capacity result for that exact device and profile. It does not mean the architecture fails on every FPGA; it means productization now requires a smaller proof profile, more resource sharing, a smaller lattice, off-core proof construction, or a larger target.
-
-## What was falsified or narrowed
-
-The research chain deliberately keeps negative results:
-
-- first-class **Bardo** relations did not beat the strong dirty-node scheduler;
-- Bardo-labelled proof compression did not beat an equally expressive generic committed DAG;
-- buffering and SHA parallelism are conventional hardware mechanisms, not COSMIC-specific inventions;
-- no measured energy, CPU/GPU superiority, quantum, biological-computing, or lattice-QCD-equivalence claim is made.
-
-“Bardo” remains useful as a conceptual name for the committed transition boundary, not as an unsupported uniqueness claim.
-
-## Five-minute reproduction
-
-Requirements: Python 3.11 or 3.12.
-
-```bash
+```sh
 python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+# Activate .venv for your shell.
 python -m pip install -e .
 make verify
 make demo
 ```
 
-Direct commands:
+Without Make, use the exact commands in [README.previous.md](README.previous.md). Optional `make rtl-smoke` requires Icarus Verilog. Full FPGA place-and-route is intentionally outside the default software path.
 
-```bash
-python -m unittest -v \
-  tests.test_sparse_scheduler \
-  tests.test_proof_controls_v02 \
-  tests.test_dag_parent_commit \
-  tests.test_cosmic_kernel \
-  tests.test_verified_incident_map
+Baseline main source: `6cca90a5fc9f3e98cde2906c65383bae0a6f7ef6`. This documentation pass did not rerun its tests or any hardware experiments and changes no runtime code.
 
-python -m demos.verified_incident_map --compact
-```
+## Research evidence and limitations
 
-Optional RTL HMAC smoke, with Icarus Verilog installed:
+Start with [research status](docs/RESEARCH-STATUS.md), then the [selected-track index](RESEARCH_INDEX.md). Read milestone-specific statements at their exact revisions; older readiness pages are not proof that newer drafts have shipped.
 
-```bash
-make rtl-smoke
-```
+Retain negative results: the full proof-heavy HW-12 profile did not fit its selected ECP5-85F target; Bardo-labelled mechanisms did not beat equally expressive strong conventional controls in the recorded comparisons. A narrower later profile must keep its own result and provenance, not overwrite those observations.
 
-The full FPGA place-and-route experiment is intentionally not part of the default fast path; it requires the frozen ECP5 open-source toolchain and is retained as research evidence.
+## Architecture family
 
-## Processor readiness
+[BardoCompute](https://github.com/safal207/BardoCompute): transition representation · [COSMIC-ORGANICS](https://github.com/safal207/COSMIC-ORGANICS): sparse execution · [ATMAN-LATTICE](https://github.com/safal207/ATMAN-LATTICE): authority and governed revision · [CaPU](https://github.com/safal207/CaPU): effect admission and recovery.
 
-The present system is best described as a **specialized verifiable lattice accelerator architecture**.
+This is a map of intended roles, not a verified integrated system. The CaPU × ATMAN laboratories do not include COSMIC.
 
-- software research kernel: demonstrated;
-- synthesizable specialized RTL: demonstrated;
-- complete cryptographic proof profile: functionally demonstrated in RTL simulation/synthesis;
-- fit on the selected mid-range FPGA: not supported for the full profile;
-- board execution, measured power, stable host interface, compiler/ISA, and production silicon: not yet demonstrated.
+## Status, history and license
 
-See [Processor readiness](docs/PROCESSOR-READINESS.md) for the milestone and percentage model, and [Research status](docs/RESEARCH-STATUS.md) for the evidence matrix.
+Readiness snapshot: **2026-09-05**. Production silicon, general-purpose CPU replacement, measured system-level speed/energy advantage and deployment safety are not established by these entry tracks.
 
-## Canonical evidence
-
-- [COSMIC-KERNEL-05 — integrated sparse + committed proof](https://github.com/safal207/COSMIC-ORGANICS/pull/69)
-- [COSMIC-HW-06 — 64-PE dense vs sparse RTL](https://github.com/safal207/COSMIC-ORGANICS/pull/72)
-- [COSMIC-HW-12 — HMAC-authenticated Merkle-root cost](https://github.com/safal207/COSMIC-ORGANICS/pull/94)
-- [COSMIC-HW-13 — ECP5 physical capacity boundary](https://github.com/safal207/COSMIC-ORGANICS/pull/97)
-- [Verified incident-map application demo](https://github.com/safal207/COSMIC-ORGANICS/pull/99)
-- [COSMIC-RELEASE-01 milestone](https://github.com/safal207/COSMIC-ORGANICS/issues/98)
-
-Historical preregistrations, negative results, manifests, tests, and machine-readable evidence remain in the repository and frozen branches.
-
-## License
-
-Apache-2.0.
+Existing source paths, workflows, results, branches and Apache-2.0 [license](LICENSE) remain unchanged. The original README is preserved byte-for-byte at [README.previous.md](README.previous.md).

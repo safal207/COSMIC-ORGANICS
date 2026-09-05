@@ -1,0 +1,18 @@
+{
+  "schema": "research-repository-status/1",
+  "repository": "safal207/COSMIC-ORGANICS",
+  "observed_on": "2026-09-05",
+  "default_branch": "main",
+  "baseline_main_sha": "6cca90a5fc9f3e98cde2906c65383bae0a6f7ef6",
+  "publication_scope": "documentation only; no code promotion",
+  "production_ready": false,
+  "coverage": "selected reference and research tracks, not a complete branch audit",
+  "tracks": [
+    {"id":"main-reference","source_sha":"6cca90a5fc9f3e98cde2906c65383bae0a6f7ef6","availability":"main research kernel and demo","on_baseline_main":true,"rerun_during_organization":false},
+    {"id":"hw22","source_sha":"89d055284bdc745fb9d85a7661319287283f1600","base_sha":"a4446fc93cc4ab4fdf4dc56021e76f1c8e85b30b","availability":"draft PR 125 targeting HW-21 branch","on_baseline_main":false,"evidence":"simulation-only held-flush intervention","physical_board":"NOT_RUN","rerun_during_organization":false}
+  ],
+  "negative_results_preserved": ["full proof-heavy HW-12 profile did not fit the selected ECP5-85F target", "Bardo-labelled mechanisms did not outperform equally expressive strong controls in recorded comparisons"],
+  "non_claims": ["general-purpose CPU replacement", "CPU superiority", "measured full-system energy advantage", "production safety", "verified four-repository integration"],
+  "branch_deletions": [],
+  "review_of_linked_code": "unchanged by documentation publication"
+}
